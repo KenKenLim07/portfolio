@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#0f172a"/>
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#312e81"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="30%" cy="25%" r="50%">
+      <stop offset="0%" stop-color="#6366f1" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g1)"/>
+  <rect width="1600" height="900" fill="url(#glow)"/>
+  <g opacity="0.15" stroke="#94a3b8" stroke-width="1">
+    <line x1="0" y1="150" x2="1600" y2="150"/><line x1="0" y1="300" x2="1600" y2="300"/>
+    <line x1="0" y1="450" x2="1600" y2="450"/><line x1="0" y1="600" x2="1600" y2="600"/>
+    <line x1="200" y1="0" x2="200" y2="900"/><line x1="400" y1="0" x2="400" y2="900"/>
+    <line x1="600" y1="0" x2="600" y2="900"/><line x1="800" y1="0" x2="800" y2="900"/>
+  </g>
+  <rect x="120" y="520" width="420" height="8" rx="4" fill="#6366f1" opacity="0.8"/>
+  <rect x="120" y="560" width="320" height="6" rx="3" fill="#475569"/>
+  <rect x="120" y="600" width="380" height="6" rx="3" fill="#334155"/>
+  <rect x="900" y="180" width="480" height="280" rx="16" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <polyline points="940,400 1020,320 1100,350 1180,260 1260,300 1340,220" fill="none" stroke="#818cf8" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="1340" cy="220" r="6" fill="#a5b4fc"/>
+</svg>

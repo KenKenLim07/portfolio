@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" fill="none">
+  <rect width="1600" height="900" fill="#0c0a09"/>
+  <defs>
+    <linearGradient id="g2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#292524"/>
+      <stop offset="60%" stop-color="#1c1917"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#g2)"/>
+  <ellipse cx="800" cy="200" rx="400" ry="120" fill="#d97706" opacity="0.08"/>
+  <rect x="200" y="280" width="1200" height="480" rx="24" fill="#1c1917" stroke="#44403c" stroke-width="1"/>
+  <text x="800" y="420" text-anchor="middle" fill="#fafaf9" font-family="Georgia, serif" font-size="72" font-weight="300" letter-spacing="12">SKYWARD</text>
+  <text x="800" y="480" text-anchor="middle" fill="#a8a29e" font-family="system-ui" font-size="18" letter-spacing="8">JAPANESE CUISINE</text>
+  <line x1="600" y1="560" x2="1000" y2="560" stroke="#d97706" stroke-width="1" opacity="0.6"/>
+</svg>

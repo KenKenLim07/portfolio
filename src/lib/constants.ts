@@ -1,0 +1,185 @@
+export const SITE = {
+  name: "Ken Ken",
+  role: "Fullstack Developer & AI Systems Engineer",
+  email: "hello@example.com",
+  tagline: "Building Intelligent Digital Experiences",
+  description:
+    "Fullstack developer focused on premium websites, AI-powered systems, and modern business platforms.",
+  url: "https://portfolio.example.com",
+} as const;
+
+export const NAV_LINKS = [
+  { label: "Home", href: "#home" },
+  { label: "Projects", href: "#projects" },
+  { label: "About", href: "#about" },
+  { label: "Services", href: "#services" },
+  { label: "Tech Stack", href: "#tech-stack" },
+  { label: "Contact", href: "#contact" },
+] as const;
+
+export const SOCIAL_LINKS = {
+  github: "https://github.com",
+  linkedin: "https://linkedin.com",
+  messenger: "https://m.me",
+} as const;
+
+export type Project = {
+  id: string;
+  title: string;
+  description: string;
+  stack: string[];
+  image: string;
+  gradient: string;
+  liveUrl?: string;
+  githubUrl?: string;
+};
+
+export const PROJECTS: Project[] = [
+  {
+    id: "news-intelligence",
+    title: "Philippine News Intelligence Platform",
+    description:
+      "AI-powered news aggregation and sentiment analysis platform that monitors multiple Philippine news sources in real time using NLP pipelines, automated scraping systems, and analytics dashboards.",
+    stack: [
+      "Next.js",
+      "FastAPI",
+      "Supabase",
+      "Redis",
+      "Celery",
+      "Docker",
+      "DistilBERT",
+      "VADER NLP",
+    ],
+    image: "/projects/news-intelligence.svg",
+    gradient: "from-slate-900 via-indigo-950 to-violet-950",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "skyward-restaurant",
+    title: "Skyward Japanese Restaurant Website",
+    description:
+      "Premium restaurant website focused on cinematic presentation, modern branding, mobile-first UX, and elegant customer experience.",
+    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
+    image: "/projects/skyward-restaurant.svg",
+    gradient: "from-zinc-950 via-stone-900 to-amber-950",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+  {
+    id: "beauty-storefront",
+    title: "Beauty Brand Storefront",
+    description:
+      "Modern ecommerce-style storefront for a beauty distributor focused on conversion, branding, and premium visual presentation.",
+    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Stripe"],
+    image: "/projects/beauty-storefront.svg",
+    gradient: "from-zinc-950 via-rose-950 to-fuchsia-950",
+    liveUrl: "#",
+    githubUrl: "#",
+  },
+];
+
+export const SERVICES = [
+  {
+    title: "Premium Business Websites",
+    description:
+      "High-converting, brand-forward websites engineered for credibility and growth.",
+    icon: "Globe",
+  },
+  {
+    title: "Restaurant Websites",
+    description:
+      "Cinematic dining experiences with mobile-first menus, reservations, and storytelling.",
+    icon: "UtensilsCrossed",
+  },
+  {
+    title: "Fullstack Web Applications",
+    description:
+      "Scalable platforms with modern frontends, robust APIs, and production-ready architecture.",
+    icon: "Layers",
+  },
+  {
+    title: "AI-Powered Dashboards",
+    description:
+      "Intelligent analytics interfaces with real-time data, NLP, and automated insights.",
+    icon: "Brain",
+  },
+  {
+    title: "UI/UX Design",
+    description:
+      "Minimal, premium interfaces with intentional hierarchy and polished interactions.",
+    icon: "Palette",
+  },
+  {
+    title: "SEO Optimization",
+    description:
+      "Technical SEO, performance tuning, and structured content for discoverability.",
+    icon: "Search",
+  },
+  {
+    title: "Data Visualization Systems",
+    description:
+      "Clear, actionable charts and dashboards for complex operational data.",
+    icon: "BarChart3",
+  },
+] as const;
+
+export const TECH_STACK = {
+  frontend: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion"],
+  backend: ["FastAPI", "Supabase", "Redis", "Celery", "Docker"],
+  ai: [
+    "DistilBERT",
+    "VADER NLP",
+    "Real-Time Data Pipelines",
+    "Sentiment Analysis",
+  ],
+} as const;
+
+export const PROCESS_STEPS = [
+  {
+    step: "01",
+    title: "Strategy",
+    description:
+      "Define goals, audience, and technical requirements for a focused product direction.",
+  },
+  {
+    step: "02",
+    title: "Design",
+    description:
+      "Craft premium UI systems with cinematic hierarchy, spacing, and interaction patterns.",
+  },
+  {
+    step: "03",
+    title: "Development",
+    description:
+      "Build performant fullstack applications with clean architecture and modern tooling.",
+  },
+  {
+    step: "04",
+    title: "Optimization",
+    description:
+      "Refine performance, SEO, accessibility, and analytics for measurable impact.",
+  },
+  {
+    step: "05",
+    title: "Launch",
+    description:
+      "Deploy, monitor, and iterate with confidence on production infrastructure.",
+  },
+] as const;
+
+export const ABOUT_HIGHLIGHTS = [
+  "Frontend engineering",
+  "Fullstack development",
+  "AI-powered systems",
+  "Modern UI/UX",
+  "Scalable backend architecture",
+  "Digital business modernization",
+] as const;
+
+export const ABOUT_EXPERIENCE = [
+  "Real-time systems",
+  "Analytics platforms",
+  "AI-assisted workflows",
+  "Business-focused web experiences",
+] as const;
