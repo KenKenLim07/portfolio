@@ -189,6 +189,16 @@ body {
   );
 }
 
+.project-rail {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.project-rail::-webkit-scrollbar {
+  display: none;
+}
+
 .hero-brain-pulse {
   animation: brain-pulse 3s ease-in-out infinite;
 }
@@ -260,22 +270,6 @@ body {
   }
 }
 
-.mesh-live-badge {
-  animation: mesh-live-badge 2.4s ease-in-out infinite;
-}
-
-@keyframes mesh-live-badge {
-  0%,
-  100% {
-    opacity: 0.8;
-    box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
-  }
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 14px rgba(52, 211, 153, 0.22);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hero-aurora-a,
   .hero-aurora-b,
@@ -287,7 +281,6 @@ body {
   .mesh-glow-aura,
   .mesh-glow-aura-delayed,
   .mesh-core-heartbeat,
-  .mesh-live-badge,
   .animate-ping {
     animation: none !important;
   }

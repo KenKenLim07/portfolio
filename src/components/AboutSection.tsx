@@ -1,9 +1,5 @@
 import { Check } from "lucide-react";
-import {
-  ABOUT_EXPERIENCE,
-  ABOUT_HIGHLIGHTS,
-  SITE,
-} from "@/lib/constants";
+import { ABOUT, ABOUT_EXPERIENCE, ABOUT_HIGHLIGHTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
@@ -13,27 +9,21 @@ export function AboutSection() {
     <Section id="about" className="border-t border-white/5">
       <SectionHeading
         label="About"
-        title="Engineering depth meets premium design"
-        description="I build intelligent digital products that feel cinematic on the surface and robust underneath — from AI-powered platforms to conversion-focused business websites."
+        title={ABOUT.title}
+        description={ABOUT.lead}
       />
 
       <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
         <AnimatedSection>
-          <AnimatedItem>
-            <p className="text-lg leading-relaxed text-muted">
-              I&apos;m {SITE.name}, a {SITE.role.toLowerCase()} who partners
-              with brands, startups, and businesses to ship modern web
-              experiences with real technical substance.
-            </p>
-          </AnimatedItem>
-          <AnimatedItem>
-            <p className="mt-6 text-lg leading-relaxed text-muted">
-              My work spans premium frontends, scalable backends, and
-              AI-assisted systems — including real-time pipelines, analytics
-              dashboards, and workflows that help teams move faster with
-              confidence.
-            </p>
-          </AnimatedItem>
+          {ABOUT.paragraphs.map((paragraph, index) => (
+            <AnimatedItem key={index}>
+              <p
+                className={`text-lg leading-relaxed text-muted ${index > 0 ? "mt-6" : ""}`}
+              >
+                {paragraph}
+              </p>
+            </AnimatedItem>
+          ))}
         </AnimatedSection>
 
         <AnimatedSection className="space-y-8">

@@ -1,7 +1,7 @@
 export const SITE = {
-  name: "Ken Ken",
-  role: "Fullstack Developer & AI Systems Engineer",
-  email: "hello@example.com",
+  name: "Jose Marie Lim",
+  role: "Full-Stack Developer & AI Systems Engineer",
+  email: "josemarelim7@gmail.com",
   tagline: "Building Intelligent Digital Experiences",
   description:
     "Fullstack developer focused on premium websites, AI-powered systems, and modern business platforms.",
@@ -11,8 +11,6 @@ export const SITE = {
 /** Hero “My brain” knowledge map — ties to #about */
 export const MY_BRAIN = {
   title: "My brain",
-  eyebrow: "Knowledge preview",
-  tagline: "What I know today — mapped, not metaphorical.",
   description:
     "Each region is a stack or system I actually work with. Hover or Tap to see how my skills connect.",
   pipeline: "Ingest → Encode → Reason → Deliver",
@@ -57,6 +55,15 @@ export const BRAIN_KNOWLEDGE: readonly BrainSkill[] = [
   { id: "deploy", label: "Deploy", lobe: "base", links: ["cicd", "edge", "docker", "web"] },
 ];
 
+/** Hero status line + quick stats (edit freely) */
+export const HERO_AVAILABILITY = "Open to new projects" as const;
+
+export const HERO_STATS = [
+  { emphasis: `${BRAIN_KNOWLEDGE.length}+`, label: "skills mapped" },
+  { emphasis: "Full-stack", label: "+ AI systems" },
+  { emphasis: "Ship", label: "data → product" },
+] as const;
+
 export const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "Projects", href: "#projects" },
@@ -72,6 +79,20 @@ export const SOCIAL_LINKS = {
   messenger: "https://m.me",
 } as const;
 
+export type ProjectCategory = "ai" | "web" | "commerce";
+
+export type ProjectFilterId = "all" | ProjectCategory;
+
+export const PROJECT_FILTERS: readonly {
+  id: ProjectFilterId;
+  label: string;
+}[] = [
+  { id: "all", label: "All" },
+  { id: "ai", label: "AI Systems" },
+  { id: "web", label: "Web Apps" },
+  { id: "commerce", label: "Commerce" },
+] as const;
+
 export type Project = {
   id: string;
   title: string;
@@ -79,6 +100,8 @@ export type Project = {
   stack: string[];
   image: string;
   gradient: string;
+  category: ProjectCategory;
+  featured?: boolean;
   liveUrl?: string;
   githubUrl?: string;
 };
@@ -87,6 +110,8 @@ export const PROJECTS: Project[] = [
   {
     id: "news-intelligence",
     title: "Philippine News Intelligence Platform",
+    category: "ai",
+    featured: true,
     description:
       "AI-powered news aggregation and sentiment analysis platform that monitors multiple Philippine news sources in real time using NLP pipelines, automated scraping systems, and analytics dashboards.",
     stack: [
@@ -107,6 +132,7 @@ export const PROJECTS: Project[] = [
   {
     id: "skyward-restaurant",
     title: "Skyward Japanese Restaurant Website",
+    category: "web",
     description:
       "Premium restaurant website focused on cinematic presentation, modern branding, mobile-first UX, and elegant customer experience.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
@@ -118,6 +144,7 @@ export const PROJECTS: Project[] = [
   {
     id: "beauty-storefront",
     title: "Beauty Brand Storefront",
+    category: "commerce",
     description:
       "Modern ecommerce-style storefront for a beauty distributor focused on conversion, branding, and premium visual presentation.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Stripe"],
@@ -216,6 +243,15 @@ export const PROCESS_STEPS = [
       "Deploy, monitor, and iterate with confidence on production infrastructure.",
   },
 ] as const;
+
+export const ABOUT = {
+  title: "Scalable engineering-Intelligent systems.",
+  lead: "I build AI-powered platforms, modern web applications, and digital systems engineered for performance, usability, and scale.",
+  paragraphs: [
+    "I am Jose Marie Lim, a Full-Stack Developer and AI Systems Engineer working across backend infrastructure, premium frontend development, real-time systems, analytics pipelines, and workflow automation.",
+    "My goal is to create products that are not only visually refined, but architecturally robust and operationally reliable.",
+  ],
+} as const;
 
 export const ABOUT_HIGHLIGHTS = [
   "Frontend engineering",

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ArrowDown } from "lucide-react";
-import { SITE } from "@/lib/constants";
+import { HERO_AVAILABILITY, HERO_STATS, SITE } from "@/lib/constants";
 import { fadeInUp, easeOut } from "@/lib/motion";
 import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { HeroVisual } from "@/components/HeroVisual";
@@ -148,19 +148,16 @@ export function HeroSection() {
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400/90" />
                 </span>
                 <span className="text-sm text-zinc-400">
-                  Available for new projects
+                  {HERO_AVAILABILITY}
                 </span>
               </div>
               <div className="flex flex-wrap gap-4 font-mono text-xs text-zinc-500 sm:gap-6">
-                <span>
-                  <span className="text-foreground">5+</span> stacks
-                </span>
-                <span>
-                  <span className="text-foreground">AI</span> native
-                </span>
-                <span>
-                  <span className="text-foreground">24h</span> response
-                </span>
+                {HERO_STATS.map((stat) => (
+                  <span key={stat.label}>
+                    <span className="text-foreground">{stat.emphasis}</span>{" "}
+                    {stat.label}
+                  </span>
+                ))}
               </div>
             </HeroEntranceItem>
           </div>

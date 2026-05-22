@@ -106,34 +106,8 @@ export function HeroVisual() {
           </>
         )}
 
-        <motion.div
-          className="absolute left-4 right-4 top-4 z-40 sm:left-5 sm:right-5 sm:top-5"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
-          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
-          transition={{ delay: 0.4, duration: 0.45, ease: easeOut }}
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-indigo-300/80 sm:text-[10px]">
-                {MY_BRAIN.eyebrow}
-              </p>
-              <h3 className="mt-0.5 font-display text-lg font-semibold tracking-tight text-zinc-100 sm:text-xl">
-                {MY_BRAIN.title}
-              </h3>
-            </div>
-            <span
-              className={`shrink-0 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider text-emerald-400/90 sm:text-[9px] ${!prefersReducedMotion ? "mesh-live-badge" : ""}`}
-            >
-              Live
-            </span>
-          </div>
-          <p className="mt-2 max-w-[16rem] text-[10px] leading-relaxed text-zinc-500 sm:max-w-none sm:text-[11px]">
-            {MY_BRAIN.tagline}
-          </p>
-        </motion.div>
-
         <div
-          className={`absolute inset-x-0 top-[7%] bottom-[18%] origin-center scale-[1.06] sm:scale-[1.1] md:scale-[1.14] lg:scale-[1.2] xl:scale-[1.26] 2xl:scale-[1.32] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
+          className={`absolute inset-x-0 top-[3%] bottom-[18%] origin-center scale-[1.06] sm:scale-[1.1] md:scale-[1.14] lg:scale-[1.2] xl:scale-[1.26] 2xl:scale-[1.32] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
         >
         <svg
           viewBox="0 0 100 100"

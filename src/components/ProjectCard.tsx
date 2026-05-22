@@ -11,81 +11,157 @@ import { cn } from "@/lib/utils";
 
 type ProjectCardProps = {
   project: Project;
-  featured?: boolean;
+  variant?: "featured" | "rail";
+  isActive?: boolean;
+  onSelect?: () => void;
 };
 
-export function ProjectCard({ project, featured = false }: ProjectCardProps) {
+export function ProjectCard({
+  project,
+  variant = "featured",
+  isActive = false,
+  onSelect,
+}: ProjectCardProps) {
   const prefersReducedMotion = useReducedMotion();
+  const isRail = variant === "rail";
+  const stackPreview = isRail ? project.stack.slice(0, 3) : project.stack;
+  const stackOverflow = isRail ? project.stack.length - stackPreview.length : 0;
 
-  return (
+  const card = (
     <motion.article
       className={cn(
-        "group relative overflow-hidden rounded-3xl border border-white/10 bg-surface transition-colors duration-300 hover:border-white/20",
-        featured && "lg:col-span-2",
+        "group relative overflow-hidden rounded-3xl border bg-surface text-left transition-colors duration-300",
+        isRail
+          ? cn(
+              "h-full w-[min(100%,280px)] shrink-0 snap-start sm:w-[320px]",
+              isActive
+                ? "border-indigo-400/40 ring-1 ring-indigo-400/30"
+                : "border-white/10 hover:border-white/20",
+              onSelect && "cursor-pointer",
+            )
+          : "border-white/10 hover:border-white/20",
       )}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: isRail ? 16 : 24 }}
       whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      layout={!prefersReducedMotion && !isRail}
     >
       <div
         className={cn(
           "relative overflow-hidden",
-          featured ? "aspect-[16/9]" : "aspect-[16/10]",
+          isRail ? "aspect-[16/10]" : "aspect-[16/9]",
         )}
       >
         <div
-          className={cn(
-            "absolute inset-0 bg-gradient-to-br",
-            project.gradient,
-          )}
+          className={cn("absolute inset-0 bg-gradient-to-br", project.gradient)}
         />
         <Image
           src={project.image}
           alt={project.title}
           fill
           className="object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-105"
-          sizes={featured ? "(max-width: 1024px) 100vw, 66vw" : "(max-width: 1024px) 100vw, 50vw"}
+          sizes={
+            isRail
+              ? "320px"
+              : "(max-width: 1024px) 100vw, 1280px"
+          }
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.2),transparent_50%)]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.18),transparent_50%)]" />
       </div>
 
-      <div className="relative p-6 md:p-8">
-        <h3 className="font-display text-xl font-semibold tracking-tight text-foreground md:text-2xl">
+      <div className={cn("relative", isRail ? "p-4 sm:p-5" : "p-6 md:p-8")}>
+        <h3
+          className={cn(
+            "font-display font-semibold tracking-tight text-foreground",
+            isRail ? "text-base sm:text-lg" : "text-xl md:text-2xl",
+          )}
+        >
           {project.title}
         </h3>
-        <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">
+        <p
+          className={cn(
+            "mt-2 leading-relaxed text-muted",
+            isRail
+              ? "line-clamp-2 text-xs sm:text-sm"
+              : "text-sm md:text-base",
+          )}
+        >
           {project.description}
         </p>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {project.stack.map((tech) => (
-            <Badge key={tech}>{tech}</Badge>
+        <div className={cn("flex flex-wrap gap-1.5", isRail ? "mt-3" : "mt-5 gap-2")}>
+          {stackPreview.map((tech) => (
+            <Badge key={tech} className={isRail ? "text-[10px]" : undefined}>
+              {tech}
+            </Badge>
           ))}
+          {stackOverflow > 0 && (
+            <Badge className={isRail ? "text-[10px]" : undefined}>
+              +{stackOverflow}
+            </Badge>
+          )}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          {project.liveUrl && (
-            <Link
-              href={project.liveUrl}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
-            >
-              Live Demo
-              <ExternalLink className="h-4 w-4" />
-            </Link>
-          )}
-          {project.githubUrl && (
-            <Link
-              href={project.githubUrl}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10"
-            >
-              GitHub
-              <GitHubIcon />
-            </Link>
-          )}
-        </div>
+        {!isRail && (
+          <div className="mt-6 flex flex-wrap gap-3">
+            {project.liveUrl && (
+              <Link
+                href={project.liveUrl}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Live Demo
+                <ExternalLink className="h-4 w-4" aria-hidden />
+              </Link>
+            )}
+            {project.githubUrl && (
+              <Link
+                href={project.githubUrl}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                GitHub
+                <GitHubIcon />
+              </Link>
+            )}
+          </div>
+        )}
+
+        {isRail && (project.liveUrl || project.githubUrl) && (
+          <div className="mt-3 flex gap-2">
+            {project.liveUrl && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-indigo-300/90">
+                Live
+                <ExternalLink className="h-3 w-3" aria-hidden />
+              </span>
+            )}
+            {project.githubUrl && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+                Code
+                <GitHubIcon className="h-3 w-3" />
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </motion.article>
   );
+
+  if (isRail && onSelect) {
+    return (
+      <button
+        type="button"
+        className="h-full shrink-0 snap-start text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-3xl"
+        onClick={onSelect}
+        aria-label={`Show ${project.title} as featured project`}
+        aria-pressed={isActive}
+      >
+        {card}
+      </button>
+    );
+  }
+
+  return card;
 }
