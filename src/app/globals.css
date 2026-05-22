@@ -260,22 +260,6 @@ body {
   }
 }
 
-.mesh-neuron-dot {
-  animation: mesh-neuron-pulse 2.8s ease-in-out infinite;
-}
-
-@keyframes mesh-neuron-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.65;
-  }
-  50% {
-    transform: scale(1.4);
-    opacity: 1;
-  }
-}
-
 .mesh-live-badge {
   animation: mesh-live-badge 2.4s ease-in-out infinite;
 }
@@ -303,7 +287,6 @@ body {
   .mesh-glow-aura,
   .mesh-glow-aura-delayed,
   .mesh-core-heartbeat,
-  .mesh-neuron-dot,
   .mesh-live-badge,
   .animate-ping {
     animation: none !important;

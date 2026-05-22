@@ -355,12 +355,7 @@ export function HeroVisual() {
                 activeId === node.id
                   ? "bg-indigo-200 shadow-[0_0_8px_rgba(199,210,254,0.9)]"
                   : "bg-indigo-400/70"
-              } ${!prefersReducedMotion && nodeLit(node.id) ? "mesh-neuron-dot" : ""}`}
-              style={
-                !prefersReducedMotion
-                  ? { animationDelay: `${(i % 11) * 0.22}s` }
-                  : undefined
-              }
+              }`}
             />
             <span
               className={`max-w-[3.75rem] truncate rounded-md border px-1 py-px text-center text-[7px] font-medium leading-tight tracking-wide backdrop-blur-sm sm:max-w-[4.25rem] sm:px-1.5 sm:text-[8px] ${
