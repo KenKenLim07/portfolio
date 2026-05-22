@@ -73,55 +73,54 @@ export function HeroVisual() {
             }
           : undefined
       }
-      className="relative mx-auto w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:mx-0 lg:max-w-none lg:w-full xl:min-h-0"
+      className="relative mx-auto w-full max-w-xl overflow-hidden sm:max-w-2xl md:max-w-3xl lg:mx-0 lg:max-w-none"
     >
       <div
-        className="relative aspect-[4/5] min-h-[480px] w-full overflow-hidden rounded-3xl border border-white/10 shadow-2xl shadow-black/50 sm:min-h-[560px] md:min-h-[620px] lg:min-h-[700px] lg:aspect-auto lg:min-h-[720px] xl:min-h-[800px] 2xl:min-h-[860px]"
-        aria-label={`${MY_BRAIN.title} — interactive knowledge map`}
+        className="relative flex min-h-[580px] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-950 shadow-2xl shadow-black/50 sm:min-h-[620px] lg:min-h-[720px] xl:min-h-[800px]"
+        aria-label={`${MY_BRAIN.previewTitle} — interactive knowledge map`}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-zinc-950" />
-
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background: `radial-gradient(ellipse 60% 50% at ${spotlight.x}% ${spotlight.y}%, rgba(99,102,241,0.12), transparent 70%)`,
-          }}
-        />
-
-        <div
-          className={`pointer-events-none absolute left-1/2 top-[48%] h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
-        />
-        <div
-          className={`pointer-events-none absolute left-[30%] top-[46%] h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
-        />
-        <div
-          className={`pointer-events-none absolute left-[70%] top-[46%] h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
-        />
-
-        {!prefersReducedMotion && (
-          <>
-            <div className="hero-brain-pulse pointer-events-none absolute left-1/2 top-[48%] h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-indigo-400/25" />
-            <div className="hero-brain-pulse-delayed pointer-events-none absolute left-1/2 top-[48%] h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-400/15" />
-          </>
-        )}
-
         <motion.div
-          className="absolute left-4 top-4 z-40 sm:left-5 sm:top-5"
+          className="relative z-40 shrink-0 px-4 pb-2 pt-4 sm:px-5 sm:pb-3 sm:pt-5"
           initial={prefersReducedMotion ? false : { opacity: 0, y: -6 }}
           animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
           transition={{ delay: 0.4, duration: 0.45, ease: easeOut }}
         >
-          <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-indigo-300/70 sm:text-[10px]">
-            {MY_BRAIN.title}
-          </p>
-          <h3 className="mt-1 font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:text-lg">
+          <h3 className="max-w-[16rem] font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:max-w-none sm:text-lg">
             {MY_BRAIN.previewTitle}
           </h3>
+          <p className="mt-1.5 max-w-[14rem] text-[11px] font-medium leading-snug text-indigo-300/90 sm:max-w-none sm:text-xs">
+            {MY_BRAIN.interactionHint}
+          </p>
         </motion.div>
 
-        <div
-          className={`absolute inset-x-0 top-[10%] bottom-[18%] origin-center scale-[1.06] sm:scale-[1.1] md:scale-[1.14] lg:scale-[1.2] xl:scale-[1.26] 2xl:scale-[1.32] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
-        >
+        <div className="relative min-h-[240px] min-w-0 flex-1 overflow-hidden sm:min-h-[280px]">
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background: `radial-gradient(ellipse 60% 50% at ${spotlight.x}% ${spotlight.y}%, rgba(99,102,241,0.12), transparent 70%)`,
+            }}
+          />
+
+          <div
+            className={`pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+          />
+          <div
+            className={`pointer-events-none absolute left-[30%] top-1/2 h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
+          />
+          <div
+            className={`pointer-events-none absolute left-[70%] top-1/2 h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+          />
+
+          {!prefersReducedMotion && (
+            <>
+              <div className="hero-brain-pulse pointer-events-none absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-indigo-400/25" />
+              <div className="hero-brain-pulse-delayed pointer-events-none absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-400/15" />
+            </>
+          )}
+
+          <div
+            className={`absolute inset-0 origin-center scale-[0.9] sm:scale-[1.02] md:scale-[1.08] lg:scale-[1.14] xl:scale-[1.2] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
+          >
         <svg
           viewBox="0 0 100 100"
           className="absolute inset-0 h-full w-full"
@@ -355,9 +354,10 @@ export function HeroVisual() {
             </span>
           </motion.button>
         ))}
+          </div>
         </div>
 
-        <div className="absolute bottom-3 left-3 right-3 z-40 rounded-xl border border-white/10 bg-black/60 p-3 backdrop-blur-md sm:bottom-4 sm:left-4 sm:right-4 sm:p-4">
+        <div className="relative z-40 shrink-0 border-t border-white/10 bg-black/70 p-3 backdrop-blur-md sm:p-4">
           <p className="text-right font-mono text-[9px] text-emerald-400/90 sm:text-[10px]">
             {NEURAL_EDGES.length} synapses
           </p>
@@ -367,10 +367,10 @@ export function HeroVisual() {
           <p className="mt-2 font-display text-xs font-medium text-zinc-200 sm:text-sm">
             {MY_BRAIN.pipeline}
           </p>
-          <p className="mt-3 border-t border-white/10 pt-3 text-[10px] leading-relaxed text-indigo-200/80 sm:text-[11px]">
+          <p className="mt-2.5 border-t border-white/10 pt-2.5 text-[10px] leading-relaxed text-indigo-200/80 sm:mt-3 sm:pt-3 sm:text-[11px]">
             {MY_BRAIN.preview3d}
           </p>
-          <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/10 sm:mt-3">
+          <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10 sm:mt-2.5">
             <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-indigo-500/70 via-indigo-400/50 to-violet-500/40" />
           </div>
         </div>

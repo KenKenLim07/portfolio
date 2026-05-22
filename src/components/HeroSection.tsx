@@ -57,7 +57,7 @@ export function HeroSection() {
     <section
       ref={sectionRef}
       id="home"
-      className="relative min-h-[100dvh] overflow-hidden pt-24 pb-16 sm:pt-28 sm:pb-20 md:min-h-[105vh] md:pt-32 md:pb-28"
+      className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 sm:pt-28 sm:pb-20 md:min-h-[105vh] md:pt-32 md:pb-28"
     >
       <HeroAurora />
       <div className="pointer-events-none absolute inset-0 grid-pattern opacity-20" />
@@ -75,7 +75,7 @@ export function HeroSection() {
         }
       >
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:items-stretch lg:gap-6 xl:gap-10">
-          <div className="lg:col-span-5 xl:col-span-5">
+          <div className="min-w-0 lg:col-span-5 xl:col-span-5">
             <HeroEntranceItem
               className="mb-6 flex flex-wrap items-center gap-3 sm:mb-8 sm:gap-4"
               delay={0.05}
@@ -162,9 +162,9 @@ export function HeroSection() {
             </HeroEntranceItem>
           </div>
 
-          <div className="flex lg:col-span-7 lg:pl-0 xl:col-span-7">
+          <div className="min-w-0 lg:col-span-7 lg:pl-0 xl:col-span-7">
             <motion.div
-              className="w-full lg:flex lg:min-h-[720px] lg:items-center xl:min-h-[800px]"
+              className="w-full min-w-0 overflow-hidden lg:flex lg:min-h-[720px] lg:items-center xl:min-h-[800px]"
               style={useScrollEffects ? { y: visualY } : undefined}
             >
               <HeroVisual />

@@ -10,8 +10,8 @@ export const SITE = {
 
 /** Hero “My brain” knowledge map — ties to #about */
 export const MY_BRAIN = {
-  title: "Tap/Click to Play With My brain",
-  previewTitle: "2D preview of my brains knowledge",
+  previewTitle: "2D preview of my brain's knowledge",
+  interactionHint: "Tap or click to play with my brain",
   description:
     "Each region is a stack or system I actually work with. Hover or tap to see how my skills connect.",
   pipeline: "Ingest → Encode → Reason → Deliver",
