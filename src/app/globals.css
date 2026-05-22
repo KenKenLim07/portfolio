@@ -190,7 +190,7 @@ body {
 }
 
 .project-rail {
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }

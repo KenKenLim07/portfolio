@@ -110,7 +110,8 @@ export function ProjectsSection() {
                 More work
               </p>
               <p className="mt-1 text-sm text-zinc-400">
-                Tap a project to feature it above
+                <span className="sm:hidden">Swipe to browse · tap to feature above</span>
+                <span className="hidden sm:inline">Tap a project to feature it above</span>
               </p>
             </div>
             <div className="hidden gap-2 sm:flex">
@@ -135,16 +136,16 @@ export function ProjectsSection() {
 
           <div className="relative -mx-6 md:-mx-8 lg:-mx-12">
             <div
-              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-8 bg-gradient-to-r from-background to-transparent md:w-12"
+              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-6 bg-gradient-to-r from-background to-transparent sm:w-8 md:w-12"
               aria-hidden
             />
             <div
-              className="pointer-events-none absolute right-0 top-0 z-10 h-full w-8 bg-gradient-to-l from-background to-transparent md:w-12"
+              className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full w-8 bg-gradient-to-l from-background to-transparent sm:block md:w-12"
               aria-hidden
             />
             <div
               ref={railRef}
-              className="project-rail flex gap-4 overflow-x-auto px-6 pb-2 md:gap-5 md:px-8 lg:px-12"
+              className="project-rail flex gap-3 overflow-x-auto scroll-px-6 px-6 pb-2 sm:scroll-px-8 sm:gap-5 sm:px-8 lg:scroll-px-12 lg:px-12"
             >
               {rail.map((project) => (
                 <ProjectCard

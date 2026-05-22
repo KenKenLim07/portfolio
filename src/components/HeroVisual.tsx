@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Brain } from "lucide-react";
+import { Brain } from "lucide-react";
 import { MY_BRAIN } from "@/lib/constants";
 import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { useMouseTilt } from "@/hooks/useMouseTilt";
@@ -106,8 +105,22 @@ export function HeroVisual() {
           </>
         )}
 
+        <motion.div
+          className="absolute left-4 top-4 z-40 sm:left-5 sm:top-5"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -6 }}
+          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
+          transition={{ delay: 0.4, duration: 0.45, ease: easeOut }}
+        >
+          <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-indigo-300/70 sm:text-[10px]">
+            {MY_BRAIN.title}
+          </p>
+          <h3 className="mt-1 font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:text-lg">
+            {MY_BRAIN.previewTitle}
+          </h3>
+        </motion.div>
+
         <div
-          className={`absolute inset-x-0 top-[3%] bottom-[18%] origin-center scale-[1.06] sm:scale-[1.1] md:scale-[1.14] lg:scale-[1.2] xl:scale-[1.26] 2xl:scale-[1.32] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
+          className={`absolute inset-x-0 top-[10%] bottom-[18%] origin-center scale-[1.06] sm:scale-[1.1] md:scale-[1.14] lg:scale-[1.2] xl:scale-[1.26] 2xl:scale-[1.32] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
         >
         <svg
           viewBox="0 0 100 100"
@@ -345,30 +358,21 @@ export function HeroVisual() {
         </div>
 
         <div className="absolute bottom-3 left-3 right-3 z-40 rounded-xl border border-white/10 bg-black/60 p-3 backdrop-blur-md sm:bottom-4 sm:left-4 sm:right-4 sm:p-4">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500 sm:text-[10px]">
-              {MY_BRAIN.title}
-            </p>
-            <span className="font-mono text-[9px] text-emerald-400/90 sm:text-[10px]">
-              {NEURAL_EDGES.length} synapses
-            </span>
-          </div>
+          <p className="text-right font-mono text-[9px] text-emerald-400/90 sm:text-[10px]">
+            {NEURAL_EDGES.length} synapses
+          </p>
           <p className="mt-1 text-[11px] leading-snug text-zinc-400 sm:text-xs">
             {MY_BRAIN.description}
           </p>
           <p className="mt-2 font-display text-xs font-medium text-zinc-200 sm:text-sm">
             {MY_BRAIN.pipeline}
           </p>
+          <p className="mt-3 border-t border-white/10 pt-3 text-[10px] leading-relaxed text-indigo-200/80 sm:text-[11px]">
+            {MY_BRAIN.preview3d}
+          </p>
           <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/10 sm:mt-3">
             <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-indigo-500/70 via-indigo-400/50 to-violet-500/40" />
           </div>
-          <Link
-            href={MY_BRAIN.aboutLink.href}
-            className="mt-3 inline-flex items-center gap-1 text-[10px] font-medium text-indigo-300/90 transition-colors hover:text-indigo-200 sm:text-[11px]"
-          >
-            {MY_BRAIN.aboutLink.label}
-            <ArrowRight className="h-3 w-3" aria-hidden />
-          </Link>
         </div>
       </div>
     </motion.div>

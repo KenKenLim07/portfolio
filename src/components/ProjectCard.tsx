@@ -9,6 +9,10 @@ import type { Project } from "@/lib/constants";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 
+/** Leaves ~7.5rem visible for the next rail card on mobile (swipe affordance) */
+const RAIL_CARD_WIDTH =
+  "w-[calc(100vw-7.5rem)] max-w-[300px] sm:w-[300px] md:w-[320px]";
+
 type ProjectCardProps = {
   project: Project;
   variant?: "featured" | "rail";
@@ -33,7 +37,7 @@ export function ProjectCard({
         "group relative overflow-hidden rounded-3xl border bg-surface text-left transition-colors duration-300",
         isRail
           ? cn(
-              "h-full w-[min(100%,280px)] shrink-0 snap-start sm:w-[320px]",
+              cn("h-full shrink-0 snap-start", RAIL_CARD_WIDTH),
               isActive
                 ? "border-indigo-400/40 ring-1 ring-indigo-400/30"
                 : "border-white/10 hover:border-white/20",
@@ -153,7 +157,10 @@ export function ProjectCard({
     return (
       <button
         type="button"
-        className="h-full shrink-0 snap-start text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-3xl"
+        className={cn(
+          "h-full shrink-0 snap-start text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-3xl",
+          RAIL_CARD_WIDTH,
+        )}
         onClick={onSelect}
         aria-label={`Show ${project.title} as featured project`}
         aria-pressed={isActive}
