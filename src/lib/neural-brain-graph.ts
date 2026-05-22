@@ -1,3 +1,5 @@
+import { BRAIN_KNOWLEDGE, type BrainSkill } from "@/lib/constants";
+
 export type NeuralNode = {
   id: string;
   x: number;
@@ -17,57 +19,94 @@ const GOLDEN = 2.399963;
 const CX = 50;
 const CY = 48;
 
-/**
- * Superior (top-down) brain silhouette — wide oval, twin hemispheres,
- * shallow central fissure at the crown, narrow brainstem at the base.
- */
-export const BRAIN_OUTER_PATH =
-  "M 50 23 " +
-  "C 47 21 44 22 41 25 " +
-  "C 30 24 20 30 17 40 " +
-  "C 14 50 15 60 20 68 " +
-  "C 25 74 33 77 41 77 " +
-  "C 46 77 48 76 49 75 " +
-  "C 49 79 50 82 51 75 " +
-  "C 52 76 54 77 59 77 " +
-  "C 67 77 75 74 80 68 " +
-  "C 85 60 86 50 83 40 " +
-  "C 80 30 70 24 59 25 " +
-  "C 56 22 53 21 50 23 Z";
+/** Skill slots across the mesh (wider spread, no silhouette guide) */
+const LOBE_LAYOUT: Record<
+  BrainSkill["lobe"],
+  readonly { x: number; y: number }[]
+> = {
+  crown: [{ x: 50, y: 24 }],
+  center: [
+    { x: 44, y: 40 },
+    { x: 56, y: 40 },
+    { x: 50, y: 36 },
+    { x: 46, y: 50 },
+    { x: 54, y: 50 },
+  ],
+  base: [
+    { x: 40, y: 66 },
+    { x: 50, y: 70 },
+    { x: 60, y: 66 },
+    { x: 50, y: 76 },
+  ],
+  left: [
+    { x: 30, y: 28 },
+    { x: 26, y: 36 },
+    { x: 34, y: 38 },
+    { x: 22, y: 46 },
+    { x: 28, y: 52 },
+    { x: 24, y: 60 },
+    { x: 32, y: 64 },
+    { x: 30, y: 70 },
+  ],
+  right: [
+    { x: 70, y: 28 },
+    { x: 74, y: 34 },
+    { x: 66, y: 36 },
+    { x: 78, y: 44 },
+    { x: 72, y: 50 },
+    { x: 76, y: 56 },
+    { x: 68, y: 62 },
+    { x: 74, y: 68 },
+    { x: 70, y: 72 },
+  ],
+};
 
-/** Clip path = same as outer (network stays inside brain) */
-export const BRAIN_CLIP_PATH = BRAIN_OUTER_PATH;
-
-/** Interior sulci — longitudinal fissure + lobe folds */
-export const BRAIN_SULCI_PATHS = [
-  "M 50 25 L 50 73",
-  "M 50 32 C 46 34 43 40 44 46",
-  "M 50 32 C 54 34 57 40 56 46",
-  "M 50 54 C 45 56 40 60 38 65",
-  "M 50 54 C 55 56 60 60 62 65",
-  "M 30 38 C 34 40 36 44 35 48",
-  "M 70 38 C 66 40 64 44 65 48",
-  "M 26 50 C 30 48 34 50 36 54",
-  "M 74 50 C 70 48 66 50 64 54",
-] as const;
-
-/** Legacy export for stroke overlays */
-export const BRAIN_OUTLINE_PATHS = [
-  BRAIN_OUTER_PATH,
-  ...BRAIN_SULCI_PATHS,
-] as const;
-
-/** Left / right hemisphere ellipses (for node placement) */
 function inHemisphere(x: number, y: number, side: "L" | "R") {
-  const hx = side === "L" ? 35 : 65;
-  const dx = (x - hx) / 32;
-  const dy = (y - CY) / 27;
-  const topBias = y < 32 ? 0.92 : 1;
-  return dx * dx + (dy * topBias) ** 2 <= 1;
+  const hx = side === "L" ? 32 : 68;
+  const dx = (x - hx) / 36;
+  const dy = (y - CY) / 34;
+  return dx * dx + dy * dy <= 1;
 }
 
-export function isInsideBrain(x: number, y: number) {
+export function isInsideMesh(x: number, y: number) {
   return inHemisphere(x, y, "L") || inHemisphere(x, y, "R");
+}
+
+function lobeIndex(skill: BrainSkill) {
+  return BRAIN_KNOWLEDGE.filter((s) => s.lobe === skill.lobe).findIndex(
+    (s) => s.id === skill.id,
+  );
+}
+
+function positionForSkill(skill: BrainSkill) {
+  const slots = LOBE_LAYOUT[skill.lobe];
+  const idx = lobeIndex(skill) % slots.length;
+  return slots[idx];
+}
+
+function buildMacroNodes(): NeuralNode[] {
+  const core: NeuralNode = {
+    id: "core",
+    label: "Inference",
+    x: CX,
+    y: CY,
+    tier: "core",
+  };
+
+  const macros = BRAIN_KNOWLEDGE.map((skill) => {
+    const { x, y } = positionForSkill(skill);
+    return {
+      id: skill.id,
+      label: skill.label,
+      x,
+      y,
+      tier: "macro" as const,
+      hemisphere:
+        skill.lobe === "left" ? ("L" as const) : skill.lobe === "right" ? ("R" as const) : undefined,
+    };
+  });
+
+  return [core, ...macros];
 }
 
 function buildMicroNodes(): NeuralNode[] {
@@ -80,12 +119,12 @@ function buildMicroNodes(): NeuralNode[] {
     const t = (i + attempts * 0.37) / 52;
     const angle = t * Math.PI * 2 * GOLDEN;
     const ring = (nodes.length % 6) + 1;
-    const r = 6 + ring * 3.2;
+    const r = 6 + ring * 3.4;
     const x = CX + Math.cos(angle) * r * (0.85 + (ring % 2) * 0.08);
     const y = CY + Math.sin(angle) * r * 0.95;
 
-    if (!isInsideBrain(x, y)) continue;
-    if (Math.hypot(x - CX, y - CY) < 5) continue;
+    if (!isInsideMesh(x, y)) continue;
+    if (Math.hypot(x - CX, y - CY) < 4.5) continue;
 
     nodes.push({
       id: `m${nodes.length}`,
@@ -100,25 +139,50 @@ function buildMicroNodes(): NeuralNode[] {
   return nodes;
 }
 
-const macroNodes: NeuralNode[] = [
-  { id: "core", label: "Inference", x: CX, y: CY, tier: "core" },
-  { id: "nlp", label: "NLP", x: 50, y: 27, tier: "macro" },
-  { id: "web", label: "Next.js", x: 25, y: 35, tier: "macro", hemisphere: "L" },
-  { id: "scrape", label: "Ingest", x: 19, y: 48, tier: "macro", hemisphere: "L" },
-  { id: "data", label: "Data Pipe", x: 22, y: 61, tier: "macro", hemisphere: "L" },
-  { id: "cache", label: "Redis", x: 32, y: 72, tier: "macro", hemisphere: "L" },
-  { id: "embed", label: "Embeddings", x: 75, y: 35, tier: "macro", hemisphere: "R" },
-  { id: "api", label: "FastAPI", x: 81, y: 48, tier: "macro", hemisphere: "R" },
-  { id: "ui", label: "UI Layer", x: 78, y: 61, tier: "macro", hemisphere: "R" },
-  { id: "edge", label: "Edge", x: 68, y: 72, tier: "macro", hemisphere: "R" },
-];
-
 function dist(a: NeuralNode, b: NeuralNode) {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
 
 function synapseKey(a: string, b: string) {
   return a < b ? `${a}-${b}` : `${b}-${a}`;
+}
+
+function buildMacroConnections(macros: NeuralNode[]): [string, string][] {
+  const pairs: [string, string][] = [];
+  const ids = new Set(macros.map((m) => m.id));
+
+  const chain = (lobe: BrainSkill["lobe"]) => {
+    const list = BRAIN_KNOWLEDGE.filter((s) => s.lobe === lobe).map((s) => s.id);
+    for (let i = 0; i < list.length; i++) {
+      pairs.push([list[i], list[(i + 1) % list.length]]);
+    }
+  };
+
+  for (const lobe of ["left", "right", "center", "base"] as const) {
+    chain(lobe);
+  }
+
+  const crown = BRAIN_KNOWLEDGE.find((s) => s.lobe === "crown");
+  const centerFirst = BRAIN_KNOWLEDGE.find((s) => s.lobe === "center");
+  const baseFirst = BRAIN_KNOWLEDGE.find((s) => s.lobe === "base");
+  if (crown) {
+    if (centerFirst) pairs.push([crown.id, centerFirst.id]);
+    const leftFirst = BRAIN_KNOWLEDGE.find((s) => s.lobe === "left");
+    const rightFirst = BRAIN_KNOWLEDGE.find((s) => s.lobe === "right");
+    if (leftFirst) pairs.push([crown.id, leftFirst.id]);
+    if (rightFirst) pairs.push([crown.id, rightFirst.id]);
+  }
+  if (baseFirst && centerFirst) {
+    pairs.push([baseFirst.id, centerFirst.id]);
+  }
+
+  for (const skill of BRAIN_KNOWLEDGE) {
+    for (const target of skill.links ?? []) {
+      if (ids.has(target)) pairs.push([skill.id, target]);
+    }
+  }
+
+  return pairs;
 }
 
 function buildEdges(nodes: NeuralNode[]): NeuralEdge[] {
@@ -134,7 +198,17 @@ function buildEdges(nodes: NeuralNode[]): NeuralEdge[] {
     if (edgeSet.has(key)) return;
     const a = nodes.find((n) => n.id === from)!;
     const b = nodes.find((n) => n.id === to)!;
-    if (!isInsideBrain((a.x + b.x) / 2, (a.y + b.y) / 2)) return;
+    const midInside = isInsideMesh((a.x + b.x) / 2, (a.y + b.y) / 2);
+    const bridge =
+      a.tier === "macro" &&
+      b.tier === "macro" &&
+      (a.id === "core" ||
+        b.id === "core" ||
+        BRAIN_KNOWLEDGE.find((s) => s.id === a.id)?.lobe === "center" ||
+        BRAIN_KNOWLEDGE.find((s) => s.id === b.id)?.lobe === "center" ||
+        BRAIN_KNOWLEDGE.find((s) => s.id === a.id)?.lobe === "base" ||
+        BRAIN_KNOWLEDGE.find((s) => s.id === b.id)?.lobe === "base");
+    if (!midInside && !bridge) return;
     edgeSet.add(key);
     edges.push({ from, to, primary });
   };
@@ -164,7 +238,7 @@ function buildEdges(nodes: NeuralNode[]): NeuralEdge[] {
       .sort((a, b) => dist(m, a) - dist(m, b))
       .slice(0, 5);
     for (const n of nearest) {
-      add(m.id, n.id, dist(m, n) < 13);
+      add(m.id, n.id, dist(m, n) < 12);
     }
   }
 
@@ -175,30 +249,17 @@ function buildEdges(nodes: NeuralNode[]): NeuralEdge[] {
     add(core.id, n.id, true);
   }
 
-  const ring: [string, string][] = [
-    ["web", "scrape"],
-    ["scrape", "data"],
-    ["data", "cache"],
-    ["cache", "edge"],
-    ["edge", "ui"],
-    ["ui", "api"],
-    ["api", "embed"],
-    ["embed", "nlp"],
-    ["nlp", "web"],
-    ["web", "data"],
-    ["scrape", "nlp"],
-    ["api", "cache"],
-    ["embed", "ui"],
-    ["data", "edge"],
-  ];
-  for (const [a, b] of ring) {
+  for (const [a, b] of buildMacroConnections(macro)) {
     add(a, b, true);
   }
 
   return edges;
 }
 
-export const NEURAL_NODES: NeuralNode[] = [...macroNodes, ...buildMicroNodes()];
+export const NEURAL_NODES: NeuralNode[] = [
+  ...buildMacroNodes(),
+  ...buildMicroNodes(),
+];
 
 export const NEURAL_EDGES: NeuralEdge[] = buildEdges(NEURAL_NODES);
 

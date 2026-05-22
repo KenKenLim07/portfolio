@@ -8,6 +8,55 @@ export const SITE = {
   url: "https://portfolio.example.com",
 } as const;
 
+/** Hero “My brain” knowledge map — ties to #about */
+export const MY_BRAIN = {
+  title: "My brain",
+  eyebrow: "Knowledge preview",
+  tagline: "What I know today — mapped, not metaphorical.",
+  description:
+    "Each region is a stack or system I actually work with. Hover or Tap to see how my skills connect.",
+  pipeline: "Ingest → Encode → Reason → Deliver",
+  aboutLink: { label: "Read more about me", href: "#about" },
+} as const;
+
+/**
+ * Skills on the hero knowledge mesh. Add entries here — positions are placed automatically.
+ *
+ * - `lobe`: `"crown"` (top), `"left"` / `"right"`, `"center"` (mid), `"base"` (bottom)
+ * - `links`: optional ids of related skills (primary synapses between them)
+ */
+export type BrainSkill = {
+  id: string;
+  label: string;
+  lobe: "crown" | "left" | "right" | "center" | "base";
+  links?: readonly string[];
+};
+
+export const BRAIN_KNOWLEDGE: readonly BrainSkill[] = [
+  { id: "nlp", label: "NLP", lobe: "crown", links: ["web", "embed"] },
+  { id: "web", label: "Next.js", lobe: "left", links: ["ui", "vite", "docker"] },
+  { id: "vite", label: "Vite", lobe: "left", links: ["web", "ui"] },
+  { id: "scrape", label: "Ingest", lobe: "left", links: ["scraper", "data", "celery"] },
+  { id: "scraper", label: "Scraper", lobe: "left", links: ["scrape", "data", "postgres"] },
+  { id: "data", label: "Data Pipe", lobe: "left", links: ["postgres", "docker", "cache"] },
+  { id: "postgres", label: "PostgreSQL", lobe: "left", links: ["data", "api", "docker"] },
+  { id: "docker", label: "Docker", lobe: "left", links: ["data", "api", "cache", "postgres"] },
+  { id: "cache", label: "Redis", lobe: "left", links: ["docker", "celery", "postgres"] },
+  { id: "typescript", label: "TypeScript", lobe: "center", links: ["web", "api", "vite"] },
+  { id: "python", label: "Python", lobe: "center", links: ["api", "nlp", "celery", "data"] },
+  { id: "rag", label: "RAG", lobe: "center", links: ["nlp", "embed", "postgres"] },
+  { id: "embed", label: "Embeddings", lobe: "right", links: ["nlp", "api", "rag"] },
+  { id: "api", label: "FastAPI", lobe: "right", links: ["celery", "docker", "postgres", "python"] },
+  { id: "celery", label: "Celery", lobe: "right", links: ["api", "data", "cache", "scraper"] },
+  { id: "cicd", label: "CI/CD", lobe: "right", links: ["docker", "github", "edge", "testing"] },
+  { id: "github", label: "GitHub Actions", lobe: "right", links: ["cicd", "web", "testing"] },
+  { id: "ui", label: "UI Layer", lobe: "right", links: ["web", "vite", "edge"] },
+  { id: "edge", label: "Edge", lobe: "right", links: ["ui", "cache", "cicd"] },
+  { id: "testing", label: "Testing", lobe: "base", links: ["web", "api", "cicd", "github"] },
+  { id: "monitoring", label: "Monitoring", lobe: "base", links: ["api", "edge", "docker"] },
+  { id: "deploy", label: "Deploy", lobe: "base", links: ["cicd", "edge", "docker", "web"] },
+];
+
 export const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "Projects", href: "#projects" },

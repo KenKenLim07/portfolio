@@ -74,8 +74,8 @@ export function HeroSection() {
             : undefined
         }
       >
-        <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-8 xl:gap-12">
-          <div className="lg:col-span-7">
+        <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:items-stretch lg:gap-6 xl:gap-10">
+          <div className="lg:col-span-5 xl:col-span-5">
             <HeroEntranceItem
               className="mb-6 flex flex-wrap items-center gap-3 sm:mb-8 sm:gap-4"
               delay={0.05}
@@ -165,8 +165,9 @@ export function HeroSection() {
             </HeroEntranceItem>
           </div>
 
-          <div className="lg:col-span-5 lg:pl-2 xl:pl-6">
+          <div className="flex lg:col-span-7 lg:pl-0 xl:col-span-7">
             <motion.div
+              className="w-full lg:flex lg:min-h-[720px] lg:items-center xl:min-h-[800px]"
               style={useScrollEffects ? { y: visualY } : undefined}
             >
               <HeroVisual />

@@ -1,15 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Brain } from "lucide-react";
+import { ArrowRight, Brain } from "lucide-react";
+import { MY_BRAIN } from "@/lib/constants";
 import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { useMouseTilt } from "@/hooks/useMouseTilt";
 import { easeOut } from "@/lib/motion";
 import {
-  BRAIN_CLIP_PATH,
-  BRAIN_OUTER_PATH,
-  BRAIN_SULCI_PATHS,
   NEURAL_CORE,
   NEURAL_EDGES,
   NEURAL_MACRO,
@@ -18,7 +17,7 @@ import {
   synapsePath,
 } from "@/lib/neural-brain-graph";
 
-const PULSE_COUNT = 18;
+const PULSE_COUNT = 32;
 
 export function HeroVisual() {
   const { ready, prefersReducedMotion } = useHeroEntrance();
@@ -75,9 +74,12 @@ export function HeroVisual() {
             }
           : undefined
       }
-      className="relative mx-auto w-full max-w-sm md:max-w-md lg:mx-0 lg:max-w-none"
+      className="relative mx-auto w-full max-w-xl sm:max-w-2xl md:max-w-3xl lg:mx-0 lg:max-w-none lg:w-full xl:min-h-0"
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden rounded-3xl border border-white/10 shadow-2xl shadow-black/50 sm:aspect-[4/5]">
+      <div
+        className="relative aspect-[4/5] min-h-[480px] w-full overflow-hidden rounded-3xl border border-white/10 shadow-2xl shadow-black/50 sm:min-h-[560px] md:min-h-[620px] lg:min-h-[700px] lg:aspect-auto lg:min-h-[720px] xl:min-h-[800px] 2xl:min-h-[860px]"
+        aria-label={`${MY_BRAIN.title} — interactive knowledge map`}
+      >
         <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-black to-zinc-950" />
 
         <div
@@ -87,9 +89,15 @@ export function HeroVisual() {
           }}
         />
 
-        <div className="pointer-events-none absolute left-1/2 top-[48%] h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl" />
-        <div className="pointer-events-none absolute left-[30%] top-[46%] h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl" />
-        <div className="pointer-events-none absolute left-[70%] top-[46%] h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl" />
+        <div
+          className={`pointer-events-none absolute left-1/2 top-[48%] h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+        />
+        <div
+          className={`pointer-events-none absolute left-[30%] top-[46%] h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
+        />
+        <div
+          className={`pointer-events-none absolute left-[70%] top-[46%] h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+        />
 
         {!prefersReducedMotion && (
           <>
@@ -98,6 +106,35 @@ export function HeroVisual() {
           </>
         )}
 
+        <motion.div
+          className="absolute left-4 right-4 top-4 z-40 sm:left-5 sm:right-5 sm:top-5"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: -8 }}
+          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: -8 }}
+          transition={{ delay: 0.4, duration: 0.45, ease: easeOut }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[9px] font-medium uppercase tracking-[0.22em] text-indigo-300/80 sm:text-[10px]">
+                {MY_BRAIN.eyebrow}
+              </p>
+              <h3 className="mt-0.5 font-display text-lg font-semibold tracking-tight text-zinc-100 sm:text-xl">
+                {MY_BRAIN.title}
+              </h3>
+            </div>
+            <span
+              className={`shrink-0 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 font-mono text-[8px] uppercase tracking-wider text-emerald-400/90 sm:text-[9px] ${!prefersReducedMotion ? "mesh-live-badge" : ""}`}
+            >
+              Live
+            </span>
+          </div>
+          <p className="mt-2 max-w-[16rem] text-[10px] leading-relaxed text-zinc-500 sm:max-w-none sm:text-[11px]">
+            {MY_BRAIN.tagline}
+          </p>
+        </motion.div>
+
+        <div
+          className={`absolute inset-x-0 top-[7%] bottom-[18%] origin-center scale-[1.06] sm:scale-[1.1] md:scale-[1.14] lg:scale-[1.2] xl:scale-[1.26] 2xl:scale-[1.32] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
+        >
         <svg
           viewBox="0 0 100 100"
           className="absolute inset-0 h-full w-full"
@@ -114,13 +151,10 @@ export function HeroVisual() {
               <stop offset="50%" stopColor="rgba(255,255,255,0.14)" />
               <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
             </linearGradient>
-            <radialGradient id="brainGlow" cx="50%" cy="48%" r="42%">
-              <stop offset="0%" stopColor="rgba(99,102,241,0.16)" />
+            <radialGradient id="meshGlow" cx="50%" cy="48%" r="55%">
+              <stop offset="0%" stopColor="rgba(99,102,241,0.12)" />
               <stop offset="100%" stopColor="rgba(99,102,241,0)" />
             </radialGradient>
-            <clipPath id="brainClip">
-              <path d={BRAIN_CLIP_PATH} />
-            </clipPath>
             <filter id="synapseGlow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="0.15" result="blur" />
               <feMerge>
@@ -130,32 +164,46 @@ export function HeroVisual() {
             </filter>
           </defs>
 
-          {/* Brain body */}
-          <path
-            d={BRAIN_OUTER_PATH}
-            fill="url(#brainGlow)"
-            stroke="rgba(255,255,255,0.14)"
-            strokeWidth="0.45"
-          />
-          {BRAIN_SULCI_PATHS.map((d, i) => (
-            <path
-              key={`sulci-${i}`}
-              d={d}
-              fill="none"
-              stroke="rgba(255,255,255,0.07)"
-              strokeWidth="0.22"
-              strokeLinecap="round"
-            />
-          ))}
+          <ellipse
+            cx="50"
+            cy="48"
+            rx="46"
+            ry="42"
+            fill="url(#meshGlow)"
+            opacity="0.85"
+          >
+            {!prefersReducedMotion && (
+              <>
+                <animate
+                  attributeName="opacity"
+                  values="0.55;0.95;0.55"
+                  dur="4.5s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="rx"
+                  values="44;48;44"
+                  dur="5.5s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="ry"
+                  values="40;44;40"
+                  dur="5.5s"
+                  repeatCount="indefinite"
+                />
+              </>
+            )}
+          </ellipse>
 
-          {/* Synapse mesh clipped to brain shape */}
-          <g clipPath="url(#brainClip)" filter="url(#synapseGlow)">
-            {NEURAL_EDGES.map((edge) => {
+          <g filter="url(#synapseGlow)">
+            {NEURAL_EDGES.map((edge, edgeIndex) => {
               const a = getNeuralNode(edge.from);
               const b = getNeuralNode(edge.to);
               const lit = edgeLit(edge.from, edge.to);
               const d = synapsePath(a.x, a.y, b.x, b.y, edge.primary ? 0.14 : 0.22);
               const isMicro = a.tier === "micro" && b.tier === "micro";
+              const baseOpacity = lit ? (edge.primary ? 0.85 : 0.45) : 0.12;
               return (
                 <path
                   key={`${edge.from}-${edge.to}`}
@@ -173,9 +221,18 @@ export function HeroVisual() {
                         ? 0.1
                         : 0.14
                   }
-                  opacity={lit ? (edge.primary ? 0.85 : 0.45) : 0.12}
+                  opacity={baseOpacity}
                   className="transition-all duration-300"
-                />
+                >
+                  {!prefersReducedMotion && lit && edge.primary && (
+                    <animate
+                      attributeName="opacity"
+                      values={`${baseOpacity * 0.55};${baseOpacity};${baseOpacity * 0.55}`}
+                      dur={`${2.8 + (edgeIndex % 5) * 0.4}s`}
+                      repeatCount="indefinite"
+                    />
+                  )}
+                </path>
               );
             })}
 
@@ -185,12 +242,26 @@ export function HeroVisual() {
               const a = getNeuralNode(edge.from);
               const b = getNeuralNode(edge.to);
               const d = synapsePath(a.x, a.y, b.x, b.y, 0.14);
+              const reverse = i % 3 === 0;
+              const dur = `${1.6 + (i % 9) * 0.28}s`;
               return (
-                <circle key={`pulse-${i}`} r="0.55" fill="rgba(224,231,255,0.9)">
+                <circle
+                  key={`pulse-${i}`}
+                  r={i % 4 === 0 ? "0.65" : "0.5"}
+                  fill="rgba(224,231,255,0.95)"
+                >
+                  <animate
+                    attributeName="opacity"
+                    values="0.15;1;0.15"
+                    dur={dur}
+                    repeatCount="indefinite"
+                  />
                   <animateMotion
-                    dur={`${1.8 + (i % 7) * 0.35}s`}
+                    dur={dur}
                     repeatCount="indefinite"
                     path={d}
+                    keyPoints={reverse ? "1;0" : "0;1"}
+                    keyTimes="0;1"
                   />
                 </circle>
               );
@@ -199,22 +270,31 @@ export function HeroVisual() {
           {/* Micro neurons (inside brain) */}
           {NEURAL_MICRO.map((n, i) => {
             const lit = nodeLit(n.id);
+            const r = lit && activeId ? 0.55 : 0.38;
             return (
               <circle
                 key={n.id}
                 cx={n.x}
                 cy={n.y}
-                r={lit && activeId ? 0.55 : 0.38}
+                r={r}
                 fill={lit ? "rgba(199,210,254,0.7)" : "rgba(255,255,255,0.18)"}
                 className="transition-all duration-300"
               >
-                {!prefersReducedMotion && lit && i % 9 === 0 && (
-                  <animate
-                    attributeName="opacity"
-                    values="0.4;1;0.4"
-                    dur={`${2 + (i % 5)}s`}
-                    repeatCount="indefinite"
-                  />
+                {!prefersReducedMotion && lit && (
+                  <>
+                    <animate
+                      attributeName="opacity"
+                      values="0.25;0.85;0.25"
+                      dur={`${2.2 + (i % 7) * 0.35}s`}
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="r"
+                      values={`${r * 0.85};${r * 1.15};${r * 0.85}`}
+                      dur={`${3 + (i % 6) * 0.4}s`}
+                      repeatCount="indefinite"
+                    />
+                  </>
                 )}
               </circle>
             );
@@ -238,7 +318,7 @@ export function HeroVisual() {
             <div
               className={`relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 sm:h-14 sm:w-14 ${
                 activeId === "core" || !activeId
-                  ? "border-indigo-300/50 bg-indigo-500/25 shadow-[0_0_32px_rgba(99,102,241,0.35)]"
+                  ? `border-indigo-300/50 bg-indigo-500/25 shadow-[0_0_32px_rgba(99,102,241,0.35)] ${!prefersReducedMotion ? "mesh-core-heartbeat" : ""}`
                   : "border-white/20 bg-zinc-950/80"
               }`}
             >
@@ -252,67 +332,74 @@ export function HeroVisual() {
           </div>
         </motion.div>
 
-        {/* Macro region labels */}
+        {/* Skill markers — anchored inside the brain at each node */}
         {NEURAL_MACRO.map((node, i) => (
           <motion.button
             key={node.id}
             type="button"
-            className="absolute z-20 -translate-x-1/2 -translate-y-1/2 cursor-default border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 rounded-full"
+            className="absolute z-20 flex -translate-x-1/2 -translate-y-1/2 cursor-default flex-col items-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50"
             style={{ left: `${node.x}%`, top: `${node.y}%` }}
-            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.8 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.6 }}
             animate={
               ready
-                ? { opacity: 1, scale: activeId === node.id ? 1.08 : 1 }
-                : { opacity: 0, scale: 0.8 }
+                ? { opacity: 1, scale: activeId === node.id ? 1.12 : 1 }
+                : { opacity: 0, scale: 0.6 }
             }
-            transition={{ delay: 0.52 + i * 0.04, duration: 0.4 }}
+            transition={{ delay: 0.52 + i * 0.03, duration: 0.35 }}
             onMouseEnter={() => setActiveId(node.id)}
             onMouseLeave={() => setActiveId(null)}
             aria-label={node.label}
           >
             <span
-              className={`flex items-center gap-1 rounded-full border px-2 py-0.5 backdrop-blur-md transition-all duration-200 sm:gap-1.5 sm:px-2.5 sm:py-1 ${
+              className={`mb-0.5 block h-1.5 w-1.5 rounded-full ring-2 ring-black/40 sm:h-2 sm:w-2 ${
                 activeId === node.id
-                  ? "border-indigo-300/40 bg-indigo-500/20 text-indigo-100 shadow-md shadow-indigo-500/20"
-                  : "border-white/10 bg-zinc-950/80 text-zinc-400"
+                  ? "bg-indigo-200 shadow-[0_0_8px_rgba(199,210,254,0.9)]"
+                  : "bg-indigo-400/70"
+              } ${!prefersReducedMotion && nodeLit(node.id) ? "mesh-neuron-dot" : ""}`}
+              style={
+                !prefersReducedMotion
+                  ? { animationDelay: `${(i % 11) * 0.22}s` }
+                  : undefined
+              }
+            />
+            <span
+              className={`max-w-[3.75rem] truncate rounded-md border px-1 py-px text-center text-[7px] font-medium leading-tight tracking-wide backdrop-blur-sm sm:max-w-[4.25rem] sm:px-1.5 sm:text-[8px] ${
+                activeId === node.id
+                  ? "border-indigo-300/50 bg-indigo-950/90 text-indigo-100"
+                  : "border-white/10 bg-zinc-950/85 text-zinc-400"
               }`}
             >
-              <span
-                className={`h-1 w-1 rounded-full sm:h-1.5 sm:w-1.5 ${
-                  activeId === node.id ? "bg-indigo-200" : "bg-indigo-500/60"
-                }`}
-              />
-              <span className="whitespace-nowrap text-[8px] font-medium uppercase tracking-wider sm:text-[9px]">
-                {node.label}
-              </span>
+              {node.label}
             </span>
           </motion.button>
         ))}
+        </div>
 
         <div className="absolute bottom-3 left-3 right-3 z-40 rounded-xl border border-white/10 bg-black/60 p-3 backdrop-blur-md sm:bottom-4 sm:left-4 sm:right-4 sm:p-4">
           <div className="flex items-center justify-between gap-2">
             <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-zinc-500 sm:text-[10px]">
-              Neural mesh
+              {MY_BRAIN.title}
             </p>
             <span className="font-mono text-[9px] text-emerald-400/90 sm:text-[10px]">
               {NEURAL_EDGES.length} synapses
             </span>
           </div>
-          <p className="mt-1 font-display text-xs font-medium text-zinc-200 sm:text-sm">
-            Ingest → Encode → Reason → Deliver
+          <p className="mt-1 text-[11px] leading-snug text-zinc-400 sm:text-xs">
+            {MY_BRAIN.description}
+          </p>
+          <p className="mt-2 font-display text-xs font-medium text-zinc-200 sm:text-sm">
+            {MY_BRAIN.pipeline}
           </p>
           <div className="mt-2.5 h-1 overflow-hidden rounded-full bg-white/10 sm:mt-3">
-            <motion.div
-              className="hero-progress-bar h-full rounded-full"
-              initial={{ width: "0%" }}
-              animate={ready ? { width: "82%" } : { width: "0%" }}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0 }
-                  : { delay: 0.75, duration: 1.4, ease: easeOut }
-              }
-            />
+            <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-indigo-500/70 via-indigo-400/50 to-violet-500/40" />
           </div>
+          <Link
+            href={MY_BRAIN.aboutLink.href}
+            className="mt-3 inline-flex items-center gap-1 text-[10px] font-medium text-indigo-300/90 transition-colors hover:text-indigo-200 sm:text-[11px]"
+          >
+            {MY_BRAIN.aboutLink.label}
+            <ArrowRight className="h-3 w-3" aria-hidden />
+          </Link>
         </div>
       </div>
     </motion.div>
