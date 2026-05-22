@@ -1,140 +1,194 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ArrowDown } from "lucide-react";
 import { SITE } from "@/lib/constants";
-import { easeOut } from "@/lib/motion";
+import { fadeInUp, easeOut } from "@/lib/motion";
+import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { HeroVisual } from "@/components/HeroVisual";
-
-const headlineLines = [
-  { text: "Building", accent: false },
-  { text: "Intelligent", accent: true },
-  { text: "Digital Experiences", accent: false },
-];
+import { HeroAurora } from "@/components/HeroAurora";
+import { HeroRotatingText } from "@/components/HeroRotatingText";
+import {
+  HeroEntranceGroup,
+  HeroEntranceChild,
+  HeroEntranceItem,
+} from "@/components/ui/HeroEntrance";
 
 export function HeroSection() {
-  const prefersReducedMotion = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
+  const { ready, prefersReducedMotion } = useHeroEntrance();
 
-  const fade = (delay: number) =>
-    prefersReducedMotion
-      ? {}
-      : {
-          initial: { opacity: 0, y: 28 },
-          animate: { opacity: 1, y: 0 },
-          transition: { duration: 0.8, delay, ease: easeOut },
-        };
+  const [scrollFx, setScrollFx] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    setScrollFx(mq.matches);
+    const handler = () => setScrollFx(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+
+  const visualY = useTransform(scrollYProgress, [0.5, 1], [0, 48]);
+  const contentOpacity = useTransform(scrollYProgress, [0.82, 1], [1, 0]);
+  const contentY = useTransform(scrollYProgress, [0.82, 1], [0, 32]);
+
+  const useScrollEffects = scrollFx && !prefersReducedMotion;
+
+  const entrance = (delay: number) => {
+    if (prefersReducedMotion) return {};
+    return {
+      initial: fadeInUp.hidden,
+      animate: ready ? fadeInUp.visible : fadeInUp.hidden,
+      transition: { duration: 0.6, delay, ease: easeOut },
+    };
+  };
+
+  const headlineClass =
+    "block text-[clamp(2.25rem,8vw,5rem)] leading-[1.05]";
 
   return (
     <section
+      ref={sectionRef}
       id="home"
-      className="relative min-h-screen overflow-hidden pt-28 pb-16 md:pt-32 md:pb-24"
+      className="relative min-h-[100dvh] overflow-hidden pt-24 pb-16 sm:pt-28 sm:pb-20 md:min-h-[105vh] md:pt-32 md:pb-28"
     >
-      <div className="pointer-events-none absolute inset-0 grid-pattern opacity-25" />
-      <div
-        className="pointer-events-none absolute -left-20 top-1/4 select-none font-display text-[clamp(8rem,22vw,18rem)] font-bold leading-none tracking-tighter text-white/[0.02]"
-        aria-hidden
-      >
+      <HeroAurora />
+      <div className="pointer-events-none absolute inset-0 grid-pattern opacity-20" />
+
+      <div className="pointer-events-none absolute -left-12 top-[14%] hidden select-none font-display text-[clamp(6rem,18vw,14rem)] font-bold leading-none tracking-tighter text-white/[0.025] sm:block">
         {SITE.name.split(" ")[0]}
       </div>
 
-      <div className="relative mx-auto w-full max-w-7xl px-6 md:px-8 lg:px-12">
-        <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10 xl:gap-14">
-          {/* Editorial left — asymmetric, not centered stack */}
+      <motion.div
+        className="relative mx-auto w-full max-w-7xl px-5 sm:px-6 md:px-8 lg:px-12"
+        style={
+          useScrollEffects
+            ? { opacity: contentOpacity, y: contentY }
+            : undefined
+        }
+      >
+        <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:gap-8 xl:gap-12">
           <div className="lg:col-span-7">
-            <motion.div
-              className="mb-8 flex items-center gap-4"
-              {...fade(0.05)}
+            <HeroEntranceItem
+              className="mb-6 flex flex-wrap items-center gap-3 sm:mb-8 sm:gap-4"
+              delay={0.05}
             >
-              <span className="font-mono text-xs text-zinc-500">01</span>
-              <span className="h-px w-12 bg-white/15" />
-              <span className="text-xs font-medium uppercase tracking-[0.25em] text-muted">
-                {SITE.role}
+              <span className="font-mono text-xs tabular-nums text-zinc-500">
+                01
               </span>
-            </motion.div>
+              <span className="h-px w-8 bg-white/15 sm:w-14" />
+              <HeroRotatingText />
+            </HeroEntranceItem>
 
             <h1 className="font-display font-semibold tracking-tight">
-              {headlineLines.map((line, i) => (
-                <motion.span
-                  key={line.text}
-                  className="block overflow-hidden"
-                  {...fade(0.15 + i * 0.1)}
-                >
-                  <span
-                    className={`block text-[clamp(2.5rem,6vw,4.75rem)] leading-[1.05] ${
-                      line.accent
-                        ? "text-zinc-400"
-                        : "text-foreground"
-                    }`}
-                  >
-                    {line.text}
+              <HeroEntranceGroup delay={0.1}>
+                <HeroEntranceChild>
+                  <span className={`${headlineClass} text-foreground`}>
+                    Building
                   </span>
-                </motion.span>
-              ))}
+                </HeroEntranceChild>
+                <HeroEntranceChild>
+                  <span
+                    className={`${headlineClass} hero-shimmer-text`}
+                  >
+                    Intelligent
+                  </span>
+                </HeroEntranceChild>
+                <HeroEntranceChild>
+                  <span className={`${headlineClass} text-foreground`}>
+                    Digital Experiences
+                  </span>
+                </HeroEntranceChild>
+              </HeroEntranceGroup>
             </h1>
 
-            <motion.p
-              className="mt-8 max-w-lg text-base leading-relaxed text-muted md:text-lg"
-              {...fade(0.45)}
+            <HeroEntranceItem
+              as="p"
+              className="mt-6 max-w-lg text-base leading-relaxed text-muted sm:mt-8 md:text-lg"
+              delay={0.4}
             >
               {SITE.description}
-            </motion.p>
+            </HeroEntranceItem>
 
-            <motion.div
-              className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center"
-              {...fade(0.55)}
+            <HeroEntranceItem
+              className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4"
+              delay={0.5}
             >
               <Link
                 href="#projects"
-                className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground px-7 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
+                className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 sm:px-7"
               >
                 View Projects
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
               <Link
                 href="#contact"
-                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-white/15 px-7 py-3.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5"
+                className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5 sm:px-7"
               >
                 Start a project
               </Link>
-            </motion.div>
+            </HeroEntranceItem>
 
-            <motion.div
-              className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/10 pt-8"
-              {...fade(0.65)}
+            <HeroEntranceItem
+              className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-8 sm:mt-14 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8"
+              delay={0.6}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/40 opacity-75" />
+                  {!prefersReducedMotion && (
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/40 opacity-75" />
+                  )}
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400/90" />
                 </span>
                 <span className="text-sm text-zinc-400">
                   Available for new projects
                 </span>
               </div>
-              <span className="hidden h-4 w-px bg-white/15 sm:block" />
-              <span className="text-sm text-muted">
-                Premium web · AI systems · Fullstack
-              </span>
-            </motion.div>
+              <div className="flex flex-wrap gap-4 font-mono text-xs text-zinc-500 sm:gap-6">
+                <span>
+                  <span className="text-foreground">5+</span> stacks
+                </span>
+                <span>
+                  <span className="text-foreground">AI</span> native
+                </span>
+                <span>
+                  <span className="text-foreground">24h</span> response
+                </span>
+              </div>
+            </HeroEntranceItem>
           </div>
 
-          {/* Right — engineering depth visual, not empty glow */}
-          <motion.div
-            className="lg:col-span-5 lg:pl-4"
-            {...fade(0.35)}
-          >
-            <HeroVisual />
-          </motion.div>
+          <div className="lg:col-span-5 lg:pl-2 xl:pl-6">
+            <motion.div
+              style={useScrollEffects ? { y: visualY } : undefined}
+            >
+              <HeroVisual />
+            </motion.div>
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       <motion.div
-        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-muted md:flex"
-        {...fade(0.85)}
+        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex"
+        style={useScrollEffects ? { opacity: contentOpacity } : undefined}
+        {...entrance(0.75)}
       >
-        <span className="text-[10px] uppercase tracking-[0.3em]">Scroll</span>
-        <ArrowDown className="h-4 w-4 opacity-50" />
+        <motion.div
+          animate={ready && !prefersReducedMotion ? { y: [0, 5, 0] } : undefined}
+          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <ArrowDown className="h-4 w-4 text-zinc-500" />
+        </motion.div>
+        <span className="text-[10px] uppercase tracking-[0.35em] text-zinc-600">
+          Scroll
+        </span>
       </motion.div>
     </section>
   );
