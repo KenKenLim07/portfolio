@@ -28,11 +28,20 @@ Edit `src/lib/constants.ts` for:
 - Services, tech stack, process steps
 - Social URLs
 
-Optional environment variables:
+Copy `.env.example` to `.env.local` and set your values:
 
-```env
-NEXT_PUBLIC_SITE_URL=https://your-domain.com
+```bash
+cp .env.example .env.local
 ```
+
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SITE_URL` | Canonical URL for Open Graph |
+| `NEXT_PUBLIC_EMAILJS_SERVICE_ID` | EmailJS service ID |
+| `NEXT_PUBLIC_EMAILJS_TEMPLATE_ID` | EmailJS template ID |
+| `NEXT_PUBLIC_EMAILJS_PUBLIC_KEY` | EmailJS public key |
+
+EmailJS template fields should use: `from_name`, `from_email`, `message` (matching the contact form).
 
 ## Deploy
 

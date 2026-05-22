@@ -10,6 +10,7 @@
   --glass: rgba(255, 255, 255, 0.06);
   --accent-from: #6366f1;
   --accent-to: #8b5cf6;
+  --form-surface: #09090b;
 }
 
 @theme inline {
@@ -94,4 +95,10 @@ body {
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 64px 64px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ping {
+    animation: none !important;
+  }
 }
