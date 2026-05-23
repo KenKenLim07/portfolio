@@ -10,11 +10,11 @@ export const SITE = {
 
 /** Hero “My brain” knowledge map — ties to #about */
 export const MY_BRAIN = {
-  previewTitle: "2D Preview of My Brain",
+  previewTitle: "Developer Knowledge Graph",
   interactionHint:
-    "Tap, hover, or explore the neural pathways behind how I think and build.",
+    "A living network of technologies, systems, and lessons learned through building products, platforms, and AI-powered solutions.",
   experienceLine:
-    "Every node represents experience. Every connection represents lessons learned, patterns recognized, and systems built.",
+    "Tap, hover, or explore the neural pathways behind how I think and build.",
   pipeline: "Ingest → Encode → Reason → Deliver",
   preview3d:
     "This is the 2D projection. The full 3D model reveals itself during collaboration.",
@@ -42,7 +42,12 @@ export const BRAIN_KNOWLEDGE: readonly BrainSkill[] = [
   { id: "data", label: "Data Pipe", lobe: "left", links: ["postgres", "docker", "cache"] },
   { id: "postgres", label: "PostgreSQL", lobe: "left", links: ["data", "api", "docker"] },
   { id: "docker", label: "Docker", lobe: "left", links: ["data", "api", "cache", "postgres"] },
-  { id: "cache", label: "Redis", lobe: "left", links: ["docker", "celery", "postgres"] },
+  {
+    id: "cache",
+    label: "Redis",
+    lobe: "left",
+    links: ["docker", "celery", "postgres", "supabase"],
+  },
   { id: "typescript", label: "TypeScript", lobe: "center", links: ["web", "api", "vite"] },
   { id: "python", label: "Python", lobe: "center", links: ["api", "nlp", "celery", "data"] },
   { id: "rag", label: "RAG", lobe: "center", links: ["nlp", "embed", "postgres"] },
@@ -53,6 +58,12 @@ export const BRAIN_KNOWLEDGE: readonly BrainSkill[] = [
   { id: "github", label: "GitHub Actions", lobe: "right", links: ["cicd", "web", "testing"] },
   { id: "ui", label: "UI Layer", lobe: "right", links: ["web", "vite", "edge"] },
   { id: "edge", label: "Edge", lobe: "right", links: ["ui", "cache", "cicd"] },
+  {
+    id: "supabase",
+    label: "Supabase",
+    lobe: "right",
+    links: ["postgres", "api", "docker", "cache"],
+  },
   { id: "testing", label: "Testing", lobe: "base", links: ["web", "api", "cicd", "github"] },
   { id: "monitoring", label: "Monitoring", lobe: "base", links: ["api", "edge", "docker"] },
   { id: "deploy", label: "Deploy", lobe: "base", links: ["cicd", "edge", "docker", "web"] },

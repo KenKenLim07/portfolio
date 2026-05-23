@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { Brain } from "lucide-react";
 import { MY_BRAIN } from "@/lib/constants";
-import { useHeroEntrance } from "@/hooks/useHeroEntrance";
+import { useHeroVisualEntrance } from "@/hooks/useHeroVisualEntrance";
 import { useMouseTilt } from "@/hooks/useMouseTilt";
 import { easeOut } from "@/lib/motion";
 import {
@@ -19,10 +19,11 @@ import {
 const PULSE_COUNT = 32;
 
 export function HeroVisual() {
-  const { ready, prefersReducedMotion } = useHeroEntrance();
+  const prefersReducedMotion = useReducedMotion();
   const [activeId, setActiveId] = useState<string | null>(null);
   const { ref, springX, springY, spotlight, onMove, onLeave, tiltEnabled } =
     useMouseTilt(!prefersReducedMotion);
+  const { active, mobileScrollEntrance } = useHeroVisualEntrance(ref);
 
   const pulseEdges = useMemo(
     () =>
@@ -56,13 +57,17 @@ export function HeroVisual() {
       onMouseLeave={onLeave}
       initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
       animate={
-        ready
+        active
           ? { opacity: 1, y: 0 }
           : prefersReducedMotion
             ? undefined
             : { opacity: 0, y: 24 }
       }
-      transition={{ duration: 0.6, delay: 0.25, ease: easeOut }}
+      transition={{
+        duration: 0.6,
+        delay: active ? (mobileScrollEntrance ? 0.1 : 0.25) : 0,
+        ease: easeOut,
+      }}
       style={
         tiltEnabled
           ? {
@@ -77,13 +82,17 @@ export function HeroVisual() {
     >
       <div
         className="relative flex min-h-[min(680px,88dvh)] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-950 shadow-2xl shadow-black/50 sm:min-h-[620px] lg:min-h-[720px] xl:min-h-[800px]"
-        aria-label={`${MY_BRAIN.previewTitle} — interactive knowledge map`}
+        aria-label={`${MY_BRAIN.previewTitle} — ${MY_BRAIN.interactionHint}`}
       >
         <motion.div
           className="relative z-40 shrink-0 px-4 pb-1.5 pt-3.5 sm:px-5 sm:pb-3 sm:pt-5"
           initial={prefersReducedMotion ? false : { opacity: 0, y: -6 }}
-          animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
-          transition={{ delay: 0.4, duration: 0.45, ease: easeOut }}
+          animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
+          transition={{
+            delay: active ? (mobileScrollEntrance ? 0.15 : 0.4) : 0,
+            duration: 0.45,
+            ease: easeOut,
+          }}
         >
           <h3 className="max-w-[18rem] font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:max-w-md sm:text-lg">
             {MY_BRAIN.previewTitle}
@@ -297,9 +306,12 @@ export function HeroVisual() {
           style={{ left: `${NEURAL_CORE.x}%`, top: `${NEURAL_CORE.y}%` }}
           initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.7 }}
           animate={
-            ready ? { opacity: 1, scale: nodeLit("core") ? 1.08 : 1 } : { opacity: 0, scale: 0.7 }
+            active ? { opacity: 1, scale: nodeLit("core") ? 1.08 : 1 } : { opacity: 0, scale: 0.7 }
           }
-          transition={{ delay: 0.45, duration: 0.5 }}
+          transition={{
+            delay: active ? (mobileScrollEntrance ? 0.2 : 0.45) : 0,
+            duration: 0.5,
+          }}
           onMouseEnter={() => setActiveId("core")}
           onMouseLeave={() => setActiveId(null)}
         >
@@ -330,11 +342,16 @@ export function HeroVisual() {
             style={{ left: `${node.x}%`, top: `${node.y}%` }}
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.6 }}
             animate={
-              ready
+              active
                 ? { opacity: 1, scale: activeId === node.id ? 1.12 : 1 }
                 : { opacity: 0, scale: 0.6 }
             }
-            transition={{ delay: 0.52 + i * 0.03, duration: 0.35 }}
+            transition={{
+              delay: active
+                ? (mobileScrollEntrance ? 0.22 : 0.52) + i * 0.03
+                : 0,
+              duration: 0.35,
+            }}
             onMouseEnter={() => setActiveId(node.id)}
             onMouseLeave={() => setActiveId(null)}
             aria-label={node.label}
