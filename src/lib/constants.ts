@@ -10,13 +10,14 @@ export const SITE = {
 
 /** Hero “My brain” knowledge map — ties to #about */
 export const MY_BRAIN = {
-  previewTitle: "2D preview of my brain's knowledge",
-  interactionHint: "Tap or click to play with my brain",
-  description:
-    "Each region is a stack or system I actually work with. Hover or tap to see how my skills connect.",
+  previewTitle: "2D Preview of My Brain",
+  interactionHint:
+    "Tap, hover, or explore the neural pathways behind how I think and build.",
+  experienceLine:
+    "Every node represents experience. Every connection represents lessons learned, patterns recognized, and systems built.",
   pipeline: "Ingest → Encode → Reason → Deliver",
   preview3d:
-    "A 3D preview of this brain in action is available when we work together — your product, mapped and alive.",
+    "This is the 2D projection. The full 3D model reveals itself during collaboration.",
 } as const;
 
 /**

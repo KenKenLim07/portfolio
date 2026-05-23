@@ -76,53 +76,56 @@ export function HeroVisual() {
       className="relative mx-auto w-full max-w-xl overflow-hidden sm:max-w-2xl md:max-w-3xl lg:mx-0 lg:max-w-none"
     >
       <div
-        className="relative flex min-h-[580px] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-950 shadow-2xl shadow-black/50 sm:min-h-[620px] lg:min-h-[720px] xl:min-h-[800px]"
+        className="relative flex min-h-[min(680px,88dvh)] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-950 shadow-2xl shadow-black/50 sm:min-h-[620px] lg:min-h-[720px] xl:min-h-[800px]"
         aria-label={`${MY_BRAIN.previewTitle} — interactive knowledge map`}
       >
         <motion.div
-          className="relative z-40 shrink-0 px-4 pb-2 pt-4 sm:px-5 sm:pb-3 sm:pt-5"
+          className="relative z-40 shrink-0 px-4 pb-1.5 pt-3.5 sm:px-5 sm:pb-3 sm:pt-5"
           initial={prefersReducedMotion ? false : { opacity: 0, y: -6 }}
           animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
           transition={{ delay: 0.4, duration: 0.45, ease: easeOut }}
         >
-          <h3 className="max-w-[16rem] font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:max-w-none sm:text-lg">
+          <h3 className="max-w-[18rem] font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:max-w-md sm:text-lg">
             {MY_BRAIN.previewTitle}
           </h3>
-          <p className="mt-1.5 max-w-[14rem] text-[11px] font-medium leading-snug text-indigo-300/90 sm:max-w-none sm:text-xs">
+          <p className="mt-1.5 max-w-[18rem] text-[11px] font-medium leading-snug text-indigo-300/90 sm:max-w-md sm:text-xs">
             {MY_BRAIN.interactionHint}
           </p>
         </motion.div>
 
-        <div className="relative min-h-[240px] min-w-0 flex-1 overflow-hidden sm:min-h-[280px]">
-          <div
-            className="pointer-events-none absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse 60% 50% at ${spotlight.x}% ${spotlight.y}%, rgba(99,102,241,0.12), transparent 70%)`,
-            }}
-          />
+        <div className="relative flex min-h-[min(340px,46dvh)] min-w-0 flex-[1.2] items-center justify-center overflow-hidden [container-type:size] sm:min-h-[280px] sm:flex-1">
+          {/* Square stage — keeps SVG + labels on the same coordinate system when the card is stretched wide */}
+          <div className="relative aspect-square h-full max-h-full w-[min(100%,100cqmin)] max-w-full">
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background: `radial-gradient(ellipse 60% 50% at ${spotlight.x}% ${spotlight.y}%, rgba(99,102,241,0.12), transparent 70%)`,
+              }}
+            />
 
-          <div
-            className={`pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
-          />
-          <div
-            className={`pointer-events-none absolute left-[30%] top-1/2 h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
-          />
-          <div
-            className={`pointer-events-none absolute left-[70%] top-1/2 h-28 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
-          />
+            <div
+              className={`pointer-events-none absolute left-1/2 top-1/2 h-[55%] w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+            />
+            <div
+              className={`pointer-events-none absolute left-[30%] top-1/2 h-[45%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
+            />
+            <div
+              className={`pointer-events-none absolute left-[70%] top-1/2 h-[45%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+            />
 
-          {!prefersReducedMotion && (
-            <>
-              <div className="hero-brain-pulse pointer-events-none absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full border border-indigo-400/25" />
-              <div className="hero-brain-pulse-delayed pointer-events-none absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-400/15" />
-            </>
-          )}
+            {!prefersReducedMotion && (
+              <>
+                <div className="hero-brain-pulse pointer-events-none absolute left-1/2 top-1/2 h-[50%] w-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-indigo-400/25" />
+                <div className="hero-brain-pulse-delayed pointer-events-none absolute left-1/2 top-1/2 h-[38%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-400/15" />
+              </>
+            )}
 
-          <div
-            className={`absolute inset-0 origin-center scale-[0.9] sm:scale-[1.02] md:scale-[1.08] lg:scale-[1.14] xl:scale-[1.2] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
-          >
+            <div
+              className={`absolute inset-0 origin-center scale-[1.1] sm:scale-[1.02] md:scale-[1.08] lg:scale-[1.14] xl:scale-[1.2] ${!prefersReducedMotion ? "mesh-alive-wrap" : ""}`}
+            >
         <svg
           viewBox="0 0 100 100"
+          preserveAspectRatio="xMidYMid meet"
           className="absolute inset-0 h-full w-full"
           aria-hidden
         >
@@ -354,15 +357,16 @@ export function HeroVisual() {
             </span>
           </motion.button>
         ))}
+            </div>
           </div>
         </div>
 
-        <div className="relative z-40 shrink-0 border-t border-white/10 bg-black/70 p-3 backdrop-blur-md sm:p-4">
+        <div className="relative z-40 shrink-0 border-t border-white/10 bg-black/70 p-2.5 backdrop-blur-md sm:p-4">
           <p className="text-right font-mono text-[9px] text-emerald-400/90 sm:text-[10px]">
             {NEURAL_EDGES.length} synapses
           </p>
           <p className="mt-1 text-[11px] leading-snug text-zinc-400 sm:text-xs">
-            {MY_BRAIN.description}
+            {MY_BRAIN.experienceLine}
           </p>
           <p className="mt-2 font-display text-xs font-medium text-zinc-200 sm:text-sm">
             {MY_BRAIN.pipeline}
