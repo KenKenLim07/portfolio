@@ -51,28 +51,27 @@ export function ProjectCard({
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       layout={!prefersReducedMotion && !isRail}
     >
-      <div
-        className={cn(
-          "relative overflow-hidden",
-          isRail ? "aspect-[16/10]" : "aspect-[16/9]",
-        )}
-      >
+      {/* 2:1 matches exported screenshots (1400×700) — avoids crop from 16:9 frames */}
+      <div className="relative aspect-[2/1] overflow-hidden bg-zinc-950">
         <div
-          className={cn("absolute inset-0 bg-gradient-to-br", project.gradient)}
+          className={cn(
+            "absolute inset-0 bg-gradient-to-br opacity-40",
+            project.gradient,
+          )}
         />
         <Image
           src={project.image}
           alt={project.title}
           fill
-          className="object-cover opacity-60 transition-transform duration-700 ease-out group-hover:scale-105"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+          style={{ objectPosition: project.imagePosition ?? "center top" }}
           sizes={
             isRail
               ? "320px"
               : "(max-width: 1024px) 100vw, 1280px"
           }
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/50 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(99,102,241,0.18),transparent_50%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent" />
       </div>
 
       <div className={cn("relative", isRail ? "p-4 sm:p-5" : "p-6 md:p-8")}>
@@ -113,6 +112,8 @@ export function ProjectCard({
             {project.liveUrl && (
               <Link
                 href={project.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
                 onClick={(e) => e.stopPropagation()}
               >

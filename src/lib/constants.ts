@@ -112,22 +112,25 @@ export type Project = {
   title: string;
   description: string;
   stack: string[];
+  /** Use 2:1 screenshots (e.g. 1600×800) for a flush fit in project cards */
   image: string;
   gradient: string;
   category: ProjectCategory;
   featured?: boolean;
   liveUrl?: string;
   githubUrl?: string;
+  /** CSS object-position when using cover (default: center) */
+  imagePosition?: string;
 };
 
 export const PROJECTS: Project[] = [
   {
     id: "news-intelligence",
-    title: "Philippine News Intelligence Platform",
+    title: "PH VibeCheck AI — Philippine News Intelligence",
     category: "ai",
     featured: true,
     description:
-      "AI-powered news aggregation and sentiment analysis platform that monitors multiple Philippine news sources in real time using NLP pipelines, automated scraping systems, and analytics dashboards.",
+      "Undergraduate thesis (Best Paper): real-time Philippine news aggregation with automated scraping, VADER sentiment scores showing how outlets portray topics, spaCy entity extraction, and Pearson correlation analysis comparing how sources differ in tone — plus search, trends, and entity dashboards across major PH publishers.",
     stack: [
       "Next.js",
       "FastAPI",
@@ -136,36 +139,42 @@ export const PROJECTS: Project[] = [
       "Celery",
       "Docker",
       "DistilBERT",
-      "VADER NLP",
+      "VADER",
+      "spaCy",
     ],
-    image: "/projects/news-intelligence.svg",
+    image: "/projects/news.png",
     gradient: "from-slate-900 via-indigo-950 to-violet-950",
-    liveUrl: "#",
-    githubUrl: "#",
+    liveUrl: "https://ph-vibe-check.vercel.app/",
   },
   {
     id: "skyward-restaurant",
     title: "Skyward Japanese Restaurant Website",
     category: "web",
     description:
-      "Premium restaurant website focused on cinematic presentation, modern branding, mobile-first UX, and elegant customer experience.",
+      "Premium restaurant site for Skyward Japanese Cuisine in Iloilo — cinematic hero, featured menu, gallery, visit info, and mobile-first UX built for local discovery and reservations.",
     stack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
-    image: "/projects/skyward-restaurant.svg",
+    image: "/projects/skyward.png",
     gradient: "from-zinc-950 via-stone-900 to-amber-950",
-    liveUrl: "#",
-    githubUrl: "#",
+    liveUrl: "https://skyward-iloilo.vercel.app/",
   },
   {
-    id: "beauty-storefront",
-    title: "Beauty Brand Storefront",
+    id: "iphone-scraper",
+    title: "IAASE — Iloilo iPhone Deal Intelligence",
     category: "commerce",
     description:
-      "Modern ecommerce-style storefront for a beauty distributor focused on conversion, branding, and premium visual presentation.",
-    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Stripe"],
-    image: "/projects/beauty-storefront.svg",
-    gradient: "from-zinc-950 via-rose-950 to-fuchsia-950",
-    liveUrl: "#",
-    githubUrl: "#",
+      "Facebook Marketplace pipeline using GraphQL with Playwright fallback, dual accounts (discovery vs. monitoring), and Supabase storage. Benchmarks iPhone variants against Iloilo prices, then applies rule-based AI on titles and descriptions to flag red flags (no True Tone, no Face ID, broken/replaced screen, etc.) and deduct repair risk from estimated profit on the dashboard.",
+    stack: [
+      "Next.js",
+      "Supabase",
+      "Playwright",
+      "GraphQL",
+      "Rule-based AI",
+      "TypeScript",
+      "PostgreSQL",
+    ],
+    image: "/projects/iphone.png",
+    gradient: "from-zinc-950 via-slate-900 to-sky-950",
+    liveUrl: "https://iloilo-apple-deals.vercel.app/",
   },
 ];
 
