@@ -130,9 +130,10 @@ export const PROJECTS: Project[] = [
     category: "ai",
     featured: true,
     description:
-      "Undergraduate thesis (Best Paper): real-time Philippine news aggregation with automated scraping, VADER sentiment scores showing how outlets portray topics, spaCy entity extraction, and Pearson correlation analysis comparing how sources differ in tone — plus search, trends, and entity dashboards across major PH publishers.",
+      "Undergraduate thesis (Best Paper Award in NLP line up): real-time Philippine news aggregation with automated scraping, VADER sentiment scores showing how outlets portray topics, spaCy entity extraction, and Pearson correlation analysis comparing how sources differ in tone — plus search, trends, and entity dashboards across major PH publishers.",
     stack: [
       "Next.js",
+      "Docker",
       "FastAPI",
       "Supabase",
       "Redis",
@@ -224,11 +225,12 @@ export const SERVICES = [
 ] as const;
 
 export const TECH_STACK = {
-  frontend: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion"],
-  backend: ["FastAPI", "Supabase", "Redis", "Celery", "Docker"],
+  frontend: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion", "Vite"],
+  backend: ["FastAPI", "Supabase", "Redis", "Celery", "Docker", "PostgreSQL", "Python"],
   ai: [
     "DistilBERT",
     "VADER NLP",
+    "spaCy",
     "Real-Time Data Pipelines",
     "Sentiment Analysis",
   ],
