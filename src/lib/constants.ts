@@ -2,9 +2,9 @@ export const SITE = {
   name: "Jose Marie Lim",
   role: "Full-Stack Developer & AI Systems Engineer",
   email: "josemarelim7@gmail.com",
-  tagline: "Building Intelligent Digital Experiences",
+  tagline: "Building Intelligent Digital Systems",
   description:
-    "Fullstack developer focused on premium websites, AI-powered systems, and modern business platforms.",
+    "From modern interfaces to intelligent systems — designing and engineering products powered by data, automation, and AI",
   url: "https://portfolio.example.com",
 } as const;
 

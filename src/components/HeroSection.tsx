@@ -77,7 +77,7 @@ export function HeroSection() {
         <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:items-stretch lg:gap-6 xl:gap-10">
           <div className="min-w-0 lg:col-span-5 xl:col-span-5">
             <HeroEntranceItem
-              className="mb-6 flex flex-wrap items-center gap-3 sm:mb-8 sm:gap-4"
+              className="mb-6 flex min-w-0 flex-wrap items-center gap-3 sm:mb-8 sm:gap-4"
               delay={0.05}
             >
               <span className="font-mono text-xs tabular-nums text-zinc-500">
@@ -103,7 +103,7 @@ export function HeroSection() {
                 </HeroEntranceChild>
                 <HeroEntranceChild>
                   <span className={`${headlineClass} text-foreground`}>
-                    Digital Experiences
+                    Digital Systems
                   </span>
                 </HeroEntranceChild>
               </HeroEntranceGroup>
@@ -111,7 +111,7 @@ export function HeroSection() {
 
             <HeroEntranceItem
               as="p"
-              className="mt-6 max-w-lg text-base leading-relaxed text-muted sm:mt-8 md:text-lg"
+              className="mt-6 max-w-xl text-base leading-relaxed text-muted sm:mt-8 md:text-lg"
               delay={0.4}
             >
               {SITE.description}

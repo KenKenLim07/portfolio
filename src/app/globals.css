@@ -156,27 +156,15 @@ body {
 .hero-shimmer-text {
   background: linear-gradient(
     105deg,
-    #71717a 0%,
-    #71717a 38%,
+    #a1a1aa 0%,
+    #d4d4d8 38%,
     #fafafa 50%,
-    #71717a 62%,
-    #71717a 100%
+    #d4d4d8 62%,
+    #a1a1aa 100%
   );
-  background-size: 250% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  animation: hero-shimmer 5s ease-in-out infinite;
-}
-
-@keyframes hero-shimmer {
-  0%,
-  100% {
-    background-position: 100% center;
-  }
-  50% {
-    background-position: 0% center;
-  }
 }
 
 .hero-scanline {
@@ -274,7 +262,6 @@ body {
   .hero-aurora-a,
   .hero-aurora-b,
   .hero-aurora-c,
-  .hero-shimmer-text,
   .hero-brain-pulse,
   .hero-brain-pulse-delayed,
   .mesh-alive-wrap,
@@ -285,10 +272,4 @@ body {
     animation: none !important;
   }
 
-  .hero-shimmer-text {
-    color: #a1a1aa;
-    background: none;
-    -webkit-background-clip: unset;
-    background-clip: unset;
-  }
 }
