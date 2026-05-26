@@ -12,8 +12,7 @@ import {
 import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
-import { AnimatedSection } from "@/components/ui/AnimatedSection";
-import { Reveal } from "@/components/ui/Reveal";
+import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 
 function HeroCtas({
@@ -28,7 +27,7 @@ function HeroCtas({
   const stacked = variant === "stack";
 
   return (
-    <Reveal
+    <AnimatedItem
       className={cn(
         "overflow-visible",
         HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-sky-400 bg-sky-400/5 p-1",
@@ -78,7 +77,7 @@ function HeroCtas({
           Get in touch
         </Link>
       </div>
-    </Reveal>
+    </AnimatedItem>
   );
 }
 
@@ -93,7 +92,7 @@ function HeroCopy({
 
   return (
     <>
-      <Reveal
+      <AnimatedItem
         className={cn(
           "flex flex-wrap items-center gap-2 sm:gap-3",
           compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8",
@@ -110,25 +109,25 @@ function HeroCopy({
         </span>
         <span className="hidden h-px w-8 bg-border sm:block" />
         <HeroRotatingText />
-      </Reveal>
+      </AnimatedItem>
 
       <div
         className="font-display font-semibold tracking-tight"
         role="heading"
         aria-level={1}
       >
-        <Reveal className="block">
+        <AnimatedItem className="block">
           <span className="hero-mega text-foreground">Full-Stack</span>
-        </Reveal>
-        <Reveal className="block">
+        </AnimatedItem>
+        <AnimatedItem className="block">
           <span className="hero-mega hero-mega-muted">&amp; AI Systems</span>
-        </Reveal>
-        <Reveal className="block">
+        </AnimatedItem>
+        <AnimatedItem className="block">
           <span className="hero-mega text-foreground">Engineer</span>
-        </Reveal>
+        </AnimatedItem>
       </div>
 
-      <Reveal
+      <AnimatedItem
         className={cn(
           compact
             ? "mt-3"
@@ -150,7 +149,7 @@ function HeroCopy({
           </span>
           . {SITE.description}
         </p>
-      </Reveal>
+      </AnimatedItem>
     </>
   );
 }
@@ -159,7 +158,7 @@ function HeroScrollCue() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <Reveal className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5">
+    <AnimatedItem className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5">
       <motion.div
         animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -170,7 +169,7 @@ function HeroScrollCue() {
         className="h-px w-16 rounded-full bg-[linear-gradient(90deg,transparent,var(--accent-from),var(--accent-to),transparent)] opacity-70"
         aria-hidden
       />
-    </Reveal>
+    </AnimatedItem>
   );
 }
 
@@ -181,7 +180,7 @@ export function HeroSection() {
     return (
       <section
         id="home"
-        className="relative min-h-svh overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
+        className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
       >
         <div className="pointer-events-none absolute inset-0 grid-pattern opacity-10" />
         <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-6 md:px-8 lg:px-12">
@@ -195,14 +194,17 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative overflow-x-hidden lg:h-svh lg:max-h-svh lg:overflow-hidden",
+        "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
       <div className="hero-section-glow pointer-events-none absolute inset-0" />
 
-      {/* Mobile: static hero (no scroll GSAP — prevents jump-to-top flash) */}
-      <div className="relative mx-auto flex min-h-svh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden">
+      <AnimatedSection
+        className="relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden"
+        start="top 88%"
+        delay={0.05}
+      >
         <div
           className={cn(
             "shrink-0",
@@ -222,7 +224,7 @@ export function HeroSection() {
           <HeroMetrics variant="row" />
         </div>
         {!prefersReducedMotion && <HeroScrollCue />}
-      </div>
+      </AnimatedSection>
 
       <AnimatedSection
         className={cn(

@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
 import { GsapProvider } from "@/components/GsapProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -27,14 +27,6 @@ const themeInitScript = `
   } catch (e) {}
 })();
 `;
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  interactiveWidget: "resizes-visual",
-};
 
 export const metadata: Metadata = {
   metadataBase: new URL(

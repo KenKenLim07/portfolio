@@ -46,7 +46,7 @@ export function ProjectCard({
           ? cn(
               cn("h-full shrink-0 snap-start", RAIL_CARD_WIDTH),
               isActive
-                ? "border-[var(--accent-from)]/40 ring-1 ring-[var(--accent-from)]/25"
+                ? "border-indigo-400/40 ring-1 ring-indigo-400/30"
                 : "border-border hover:border-border",
               onSelect ? "cursor-pointer" : "cursor-default",
             )
@@ -113,7 +113,7 @@ export function ProjectCard({
       <button
         type="button"
         className={cn(
-          "radius-panel-lg h-full shrink-0 snap-start text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-from)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "radius-panel-lg h-full shrink-0 snap-start text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           RAIL_CARD_WIDTH,
         )}
         onClick={onSelect}
@@ -128,7 +128,7 @@ export function ProjectCard({
   return (
     <button
       type="button"
-      className="w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-from)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       onClick={onSelect}
       aria-label={`Open ${project.title} details`}
       aria-pressed={isActive}

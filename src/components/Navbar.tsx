@@ -2,23 +2,33 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useReducedMotion } from "framer-motion";
+import { Menu, X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
-import { useScrollSpin } from "@/hooks/useScrollSpin";
-import { MobileMenuButton } from "@/components/MobileMenuButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const linkClass =
   "cursor-pointer font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors duration-200 hover:text-foreground";
 
+const SCROLL_THRESHOLD = 32;
+
 export function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { scrolled, rotation: burgerRotation } = useScrollSpin(mobileOpen);
+  const prefersReducedMotion = useReducedMotion();
 
   const { overlayRef, panelRef } = useGsapMobileMenu({
     open: mobileOpen,
   });
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -80,49 +90,50 @@ export function Navbar() {
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
         onClick={toggleMenu}
       >
-        <MobileMenuButton open={mobileOpen} scrollRotation={burgerRotation} />
+        {mobileOpen ? (
+          <X className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+        ) : (
+          <Menu className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+        )}
       </button>
 
       <div
         ref={overlayRef}
-        className="mobile-menu-overlay mobile-menu-overlay--closed fixed inset-0 z-40 lg:hidden"
-        aria-hidden={!mobileOpen}
+        className="mobile-menu-overlay fixed inset-0 z-40 lg:hidden"
+        style={prefersReducedMotion && !mobileOpen ? { display: "none" } : undefined}
       >
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="absolute inset-0 z-0 cursor-default"
-            onClick={closeMenu}
-            tabIndex={mobileOpen ? 0 : -1}
-          />
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="absolute inset-0 z-0 cursor-default"
+          onClick={closeMenu}
+        />
 
-          <aside
-            ref={panelRef}
-            id="mobile-nav"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-            aria-hidden={!mobileOpen}
-            className="mobile-menu-panel absolute right-0 top-0 z-10 flex h-svh max-h-svh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l sm:w-[min(88vw,20rem)]"
-          >
-            <div className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20">
-              <ThemeToggle className="mobile-menu-chrome hover:text-[var(--menu-muted)]" />
-            </div>
-            <ul className="flex flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(6.5rem,env(safe-area-inset-top))]">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href} data-menu-link>
-                  <Link
-                    href={link.href}
-                    className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight transition-colors duration-300 sm:py-4 sm:text-[2rem]"
-                    onClick={closeMenu}
-                    tabIndex={mobileOpen ? 0 : -1}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </aside>
+        <aside
+          ref={panelRef}
+          id="mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+          className="mobile-menu-panel absolute right-0 top-0 z-10 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l sm:w-[min(88vw,20rem)]"
+        >
+          <div className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20">
+            <ThemeToggle className="mobile-menu-chrome hover:text-[var(--menu-muted)]" />
+          </div>
+          <ul className="flex flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(6.5rem,env(safe-area-inset-top))]">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href} data-menu-link>
+                <Link
+                  href={link.href}
+                  className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight transition-colors duration-300 sm:py-4 sm:text-[2rem]"
+                  onClick={closeMenu}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </aside>
       </div>
     </>
   );

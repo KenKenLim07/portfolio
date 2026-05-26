@@ -1,7 +1,7 @@
 "use client";
 
 import { HERO_LAYOUT_DEBUG, HERO_METRICS } from "@/lib/constants";
-import { Reveal } from "@/components/ui/Reveal";
+import { AnimatedItem } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 
 type HeroMetricsProps = {
@@ -20,7 +20,7 @@ export function HeroMetrics({
   const stacked = variant === "column";
 
   return (
-    <Reveal
+    <AnimatedItem
       className={cn(
         "overflow-visible",
         HERO_LAYOUT_DEBUG &&
@@ -78,6 +78,6 @@ export function HeroMetrics({
           </div>
         ))}
       </div>
-    </Reveal>
+    </AnimatedItem>
   );
 }

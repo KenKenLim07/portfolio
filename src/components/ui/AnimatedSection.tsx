@@ -31,9 +31,6 @@ export function AnimatedSection({
     const root = ref.current;
     if (!root || prefersReducedMotion) return;
 
-    // Scroll reveals fight mobile viewport chrome; static layout avoids jump-to-top flashes.
-    if (window.matchMedia("(max-width: 1023px)").matches) return;
-
     const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
     if (!items.length) return;
 
