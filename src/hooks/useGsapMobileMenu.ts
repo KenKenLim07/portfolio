@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
 import { gsap, initGsap } from "@/lib/gsap";
 
@@ -18,18 +18,11 @@ type UseGsapMobileMenuOptions = {
  */
 export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
   const prefersReducedMotion = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
 
-  useEffect(() => {
-    if (open) setMounted(true);
-  }, [open]);
-
   useLayoutEffect(() => {
-    if (!mounted) return;
-
     initGsap();
     const overlay = overlayRef.current;
     const panel = panelRef.current;
@@ -99,7 +92,6 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
         )
         .eventCallback("onReverseComplete", () => {
           gsap.set(overlay, { pointerEvents: "none" });
-          setMounted(false);
         });
     }, panel);
 
@@ -108,16 +100,10 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
       timelineRef.current = null;
       ctx.revert();
     };
-  }, [mounted, prefersReducedMotion]);
+  }, [open, prefersReducedMotion]);
 
   useEffect(() => {
-    if (!mounted) return;
-
     if (prefersReducedMotion) {
-      if (!open) {
-        const t = window.setTimeout(() => setMounted(false), 0);
-        return () => window.clearTimeout(t);
-      }
       return;
     }
 
@@ -129,7 +115,7 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
     } else {
       tl.reverse();
     }
-  }, [open, mounted, prefersReducedMotion]);
+  }, [open, prefersReducedMotion]);
 
-  return { mounted, overlayRef, panelRef };
+  return { overlayRef, panelRef };
 }

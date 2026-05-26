@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { ABOUT, ABOUT_EXPERIENCE, ABOUT_HIGHLIGHTS } from "@/lib/constants";
+import { ABOUT, ABOUT_HIGHLIGHTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
@@ -14,11 +14,6 @@ export function AboutSection() {
           <blockquote className="max-w-4xl font-display text-xl leading-snug tracking-tight text-foreground md:text-2xl lg:text-3xl">
             {ABOUT.belief}
           </blockquote>
-        </AnimatedItem>
-        <AnimatedItem>
-          <p className="mt-8 font-mono text-sm uppercase tracking-[0.2em] text-indigo-300/90">
-            {ABOUT.title}
-          </p>
         </AnimatedItem>
       </AnimatedSection>
 
@@ -35,7 +30,7 @@ export function AboutSection() {
           ))}
         </AnimatedSection>
 
-        <AnimatedSection className="space-y-8">
+        <AnimatedSection>
           <AnimatedItem>
             <div className="glass radius-panel p-6 md:p-8">
               <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
@@ -44,26 +39,7 @@ export function AboutSection() {
               <ul className="grid gap-3 sm:grid-cols-2">
                 {ABOUT_HIGHLIGHTS.map((item) => (
                   <li key={item} className="flex items-start gap-3 text-sm text-muted">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </AnimatedItem>
-
-          <AnimatedItem>
-            <div className="radius-panel border border-border bg-surface p-6 md:p-8">
-              <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
-                Experience Building
-              </h3>
-              <ul className="space-y-3">
-                {ABOUT_EXPERIENCE.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-center gap-3 border-b border-border pb-3 text-sm text-muted last:border-0 last:pb-0"
-                  >
-                    <span className="h-1 w-8 rounded-full bg-gradient-to-r from-indigo-500/80 to-violet-500/40" />
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-[rgba(122,98,73,0.95)]" />
                     {item}
                   </li>
                 ))}

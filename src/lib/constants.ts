@@ -171,7 +171,7 @@ export const PROJECTS: Project[] = [
       "Celery",
       "Docker",
       "DistilBERT",
-      "VADER",
+      "VADER NLP",
       "spaCy",
     ],
     image: "/projects/news.png",

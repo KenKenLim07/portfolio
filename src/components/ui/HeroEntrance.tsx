@@ -79,7 +79,7 @@ export function HeroEntranceChild({
   children: React.ReactNode;
   className?: string;
 }) {
-  const { ready, prefersReducedMotion } = useHeroEntrance();
+  const { prefersReducedMotion } = useHeroEntrance();
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;

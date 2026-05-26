@@ -1,60 +1,61 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  PROJECT_FILTERS,
-  PROJECTS,
-  type ProjectFilterId,
-} from "@/lib/constants";
-import {
-  filterProjects,
-  railProjects,
-  resolveFeaturedProject,
-} from "@/lib/projects";
+import { useCallback, useMemo, useState } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { PROJECTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { ProjectCard } from "@/components/ProjectCard";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/Badge";
+
+function projectIndexLabel(index: number) {
+  return String(index + 1).padStart(2, "0");
+}
+
+type ProjectTitleProps = {
+  index: number;
+  title: string;
+  className?: string;
+};
+
+function ProjectTitle({ index, title, className }: ProjectTitleProps) {
+  return (
+    <h3
+      className={cn(
+        "font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl",
+        className,
+      )}
+    >
+      <span className="font-mono text-[0.85em] font-medium tracking-[0.12em] text-muted">
+        {projectIndexLabel(index)}
+      </span>{" "}
+      <span>{title}</span>
+    </h3>
+  );
+}
 
 export function ProjectsSection() {
-  const prefersReducedMotion = useReducedMotion();
-  const railRef = useRef<HTMLDivElement>(null);
-  const [filter, setFilter] = useState<ProjectFilterId>("all");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const router = useRouter();
+  const projects = useMemo(() => PROJECTS, []);
+  const [activeId, setActiveId] = useState<string>(projects[0]?.id ?? "");
+  const [showPreview, setShowPreview] = useState(false);
 
-  const filtered = useMemo(
-    () => filterProjects(PROJECTS, filter),
-    [filter],
+  const activeIndex = useMemo(
+    () => projects.findIndex((p) => p.id === activeId),
+    [activeId, projects],
   );
 
-  const featured = useMemo(
-    () => resolveFeaturedProject(filtered, selectedId),
-    [filtered, selectedId],
+  const active = useMemo(
+    () => projects.find((p) => p.id === activeId) ?? projects[0],
+    [activeId, projects],
   );
 
-  const rail = useMemo(
-    () => railProjects(filtered, featured),
-    [filtered, featured],
-  );
-
-  const handleFilter = useCallback((id: ProjectFilterId) => {
-    setFilter(id);
-    setSelectedId(null);
-  }, []);
-
-  const scrollRail = useCallback(
-    (direction: -1 | 1) => {
-      const el = railRef.current;
-      if (!el) return;
-      const amount = Math.min(el.clientWidth * 0.85, 340);
-      el.scrollBy({
-        left: direction * amount,
-        behavior: prefersReducedMotion ? "auto" : "smooth",
-      });
+  const openProject = useCallback(
+    (id: string) => {
+      router.push(`/projects/${id}`);
     },
-    [prefersReducedMotion],
+    [router],
   );
 
   return (
@@ -65,98 +66,117 @@ export function ProjectsSection() {
         description="AI platforms, production web apps, and commerce tooling — shipped and maintained."
       />
 
-      <div className="mb-8 flex flex-wrap gap-2 sm:mb-10">
-        {PROJECT_FILTERS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => handleFilter(item.id)}
-            className={cn(
-              "radius-chip cursor-pointer border px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors duration-200 sm:text-[11px]",
-              filter === item.id
-                ? "border-indigo-600/35 bg-indigo-600/12 text-indigo-950 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-100"
-                : "border-border bg-subtle text-muted hover:border-border hover:text-foreground",
-            )}
-            aria-pressed={filter === item.id}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      {featured ? (
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`${filter}-${featured.id}`}
-            initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <ProjectCard project={featured} variant="featured" />
-          </motion.div>
-        </AnimatePresence>
-      ) : (
+      {projects.length === 0 ? (
         <p className="radius-panel border border-border bg-surface px-6 py-12 text-center text-sm text-muted">
-          No projects in this category yet.
+          No projects yet.
         </p>
-      )}
+      ) : (
+        <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
+          <div className="space-y-8 lg:space-y-0" onMouseLeave={() => setShowPreview(false)}>
+            {projects.map((project, index) => {
+              const isActive = project.id === active?.id;
+              const stackPreview = project.stack.slice(0, 3);
+              const overflow = project.stack.length - stackPreview.length;
 
-      {rail.length > 0 && (
-        <div className="relative mt-8 sm:mt-10">
-          <div className="mb-4 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
-                More work
-              </p>
-              <p className="mt-1 text-sm text-muted">
-                <span className="sm:hidden">Swipe to browse · tap to feature above</span>
-                <span className="hidden sm:inline">Tap a project to feature it above</span>
-              </p>
-            </div>
-            <div className="hidden gap-2 sm:flex">
-              <button
-                type="button"
-                onClick={() => scrollRail(-1)}
-                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-border bg-subtle text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
-                aria-label="Scroll projects left"
-              >
-                <ChevronLeft className="h-4 w-4" aria-hidden />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollRail(1)}
-                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-border bg-subtle text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
-                aria-label="Scroll projects right"
-              >
-                <ChevronRight className="h-4 w-4" aria-hidden />
-              </button>
-            </div>
+              return (
+                <button
+                  key={project.id}
+                  type="button"
+                  className={cn(
+                    "group w-full cursor-pointer text-left transition-colors duration-200",
+                    "p-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    "lg:border-b lg:border-border/60 lg:py-6 lg:first:pt-0 lg:last:border-b-0",
+                    isActive && showPreview ? "lg:text-foreground" : "lg:text-muted",
+                  )}
+                  onClick={() => openProject(project.id)}
+                  onMouseEnter={() => {
+                    setActiveId(project.id);
+                    setShowPreview(true);
+                  }}
+                  onFocus={() => {
+                    setActiveId(project.id);
+                    setShowPreview(true);
+                  }}
+                  onBlur={() => setShowPreview(false)}
+                  aria-label={`Open ${project.title} details`}
+                >
+                  {/* Mobile: full-bleed image, then title + stack (no card wrapper) */}
+                  <div className="relative -mx-6 aspect-[2/1] bg-zinc-950 md:-mx-8 lg:hidden">
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
+                      aria-hidden
+                    />
+                    <Image
+                      src={project.image}
+                      alt={project.title}
+                      fill
+                      className="object-cover"
+                      style={{ objectPosition: project.imagePosition ?? "center top" }}
+                      sizes="(max-width: 1024px) 100vw, 720px"
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
+                      aria-hidden
+                    />
+                  </div>
+
+                  <div className="mt-4 lg:mt-0">
+                    <ProjectTitle index={index} title={project.title} />
+
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {stackPreview.map((tech, i) => (
+                        <Badge key={`${project.id}-${tech}-${i}`} className="text-[10px]">
+                          {tech}
+                        </Badge>
+                      ))}
+                      {overflow > 0 && (
+                        <Badge className="text-[10px]">+{overflow}</Badge>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
 
-          <div className="relative -mx-6 md:-mx-8 lg:-mx-12">
-            <div
-              className="pointer-events-none absolute left-0 top-0 z-10 h-full w-6 bg-gradient-to-r from-background to-transparent sm:w-8 md:w-12"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full w-8 bg-gradient-to-l from-background to-transparent sm:block md:w-12"
-              aria-hidden
-            />
-            <div
-              ref={railRef}
-              className="project-rail flex gap-3 overflow-x-auto scroll-px-6 px-6 pb-2 sm:scroll-px-8 sm:gap-5 sm:px-8 lg:scroll-px-12 lg:px-12"
-            >
-              {rail.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  project={project}
-                  variant="rail"
-                  isActive={false}
-                  onSelect={() => setSelectedId(project.id)}
-                />
-              ))}
-            </div>
+          {/* Desktop: boxed hover preview */}
+          <div className="sticky top-28 hidden lg:block">
+            {showPreview && active && activeIndex >= 0 ? (
+              <div className="radius-panel-lg overflow-hidden bg-surface">
+                <div className="relative aspect-[2/1] bg-zinc-950">
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br opacity-20 ${active.gradient}`}
+                    aria-hidden
+                  />
+                  <Image
+                    src={active.image}
+                    alt={active.title}
+                    fill
+                    className="object-cover"
+                    style={{ objectPosition: active.imagePosition ?? "center top" }}
+                    sizes="420px"
+                    priority
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
+                    aria-hidden
+                  />
+                </div>
+
+                <div className="p-5">
+                  <ProjectTitle index={activeIndex} title={active.title} />
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {active.stack.map((tech, i) => (
+                      <Badge key={`${active.id}-${tech}-${i}`} className="text-[10px]">
+                        {tech}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="h-[12px]" aria-hidden />
+            )}
           </div>
         </div>
       )}

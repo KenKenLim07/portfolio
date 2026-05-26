@@ -46,8 +46,11 @@ export function ServicesSection() {
                   "hover:border-border hover:bg-[var(--fill-hover)]",
                 )}
               >
-                <div className="radius-control mb-5 inline-flex border border-border bg-subtle p-3 transition-colors duration-200 group-hover:border-indigo-500/30 group-hover:bg-indigo-500/10">
-                  <Icon className="h-5 w-5 text-indigo-300" strokeWidth={1.5} />
+                <div className="radius-control mb-5 inline-flex border border-border bg-subtle p-3 transition-colors duration-200 group-hover:border-[rgba(122,98,73,0.45)] group-hover:bg-[rgba(122,98,73,0.14)]">
+                  <Icon
+                    className="h-5 w-5 text-[rgba(122,98,73,0.95)]"
+                    strokeWidth={1.5}
+                  />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground">
                   {service.title}

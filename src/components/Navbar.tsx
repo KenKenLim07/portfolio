@@ -19,7 +19,7 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
-  const { mounted: menuMounted, overlayRef, panelRef } = useGsapMobileMenu({
+  const { overlayRef, panelRef } = useGsapMobileMenu({
     open: mobileOpen,
   });
 
@@ -77,13 +77,6 @@ export function Navbar() {
         </nav>
       </header>
 
-      <ThemeToggle
-        className={cn(
-          "fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] lg:hidden",
-          mobileOpen && "mobile-menu-chrome hover:text-[var(--menu-fg)]",
-        )}
-      />
-
       <button
         type="button"
         className={cn(
@@ -104,43 +97,44 @@ export function Navbar() {
         )}
       </button>
 
-      {menuMounted && (
-        <div
-          ref={overlayRef}
-          className="mobile-menu-overlay fixed inset-0 z-40 lg:hidden"
-          style={prefersReducedMotion && !mobileOpen ? { display: "none" } : undefined}
-        >
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="absolute inset-0 z-0 cursor-default"
-            onClick={closeMenu}
-          />
+      <div
+        ref={overlayRef}
+        className="mobile-menu-overlay fixed inset-0 z-40 lg:hidden"
+        style={prefersReducedMotion && !mobileOpen ? { display: "none" } : undefined}
+      >
+        <button
+          type="button"
+          aria-label="Close menu"
+          className="absolute inset-0 z-0 cursor-default"
+          onClick={closeMenu}
+        />
 
-          <aside
-            ref={panelRef}
-            id="mobile-nav"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menu"
-            className="mobile-menu-panel absolute right-0 top-0 z-10 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l sm:w-[min(88vw,20rem)]"
-          >
-            <ul className="flex flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(5.5rem,env(safe-area-inset-top))]">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href} data-menu-link>
-                  <Link
-                    href={link.href}
-                    className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight transition-colors duration-300 sm:py-4 sm:text-[2rem]"
-                    onClick={closeMenu}
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </aside>
-        </div>
-      )}
+        <aside
+          ref={panelRef}
+          id="mobile-nav"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+          className="mobile-menu-panel absolute right-0 top-0 z-10 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l sm:w-[min(88vw,20rem)]"
+        >
+          <div className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20">
+            <ThemeToggle className="mobile-menu-chrome hover:text-[var(--menu-muted)]" />
+          </div>
+          <ul className="flex flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(6.5rem,env(safe-area-inset-top))]">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href} data-menu-link>
+                <Link
+                  href={link.href}
+                  className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight transition-colors duration-300 sm:py-4 sm:text-[2rem]"
+                  onClick={closeMenu}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      </div>
     </>
   );
 }

@@ -1,15 +1,15 @@
 "use client";
 
 import { TECH_STACK } from "@/lib/constants";
+import { TechBrandIcon } from "@/components/TechBrandIcon";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
 import { AnimatedItem, AnimatedStagger } from "@/components/ui/AnimatedSection";
 
 const groups = [
-  { key: "frontend" as const, label: "Frontend", accent: "from-blue-500/20 to-indigo-500/5" },
-  { key: "backend" as const, label: "Backend", accent: "from-emerald-500/15 to-teal-500/5" },
-  { key: "ai" as const, label: "AI / Data", accent: "from-violet-500/20 to-fuchsia-500/5" },
+  { key: "frontend" as const, label: "Frontend", accent: "from-amber-600/25 to-stone-600/6" },
+  { key: "backend" as const, label: "Backend", accent: "from-amber-700/20 to-stone-700/5" },
+  { key: "ai" as const, label: "AI / Data", accent: "from-amber-500/22 to-stone-600/6" },
 ];
 
 export function TechStackSection() {
@@ -31,14 +31,15 @@ export function TechStackSection() {
               <h3 className="mb-5 font-mono text-xs font-medium lowercase tracking-[0.15em] text-muted">
                 {group.key}
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 {TECH_STACK[group.key].map((tech) => (
-                  <Badge
+                  <div
                     key={tech}
-                    className="transition-colors duration-200 group-hover:border-border group-hover:bg-[var(--fill-hover)]"
+                    className="flex items-center gap-2.5 text-muted transition-colors duration-200 group-hover:text-foreground"
                   >
-                    {tech}
-                  </Badge>
+                    <TechBrandIcon tech={tech} />
+                    <span className="text-xs leading-tight">{tech}</span>
+                  </div>
                 ))}
               </div>
             </div>

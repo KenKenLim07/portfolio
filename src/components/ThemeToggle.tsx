@@ -9,7 +9,7 @@ type ThemeToggleProps = {
 };
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const { theme, toggleTheme, mounted } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <button
@@ -19,19 +19,15 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         "cursor-pointer p-2 transition-colors duration-200",
         className ?? "text-muted hover:text-foreground",
       )}
-      aria-label={
-        mounted
-          ? theme === "dark"
-            ? "Switch to light mode"
-            : "Switch to dark mode"
-          : "Toggle color theme"
-      }
+      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
     >
-      {mounted && theme === "dark" ? (
-        <Sun className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-      ) : (
-        <Moon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-      )}
+      <span suppressHydrationWarning>
+        {theme === "dark" ? (
+          <Sun className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        ) : (
+          <Moon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+        )}
+      </span>
     </button>
   );
 }

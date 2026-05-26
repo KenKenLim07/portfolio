@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import {
   ENABLE_HERO_BRAIN,
@@ -111,12 +111,12 @@ function HeroCopy({
         )}
         delay={0.05}
       >
-        <span className="radius-chip inline-flex items-center gap-2 border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300/90 sm:px-3.5 sm:py-2 sm:text-xs">
+        <span className="radius-chip inline-flex items-center gap-2 border border-[rgba(122,98,73,0.35)] bg-[rgba(122,98,73,0.12)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-foreground sm:px-3.5 sm:py-2 sm:text-xs">
           <span className="relative flex h-1.5 w-1.5">
             {!reduced && (
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[rgba(122,98,73,0.5)]" />
             )}
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[rgba(122,98,73,0.95)]" />
           </span>
           {HERO_AVAILABILITY}
         </span>
@@ -261,9 +261,10 @@ export function HeroSection() {
         >
           <ArrowDown className="h-4 w-4 text-muted" aria-hidden />
         </motion.div>
-        <span className="text-[10px] uppercase tracking-[0.35em] text-muted">
-          Scroll
-        </span>
+        <div
+          className="h-px w-16 rounded-full bg-[linear-gradient(90deg,transparent,var(--accent-from),var(--accent-to),transparent)] opacity-70"
+          aria-hidden
+        />
       </motion.div>
     </section>
   );

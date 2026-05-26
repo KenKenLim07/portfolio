@@ -9,13 +9,10 @@ import { useReducedMotion } from "framer-motion";
  */
 export function useHeroEntrance() {
   const prefersReducedMotion = useReducedMotion();
-  const [ready, setReady] = useState(false);
+  const [ready, setReady] = useState(() => prefersReducedMotion);
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setReady(true);
-      return;
-    }
+    if (prefersReducedMotion) return;
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
   }, [prefersReducedMotion]);

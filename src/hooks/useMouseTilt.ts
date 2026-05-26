@@ -12,11 +12,13 @@ export function useMouseTilt(enabled = true) {
   const springX = useSpring(rotateX, { stiffness: 120, damping: 20 });
   const springY = useSpring(rotateY, { stiffness: 120, damping: 20 });
   const [spotlight, setSpotlight] = useState({ x: 50, y: 50 });
-  const [canTilt, setCanTilt] = useState(false);
+  const [canTilt, setCanTilt] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  });
 
   useEffect(() => {
     const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
-    setCanTilt(mq.matches);
     const handler = () => setCanTilt(mq.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
