@@ -11,7 +11,13 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initGsap();
 
-    const refresh = () => ScrollTrigger.refresh();
+    let lastWidth = window.innerWidth;
+    const refresh = () => {
+      const width = window.innerWidth;
+      if (width === lastWidth) return;
+      lastWidth = width;
+      ScrollTrigger.refresh();
+    };
 
     window.addEventListener("resize", refresh);
     const t = window.setTimeout(refresh, 150);

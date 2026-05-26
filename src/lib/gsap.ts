@@ -7,6 +7,8 @@ let registered = false;
 export function initGsap() {
   if (typeof window === "undefined" || registered) return;
   gsap.registerPlugin(ScrollTrigger);
+  // Prevents scroll jumps when mobile browser chrome shows/hides on tap/scroll
+  ScrollTrigger.config({ ignoreMobileResize: true });
   registered = true;
 }
 
