@@ -113,36 +113,10 @@ export const HERO_STATS = HERO_METRICS.map((m) => ({
 export const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
-  { label: "Experience", href: "#experience" },
   { label: "Projects", href: "#projects" },
   { label: "Services", href: "#services" },
   { label: "Tech Stack", href: "#tech-stack" },
   { label: "Contact", href: "#contact" },
-] as const;
-
-/** Work history — edit with your real roles */
-export const EXPERIENCE = [
-  {
-    company: "Independent & client projects",
-    role: "Full-Stack Developer & AI Systems Engineer",
-    period: "2022 — Present",
-    description:
-      "Designing and shipping production web apps, AI dashboards, scraping pipelines, and premium business sites for clients in the Philippines and abroad.",
-  },
-  {
-    company: "Thesis research — PH VibeCheck AI",
-    role: "AI / NLP Systems Developer",
-    period: "2024 — 2025",
-    description:
-      "Built a real-time Philippine news intelligence platform with sentiment analysis, entity extraction, and cross-outlet correlation — recognized with a Best Paper award.",
-  },
-  {
-    company: "Product experiments",
-    role: "Founding engineer (personal products)",
-    period: "Ongoing",
-    description:
-      "IAASE marketplace intelligence, restaurant and commerce web products, and internal tools spanning Next.js, FastAPI, Supabase, and automation.",
-  },
 ] as const;
 
 export const SOCIAL_LINKS = {

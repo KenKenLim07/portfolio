@@ -1,10 +1,12 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import { GitHubIcon } from "@/components/icons/BrandIcons";
+import { useGsapReveal } from "@/hooks/useGsapReveal";
 import type { Project } from "@/lib/constants";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
@@ -27,14 +29,21 @@ export function ProjectCard({
   onSelect,
 }: ProjectCardProps) {
   const prefersReducedMotion = useReducedMotion();
+  const cardRef = useRef<HTMLElement>(null);
   const isRail = variant === "rail";
   const stackPreview = isRail ? project.stack.slice(0, 3) : project.stack;
   const stackOverflow = isRail ? project.stack.length - stackPreview.length : 0;
 
+  useGsapReveal(cardRef, {
+    y: isRail ? 20 : 32,
+    start: "top 92%",
+  });
+
   const card = (
     <motion.article
+      ref={cardRef}
       className={cn(
-        "radius-panel-lg group relative overflow-hidden border bg-surface text-left transition-colors duration-300",
+        "gsap-reveal radius-panel-lg group relative overflow-hidden border bg-surface text-left transition-colors duration-300",
         isRail
           ? cn(
               cn("h-full shrink-0 snap-start", RAIL_CARD_WIDTH),
@@ -45,10 +54,6 @@ export function ProjectCard({
             )
           : "border-white/10 hover:border-white/20",
       )}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: isRail ? 16 : 24 }}
-      whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       layout={!prefersReducedMotion && !isRail}
     >
       {/* 2:1 matches exported screenshots (1400×700) — avoids crop from 16:9 frames */}

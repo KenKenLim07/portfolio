@@ -2,7 +2,6 @@ import { Navbar } from "@/components/Navbar";
 import { HeroSideRail } from "@/components/HeroSideRail";
 import { HeroSection } from "@/components/HeroSection";
 import { AboutSection } from "@/components/AboutSection";
-import { ExperienceSection } from "@/components/ExperienceSection";
 import { ProjectsSection } from "@/components/ProjectsSection";
 import { ServicesSection } from "@/components/ServicesSection";
 import { TechStackSection } from "@/components/TechStackSection";
@@ -18,7 +17,6 @@ export default function Home() {
       <main className="xl:pl-4">
         <HeroSection />
         <AboutSection />
-        <ExperienceSection />
         <ProjectsSection />
         <ServicesSection />
         <TechStackSection />

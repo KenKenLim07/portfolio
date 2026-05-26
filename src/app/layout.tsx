@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
+import { GsapProvider } from "@/components/GsapProvider";
+import { SiteBackground } from "@/components/SiteBackground";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
 
@@ -60,8 +62,11 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${spaceGrotesk.variable} h-full scroll-smooth`}
     >
-      <body className="min-h-full overflow-x-hidden bg-background font-sans text-foreground antialiased">
-        {children}
+      <body className="min-h-full overflow-x-hidden bg-transparent font-sans text-foreground antialiased">
+        <GsapProvider>
+          <SiteBackground />
+          <div className="relative z-[1]">{children}</div>
+        </GsapProvider>
       </body>
     </html>
   );

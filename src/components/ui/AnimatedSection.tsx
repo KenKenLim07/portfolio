@@ -1,7 +1,8 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import { fadeInUp, staggerContainer } from "@/lib/motion";
+import { useEffect, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
+import { gsap, initGsap, revealDefaults } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 type AnimatedSectionProps = {
@@ -10,33 +11,58 @@ type AnimatedSectionProps = {
   delay?: number;
 };
 
+/**
+ * Scroll-triggered stagger reveal (GSAP ScrollTrigger).
+ * Wrap direct children in <AnimatedItem> for staggered motion.
+ */
 export function AnimatedSection({
   children,
   className,
   delay = 0,
 }: AnimatedSectionProps) {
+  const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    initGsap();
+    const root = ref.current;
+    if (!root || prefersReducedMotion) return;
+
+    const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
+    if (!items.length) return;
+
+    const ctx = gsap.context(() => {
+      gsap.set(items, { opacity: 0, y: revealDefaults.y });
+
+      gsap
+        .timeline({
+          scrollTrigger: {
+            trigger: root,
+            start: revealDefaults.start,
+            toggleActions: revealDefaults.toggleActions,
+          },
+        })
+        .to(items, {
+          opacity: 1,
+          y: 0,
+          duration: revealDefaults.duration,
+          ease: revealDefaults.ease,
+          stagger: revealDefaults.stagger,
+          delay,
+        });
+    }, root);
+
+    return () => ctx.revert();
+  }, [delay, prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
   }
 
   return (
-    <motion.div
-      className={cn(className)}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
-      variants={{
-        hidden: { opacity: 0 },
-        visible: {
-          opacity: 1,
-          transition: { staggerChildren: 0.1, delayChildren: delay },
-        },
-      }}
-    >
+    <div ref={ref} className={className}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
@@ -47,41 +73,26 @@ export function AnimatedItem({
   children: React.ReactNode;
   className?: string;
 }) {
-  const prefersReducedMotion = useReducedMotion();
-
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
-    <motion.div className={className} variants={fadeInUp}>
+    <div data-gsap-reveal className={cn("gsap-reveal", className)}>
       {children}
-    </motion.div>
+    </div>
   );
 }
 
+/** Same as AnimatedSection — stagger children marked with AnimatedItem */
 export function AnimatedStagger({
   children,
   className,
+  delay = 0,
 }: {
   children: React.ReactNode;
   className?: string;
+  delay?: number;
 }) {
-  const prefersReducedMotion = useReducedMotion();
-
-  if (prefersReducedMotion) {
-    return <div className={className}>{children}</div>;
-  }
-
   return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-60px" }}
-      variants={staggerContainer}
-    >
+    <AnimatedSection className={className} delay={delay}>
       {children}
-    </motion.div>
+    </AnimatedSection>
   );
 }

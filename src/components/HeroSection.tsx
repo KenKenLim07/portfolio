@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import {
   ENABLE_HERO_BRAIN,
   HERO_AVAILABILITY,
@@ -47,7 +47,10 @@ function HeroCtas({
     >
       <div
         className={cn(
-          stacked ? "flex w-full min-w-0 flex-col gap-3"
+          stacked
+            ? large
+              ? "flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-3"
+              : "flex w-full min-w-0 flex-col gap-3"
             : "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
@@ -58,15 +61,15 @@ function HeroCtas({
             "radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
             stacked
               ? large
-                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold"
+                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
                 : "w-full px-5 py-2.5 text-sm"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
         >
           View projects
-          <ArrowRight
+          <ArrowDown
             className={cn(
-              "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5",
+              "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-y-0.5",
               large && "h-5 w-5",
             )}
           />
@@ -77,7 +80,7 @@ function HeroCtas({
             "radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5",
             stacked
               ? large
-                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold"
+                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
                 : "w-full px-5 py-2.5 text-sm"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
@@ -146,7 +149,11 @@ function HeroCopy({
         )}
         delay={0.35}
       >
-        Hi! I&apos;m {SITE.name.split(" ").slice(0, 2).join(" ")}. {SITE.description}
+        Hi! I&apos;m{" "}
+        <span className="font-semibold text-foreground">
+          {SITE.name.split(" ").slice(0, 2).join(" ")}
+        </span>
+        . {SITE.description}
       </HeroEntranceItem>
     </>
   );
@@ -181,7 +188,7 @@ export function HeroSection() {
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_0%,rgba(99,102,241,0.16),transparent_55%)]" />
 
       {/* Mobile: headline top, CTAs + metrics anchored in lower viewport */}
       <div

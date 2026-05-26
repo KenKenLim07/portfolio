@@ -28,7 +28,7 @@ const iconMap: Record<(typeof SERVICES)[number]["icon"], LucideIcon> = {
 
 export function ServicesSection() {
   return (
-    <Section id="services" className="border-t border-white/5 bg-surface/30">
+    <Section id="services" className="border-t border-white/5">
       <SectionHeading
         label=""
         title="Services"
