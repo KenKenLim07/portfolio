@@ -100,8 +100,8 @@ export function ProjectsSection() {
                   onBlur={() => setShowPreview(false)}
                   aria-label={`Open ${project.title} details`}
                 >
-                  {/* Mobile: full-bleed image, then title + stack (no card wrapper) */}
-                  <div className="relative -mx-6 aspect-[2/1] bg-zinc-950 md:-mx-8 lg:hidden">
+                  {/* Mobile: full-width within section padding, then title + stack */}
+                  <div className="relative aspect-[2/1] overflow-hidden rounded-panel-lg bg-zinc-950 lg:hidden">
                     <div
                       className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
                       aria-hidden

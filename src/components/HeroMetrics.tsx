@@ -1,12 +1,11 @@
 "use client";
 
 import { HERO_LAYOUT_DEBUG, HERO_METRICS } from "@/lib/constants";
-import { HeroEntranceItem } from "@/components/ui/HeroEntrance";
+import { AnimatedItem } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 
 type HeroMetricsProps = {
   className?: string;
-  delay?: number;
   /** Mobile pinned footer: compact row, no top border. */
   compact?: boolean;
   /** Desktop right column: stacked under CTAs. */
@@ -15,15 +14,13 @@ type HeroMetricsProps = {
 
 export function HeroMetrics({
   className,
-  delay = 0.58,
   compact = false,
   variant = "row",
 }: HeroMetricsProps) {
   const stacked = variant === "column";
 
   return (
-    <HeroEntranceItem
-      delay={delay}
+    <AnimatedItem
       className={cn(
         "overflow-visible",
         HERO_LAYOUT_DEBUG &&
@@ -81,6 +78,6 @@ export function HeroMetrics({
           </div>
         ))}
       </div>
-    </HeroEntranceItem>
+    </AnimatedItem>
   );
 }

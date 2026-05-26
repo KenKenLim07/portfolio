@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
 import {
   ENABLE_HERO_BRAIN,
@@ -10,40 +9,30 @@ import {
   HERO_LAYOUT_DEBUG,
   SITE,
 } from "@/lib/constants";
-import { easeOut } from "@/lib/motion";
-import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
-import {
-  HeroEntranceGroup,
-  HeroEntranceChild,
-  HeroEntranceItem,
-} from "@/components/ui/HeroEntrance";
+import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 
 function HeroCtas({
-  delay = 0.5,
   className,
   variant = "inline",
   large = false,
 }: {
-  delay?: number;
   className?: string;
   variant?: "inline" | "stack";
-  /** Full-width stacked CTAs with larger touch targets (mobile hero) */
   large?: boolean;
 }) {
   const stacked = variant === "stack";
 
   return (
-    <HeroEntranceItem
+    <AnimatedItem
       className={cn(
         "overflow-visible",
         HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-sky-400 bg-sky-400/5 p-1",
         className,
       )}
-      delay={delay}
     >
       <div
         className={cn(
@@ -88,7 +77,7 @@ function HeroCtas({
           Get in touch
         </Link>
       </div>
-    </HeroEntranceItem>
+    </AnimatedItem>
   );
 }
 
@@ -99,21 +88,19 @@ function HeroCopy({
   introClassName?: string;
   compact?: boolean;
 }) {
-  const { prefersReducedMotion } = useHeroEntrance();
-  const reduced = prefersReducedMotion;
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <>
-      <HeroEntranceItem
+      <AnimatedItem
         className={cn(
           "flex flex-wrap items-center gap-2 sm:gap-3",
           compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8",
         )}
-        delay={0.05}
       >
         <span className="radius-chip inline-flex items-center gap-2 border border-[rgba(122,98,73,0.35)] bg-[rgba(122,98,73,0.12)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-foreground sm:px-3.5 sm:py-2 sm:text-xs">
           <span className="relative flex h-1.5 w-1.5">
-            {!reduced && (
+            {!prefersReducedMotion && (
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[rgba(122,98,73,0.5)]" />
             )}
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[rgba(122,98,73,0.95)]" />
@@ -122,52 +109,76 @@ function HeroCopy({
         </span>
         <span className="hidden h-px w-8 bg-border sm:block" />
         <HeroRotatingText />
-      </HeroEntranceItem>
+      </AnimatedItem>
 
-      <h1 className="font-display font-semibold tracking-tight">
-        <HeroEntranceGroup delay={0.12}>
-          <HeroEntranceChild>
-            <span className="hero-mega text-foreground">Full-Stack</span>
-          </HeroEntranceChild>
-          <HeroEntranceChild>
-            <span className="hero-mega hero-mega-muted">&amp; AI Systems</span>
-          </HeroEntranceChild>
-          <HeroEntranceChild>
-            <span className="hero-mega text-foreground">Engineer</span>
-          </HeroEntranceChild>
-        </HeroEntranceGroup>
-      </h1>
+      <div
+        className="font-display font-semibold tracking-tight"
+        role="heading"
+        aria-level={1}
+      >
+        <AnimatedItem className="block">
+          <span className="hero-mega text-foreground">Full-Stack</span>
+        </AnimatedItem>
+        <AnimatedItem className="block">
+          <span className="hero-mega hero-mega-muted">&amp; AI Systems</span>
+        </AnimatedItem>
+        <AnimatedItem className="block">
+          <span className="hero-mega text-foreground">Engineer</span>
+        </AnimatedItem>
+      </div>
 
-      <HeroEntranceItem
-        as="p"
+      <AnimatedItem
         className={cn(
-          "max-w-xl leading-relaxed text-muted",
           compact
-            ? "mt-3 line-clamp-3 text-sm"
-            : "mt-5 max-w-[36ch] text-[1.0625rem] leading-relaxed sm:mt-6 sm:max-w-xl sm:text-lg lg:mt-10 lg:max-w-xl lg:text-lg",
+            ? "mt-3"
+            : "mt-5 sm:mt-6 lg:mt-10",
           introClassName,
         )}
-        delay={0.35}
       >
-        Hi! I&apos;m{" "}
-        <span className="font-semibold text-foreground">
-          {SITE.name.split(" ").slice(0, 2).join(" ")}
-        </span>
-        . {SITE.description}
-      </HeroEntranceItem>
+        <p
+          className={cn(
+            "max-w-xl leading-relaxed text-muted",
+            compact
+              ? "line-clamp-3 text-sm"
+              : "max-w-[36ch] text-[1.0625rem] leading-relaxed sm:max-w-xl sm:text-lg lg:max-w-xl lg:text-lg",
+          )}
+        >
+          Hi! I&apos;m{" "}
+          <span className="font-semibold text-foreground">
+            {SITE.name.split(" ").slice(0, 2).join(" ")}
+          </span>
+          . {SITE.description}
+        </p>
+      </AnimatedItem>
     </>
   );
 }
 
+function HeroScrollCue() {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <AnimatedItem className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5">
+      <motion.div
+        animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <ArrowDown className="h-4 w-4 text-muted" aria-hidden />
+      </motion.div>
+      <div
+        className="h-px w-16 rounded-full bg-[linear-gradient(90deg,transparent,var(--accent-from),var(--accent-to),transparent)] opacity-70"
+        aria-hidden
+      />
+    </AnimatedItem>
+  );
+}
+
 export function HeroSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const { ready, prefersReducedMotion } = useHeroEntrance();
-  const reduced = prefersReducedMotion;
+  const prefersReducedMotion = useReducedMotion();
 
   if (ENABLE_HERO_BRAIN) {
     return (
       <section
-        ref={sectionRef}
         id="home"
         className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
       >
@@ -181,7 +192,6 @@ export function HeroSection() {
 
   return (
     <section
-      ref={sectionRef}
       id="home"
       className={cn(
         "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
@@ -190,12 +200,10 @@ export function HeroSection() {
     >
       <div className="hero-section-glow pointer-events-none absolute inset-0" />
 
-      {/* Mobile: headline top, CTAs + metrics anchored in lower viewport */}
-      <div
-        className={cn(
-          "relative mx-auto box-border flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
-          HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
-        )}
+      <AnimatedSection
+        className="relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden"
+        start="top 88%"
+        delay={0.05}
       >
         <div
           className={cn(
@@ -212,17 +220,19 @@ export function HeroSection() {
             HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
           )}
         >
-          <HeroCtas delay={0.5} variant="stack" large />
-          <HeroMetrics delay={0.58} variant="row" />
+          <HeroCtas variant="stack" large />
+          <HeroMetrics variant="row" />
         </div>
-      </div>
+        {!prefersReducedMotion && <HeroScrollCue />}
+      </AnimatedSection>
 
-      {/* Desktop: locked to one viewport — content scaled to fit */}
-      <div
+      <AnimatedSection
         className={cn(
           "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
+        start="top 88%"
+        delay={0.05}
       >
         <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
           <div
@@ -242,30 +252,13 @@ export function HeroSection() {
             )}
           >
             <div className="flex w-full flex-col gap-5">
-              <HeroCtas delay={0.5} variant="stack" className="w-full" />
-              <HeroMetrics delay={0.62} variant="column" className="w-full" />
+              <HeroCtas variant="stack" className="w-full" />
+              <HeroMetrics variant="column" className="w-full" />
             </div>
           </div>
         </div>
-      </div>
-
-      <motion.div
-        className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5"
-        initial={reduced ? false : { opacity: 0 }}
-        animate={ready ? { opacity: 1 } : { opacity: 0 }}
-        transition={{ delay: 0.7, duration: 0.5, ease: easeOut }}
-      >
-        <motion.div
-          animate={ready && !reduced ? { y: [0, 5, 0] } : undefined}
-          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ArrowDown className="h-4 w-4 text-muted" aria-hidden />
-        </motion.div>
-        <div
-          className="h-px w-16 rounded-full bg-[linear-gradient(90deg,transparent,var(--accent-from),var(--accent-to),transparent)] opacity-70"
-          aria-hidden
-        />
-      </motion.div>
+        {!prefersReducedMotion && <HeroScrollCue />}
+      </AnimatedSection>
     </section>
   );
 }
