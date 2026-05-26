@@ -177,7 +177,7 @@ export function HeroSection() {
       ref={sectionRef}
       id="home"
       className={cn(
-        "relative h-dvh max-h-dvh overflow-hidden overflow-x-hidden",
+        "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
@@ -186,7 +186,7 @@ export function HeroSection() {
       {/* Mobile: headline top, CTAs + metrics anchored in lower viewport */}
       <div
         className={cn(
-          "relative mx-auto box-border flex h-full min-h-0 w-full max-w-7xl flex-col px-5 pb-[max(3.25rem,env(safe-area-inset-bottom))] pt-[max(3.25rem,calc(env(safe-area-inset-top)+2rem))] sm:px-6 sm:pt-[max(3.5rem,calc(env(safe-area-inset-top)+2.25rem))] md:px-8 lg:hidden",
+          "relative mx-auto box-border flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
       >
@@ -201,7 +201,7 @@ export function HeroSection() {
         </div>
         <div
           className={cn(
-            "mt-auto flex w-full min-h-0 flex-col gap-5 pt-5 sm:gap-6 sm:pt-6",
+            "mt-auto flex w-full flex-col gap-6 pt-8 sm:gap-7 sm:pt-9",
             HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
           )}
         >
@@ -243,7 +243,7 @@ export function HeroSection() {
       </div>
 
       <motion.div
-        className="pointer-events-none absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1.5"
+        className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5"
         initial={reduced ? false : { opacity: 0 }}
         animate={ready ? { opacity: 1 } : { opacity: 0 }}
         transition={{ delay: 0.7, duration: 0.5, ease: easeOut }}
