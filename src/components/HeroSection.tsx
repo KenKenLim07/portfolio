@@ -26,13 +26,13 @@ function HeroCtas({
   delay = 0.5,
   className,
   variant = "inline",
-  narrow = false,
+  large = false,
 }: {
   delay?: number;
   className?: string;
   variant?: "inline" | "stack";
-  /** Content-width stacked buttons (mobile / tablet hero) */
-  narrow?: boolean;
+  /** Full-width stacked CTAs with larger touch targets (mobile hero) */
+  large?: boolean;
 }) {
   const stacked = variant === "stack";
 
@@ -47,10 +47,7 @@ function HeroCtas({
     >
       <div
         className={cn(
-          stacked
-            ? narrow
-              ? "flex flex-col items-start gap-2"
-              : "flex w-full min-w-0 flex-col gap-3"
+          stacked ? "flex w-full min-w-0 flex-col gap-3"
             : "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
@@ -58,10 +55,10 @@ function HeroCtas({
         <Link
           href="#projects"
           className={cn(
-            "radius-control group inline-flex cursor-pointer items-center justify-center gap-1.5 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
+            "radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
             stacked
-              ? narrow
-                ? "px-4 py-2 text-sm"
+              ? large
+                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold"
                 : "w-full px-5 py-2.5 text-sm"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
@@ -70,6 +67,7 @@ function HeroCtas({
           <ArrowRight
             className={cn(
               "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5",
+              large && "h-5 w-5",
             )}
           />
         </Link>
@@ -78,8 +76,8 @@ function HeroCtas({
           className={cn(
             "radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5",
             stacked
-              ? narrow
-                ? "px-4 py-2 text-sm"
+              ? large
+                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold"
                 : "w-full px-5 py-2.5 text-sm"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
@@ -179,7 +177,7 @@ export function HeroSection() {
       ref={sectionRef}
       id="home"
       className={cn(
-        "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
+        "relative h-dvh max-h-dvh overflow-hidden overflow-x-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
@@ -188,7 +186,7 @@ export function HeroSection() {
       {/* Mobile: headline top, CTAs + metrics anchored in lower viewport */}
       <div
         className={cn(
-          "relative mx-auto box-border flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6 md:px-8 lg:hidden",
+          "relative mx-auto box-border flex h-full min-h-0 w-full max-w-7xl flex-col px-5 pb-[max(3.25rem,env(safe-area-inset-bottom))] pt-[max(3.25rem,calc(env(safe-area-inset-top)+2rem))] sm:px-6 sm:pt-[max(3.5rem,calc(env(safe-area-inset-top)+2.25rem))] md:px-8 lg:hidden",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
       >
@@ -203,11 +201,11 @@ export function HeroSection() {
         </div>
         <div
           className={cn(
-            "mt-auto flex w-full flex-col gap-6 pt-8 sm:gap-7 sm:pt-9",
+            "mt-auto flex w-full min-h-0 flex-col gap-5 pt-5 sm:gap-6 sm:pt-6",
             HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
           )}
         >
-          <HeroCtas delay={0.5} variant="stack" narrow />
+          <HeroCtas delay={0.5} variant="stack" large />
           <HeroMetrics delay={0.58} variant="row" />
         </div>
       </div>
@@ -245,7 +243,7 @@ export function HeroSection() {
       </div>
 
       <motion.div
-        className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5"
+        className="pointer-events-none absolute bottom-[max(0.75rem,env(safe-area-inset-bottom))] left-1/2 z-20 flex -translate-x-1/2 flex-col items-center gap-1.5"
         initial={reduced ? false : { opacity: 0 }}
         animate={ready ? { opacity: 1 } : { opacity: 0 }}
         transition={{ delay: 0.7, duration: 0.5, ease: easeOut }}
