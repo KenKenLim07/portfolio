@@ -34,9 +34,6 @@ export function HeroSideRail() {
         </li>
       ))}
     </ul>
-    <p className="origin-left -rotate-90 font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-600">
-      Menu
-    </p>
   </aside>
   );
 }

@@ -55,7 +55,7 @@ function HeroCtas({
           className={cn(
             "radius-control group inline-flex cursor-pointer items-center justify-center gap-1.5 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
             stacked
-              ? "w-full px-6 py-3.5 text-sm"
+              ? "w-full px-5 py-2.5 text-sm lg:px-5 lg:py-2.5"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
         >
@@ -72,7 +72,7 @@ function HeroCtas({
           className={cn(
             "radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5",
             stacked
-              ? "w-full px-6 py-3.5 text-sm"
+              ? "w-full px-5 py-2.5 text-sm lg:px-5 lg:py-2.5"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
         >
@@ -98,7 +98,7 @@ function HeroCopy({
       <HeroEntranceItem
         className={cn(
           "flex flex-wrap items-center gap-2 sm:gap-3",
-          compact ? "mb-4" : "mb-7 sm:mb-8 lg:mb-10",
+          compact ? "mb-4" : "mb-7 sm:mb-8 lg:mb-8",
         )}
         delay={0.05}
       >
@@ -171,16 +171,16 @@ export function HeroSection() {
       ref={sectionRef}
       id="home"
       className={cn(
-        "relative overflow-x-hidden",
+        "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12),transparent)]" />
 
-      {/* Mobile: content-height hero — no flex spacer (that was forcing a full screen of empty space) */}
+      {/* Mobile: min full viewport — content from top; quiet space below metrics, no flex spacer */}
       <div
         className={cn(
-          "relative mx-auto flex w-full max-w-7xl flex-col px-5 pb-12 pt-[max(5.25rem,env(safe-area-inset-top))] sm:px-6 sm:pb-14 md:px-8 lg:hidden",
+          "relative mx-auto box-border flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-20 pt-[max(4.5rem,env(safe-area-inset-top))] sm:px-6 sm:pb-24 md:px-8 lg:hidden",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
       >
@@ -196,31 +196,31 @@ export function HeroSection() {
         <HeroMetrics delay={0.58} className="mt-8 sm:mt-9" />
       </div>
 
-      {/* Desktop: two columns */}
+      {/* Desktop: locked to one viewport — content scaled to fit */}
       <div
         className={cn(
-          "relative mx-auto hidden w-full max-w-7xl px-8 py-36 lg:block lg:min-h-[100dvh] lg:px-12",
+          "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
       >
-        <div className="grid grid-cols-12 items-center gap-10 xl:gap-14">
+        <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
           <div
             className={cn(
               "col-span-7 xl:col-span-7",
               HERO_LAYOUT_DEBUG &&
-                "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-2",
+                "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
             )}
           >
-            <HeroCopy introClassName="lg:mt-10 lg:text-lg" />
+            <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
           </div>
           <div
             className={cn(
               "col-span-5 xl:col-span-5",
               HERO_LAYOUT_DEBUG &&
-                "rounded-sm border-2 border-dashed border-violet-400 bg-violet-400/5 p-2",
+                "rounded-sm border-2 border-dashed border-violet-400 bg-violet-400/5 p-1",
             )}
           >
-            <div className="flex w-full flex-col gap-8 xl:gap-10">
+            <div className="flex w-full flex-col gap-5">
               <HeroCtas delay={0.5} variant="stack" className="w-full" />
               <HeroMetrics delay={0.62} variant="column" className="w-full" />
             </div>
@@ -229,7 +229,7 @@ export function HeroSection() {
       </div>
 
       <motion.div
-        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 lg:flex"
+        className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5"
         initial={reduced ? false : { opacity: 0 }}
         animate={ready ? { opacity: 1 } : { opacity: 0 }}
         transition={{ delay: 0.7, duration: 0.5, ease: easeOut }}

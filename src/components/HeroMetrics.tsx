@@ -34,7 +34,7 @@ export function HeroMetrics({
       <div
         className={cn(
           stacked
-            ? "flex w-full flex-col gap-6 border-t border-white/10 pt-6 lg:pt-10"
+            ? "flex w-full flex-col gap-3 border-t border-white/10 pt-4 lg:gap-3.5 lg:pt-4"
             : compact
               ? "grid grid-cols-3 gap-2 border-t border-white/10 pt-4 sm:gap-3 sm:pt-5"
               : "grid grid-cols-3 gap-2 border-t border-white/10 pt-4 sm:gap-3 sm:pt-5 lg:flex lg:flex-wrap lg:items-start lg:justify-between lg:gap-6 lg:pt-8",
@@ -47,7 +47,7 @@ export function HeroMetrics({
             className={cn(
               "min-w-0",
               stacked
-                ? i > 0 && "border-t border-white/10 pt-6"
+                ? i > 0 && "border-t border-white/10 pt-3.5 lg:pt-4"
                 : compact
                   ? undefined
                   : cn(
@@ -61,7 +61,9 @@ export function HeroMetrics({
                 "font-display font-semibold leading-tight tracking-tight text-foreground",
                 compact
                   ? "text-base sm:text-lg"
-                  : "text-base sm:text-lg lg:text-2xl xl:text-3xl",
+                  : stacked
+                    ? "text-lg lg:text-xl"
+                    : "text-base sm:text-lg lg:text-2xl xl:text-3xl",
               )}
             >
               {metric.value}
