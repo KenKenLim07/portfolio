@@ -6,9 +6,9 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-white/5 py-12 md:py-16">
+    <footer className="relative overflow-hidden border-t border-border py-12 md:py-16">
       <p
-        className="pointer-events-none absolute bottom-0 left-6 font-display text-[clamp(4rem,18vw,12rem)] font-bold leading-none tracking-tighter text-white/[0.03] select-none md:left-8 lg:left-12"
+        className="pointer-events-none absolute bottom-0 left-6 font-display text-[clamp(4rem,18vw,12rem)] font-bold leading-none tracking-tighter text-foreground/[0.04] select-none md:left-8 lg:left-12"
         aria-hidden
       >
         {SITE.name.split(" ")[0]}
@@ -17,7 +17,7 @@ export function Footer() {
         <div>
           <Link
             href="#home"
-            className="font-display cursor-pointer text-lg font-semibold text-foreground transition-colors duration-200 hover:text-zinc-300"
+            className="font-display cursor-pointer text-lg font-semibold text-foreground transition-colors duration-200 hover:text-muted"
           >
             {SITE.name}
           </Link>
@@ -45,7 +45,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="radius-chip cursor-pointer border border-white/10 p-2.5 text-muted transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+            className="radius-chip cursor-pointer border border-border p-2.5 text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
           >
             <GitHubIcon />
           </a>
@@ -54,7 +54,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="radius-chip cursor-pointer border border-white/10 p-2.5 text-muted transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+            className="radius-chip cursor-pointer border border-border p-2.5 text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
           >
             <LinkedInIcon />
           </a>

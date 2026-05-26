@@ -11,9 +11,9 @@ type ButtonProps = {
 
 const variants = {
   primary:
-    "bg-foreground text-background hover:bg-zinc-200 border border-transparent",
+    "bg-foreground text-background hover:opacity-90 border border-transparent",
   secondary:
-    "bg-white/5 text-foreground border border-white/15 hover:bg-white/10 hover:border-white/25",
+    "bg-subtle text-foreground border border-border hover:bg-[var(--fill-hover)] hover:border-border",
   ghost: "text-muted hover:text-foreground bg-transparent",
 };
 
@@ -25,7 +25,7 @@ export function Button({
   className,
 }: ButtonProps) {
   const classes = cn(
-    "radius-control inline-flex cursor-pointer items-center justify-center gap-2 px-6 py-3 text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40",
+    "radius-control inline-flex cursor-pointer items-center justify-center gap-2 px-6 py-3 text-sm font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30",
     variants[variant],
     className,
   );

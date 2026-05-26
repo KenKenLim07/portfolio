@@ -28,7 +28,7 @@ const iconMap: Record<(typeof SERVICES)[number]["icon"], LucideIcon> = {
 
 export function ServicesSection() {
   return (
-    <Section id="services" className="border-t border-white/5">
+    <Section id="services" className="border-t border-border">
       <SectionHeading
         label=""
         title="Services"
@@ -42,11 +42,11 @@ export function ServicesSection() {
             <AnimatedItem key={service.title}>
               <div
                 className={cn(
-                  "radius-panel group h-full cursor-default border border-white/10 bg-background/60 p-6 transition-colors duration-200",
-                  "hover:border-white/20 hover:bg-white/[0.03]",
+                  "radius-panel group h-full cursor-default border border-border bg-background/60 p-6 transition-colors duration-200",
+                  "hover:border-border hover:bg-[var(--fill-hover)]",
                 )}
               >
-                <div className="radius-control mb-5 inline-flex border border-white/10 bg-white/5 p-3 transition-colors duration-200 group-hover:border-indigo-500/30 group-hover:bg-indigo-500/10">
+                <div className="radius-control mb-5 inline-flex border border-border bg-subtle p-3 transition-colors duration-200 group-hover:border-indigo-500/30 group-hover:bg-indigo-500/10">
                   <Icon className="h-5 w-5 text-indigo-300" strokeWidth={1.5} />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground">

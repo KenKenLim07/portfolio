@@ -6,10 +6,11 @@ import { useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const linkClass =
-  "cursor-pointer font-mono text-[10px] uppercase tracking-[0.22em] text-zinc-500 transition-colors duration-200 hover:text-foreground";
+  "cursor-pointer font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors duration-200 hover:text-foreground";
 
 const SCROLL_THRESHOLD = 32;
 
@@ -55,14 +56,15 @@ export function Navbar() {
         className={cn(
           "fixed inset-x-0 top-0 z-50 hidden transition-[background-color,border-color,backdrop-filter] duration-500 ease-out lg:block",
           desktopBarSolid
-            ? "border-b border-white/5 bg-background/85 backdrop-blur-md"
+            ? "border-b border-border bg-background/85 backdrop-blur-md"
             : "border-b border-transparent bg-transparent",
         )}
       >
         <nav
-          className="mx-auto flex h-16 max-w-7xl items-center justify-end gap-7 px-12 xl:gap-10"
+          className="mx-auto flex h-16 max-w-7xl items-center justify-end gap-5 px-12 xl:gap-8"
           aria-label="Main navigation"
         >
+          <ThemeToggle />
           <ul className="flex items-center gap-7 xl:gap-9">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
@@ -75,11 +77,20 @@ export function Navbar() {
         </nav>
       </header>
 
+      <ThemeToggle
+        className={cn(
+          "fixed left-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] lg:hidden",
+          mobileOpen && "mobile-menu-chrome hover:text-[var(--menu-fg)]",
+        )}
+      />
+
       <button
         type="button"
         className={cn(
-          "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2 text-zinc-400 transition-colors duration-200 hover:text-foreground lg:hidden",
-          mobileOpen && "text-foreground",
+          "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2 transition-colors duration-200 lg:hidden",
+          mobileOpen
+            ? "mobile-menu-chrome hover:text-[var(--menu-fg)]"
+            : "text-muted hover:text-foreground",
         )}
         aria-expanded={mobileOpen}
         aria-controls="mobile-nav"
@@ -96,7 +107,7 @@ export function Navbar() {
       {menuMounted && (
         <div
           ref={overlayRef}
-          className="fixed inset-0 z-40 bg-black/55 lg:hidden"
+          className="mobile-menu-overlay fixed inset-0 z-40 lg:hidden"
           style={prefersReducedMotion && !mobileOpen ? { display: "none" } : undefined}
         >
           <button
@@ -112,14 +123,14 @@ export function Navbar() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="absolute right-0 top-0 z-10 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l border-white/10 bg-zinc-950 shadow-[-24px_0_64px_rgba(0,0,0,0.5)] sm:w-[min(88vw,20rem)]"
+            className="mobile-menu-panel absolute right-0 top-0 z-10 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l sm:w-[min(88vw,20rem)]"
           >
             <ul className="flex flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(5.5rem,env(safe-area-inset-top))]">
               {NAV_LINKS.map((link) => (
                 <li key={link.href} data-menu-link>
                   <Link
                     href={link.href}
-                    className="block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-foreground transition-colors duration-300 hover:text-zinc-400 sm:py-4 sm:text-[2rem]"
+                    className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight transition-colors duration-300 sm:py-4 sm:text-[2rem]"
                     onClick={closeMenu}
                   >
                     {link.label}

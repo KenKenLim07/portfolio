@@ -58,7 +58,7 @@ export function ProjectsSection() {
   );
 
   return (
-    <Section id="projects" className="border-t border-white/5">
+    <Section id="projects" className="border-t border-border">
       <SectionHeading
         label=""
         title="Selected Projects"
@@ -74,8 +74,8 @@ export function ProjectsSection() {
             className={cn(
               "radius-chip cursor-pointer border px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors duration-200 sm:text-[11px]",
               filter === item.id
-                ? "border-indigo-400/40 bg-indigo-500/15 text-indigo-100"
-                : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200",
+                ? "border-indigo-600/35 bg-indigo-600/12 text-indigo-950 dark:border-indigo-400/40 dark:bg-indigo-500/15 dark:text-indigo-100"
+                : "border-border bg-subtle text-muted hover:border-border hover:text-foreground",
             )}
             aria-pressed={filter === item.id}
           >
@@ -97,7 +97,7 @@ export function ProjectsSection() {
           </motion.div>
         </AnimatePresence>
       ) : (
-        <p className="radius-panel border border-white/10 bg-surface px-6 py-12 text-center text-sm text-muted">
+        <p className="radius-panel border border-border bg-surface px-6 py-12 text-center text-sm text-muted">
           No projects in this category yet.
         </p>
       )}
@@ -106,10 +106,10 @@ export function ProjectsSection() {
         <div className="relative mt-8 sm:mt-10">
           <div className="mb-4 flex items-end justify-between gap-4">
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">
+              <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted">
                 More work
               </p>
-              <p className="mt-1 text-sm text-zinc-400">
+              <p className="mt-1 text-sm text-muted">
                 <span className="sm:hidden">Swipe to browse · tap to feature above</span>
                 <span className="hidden sm:inline">Tap a project to feature it above</span>
               </p>
@@ -118,7 +118,7 @@ export function ProjectsSection() {
               <button
                 type="button"
                 onClick={() => scrollRail(-1)}
-                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-white/10 bg-white/5 text-zinc-400 transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-border bg-subtle text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
                 aria-label="Scroll projects left"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -126,7 +126,7 @@ export function ProjectsSection() {
               <button
                 type="button"
                 onClick={() => scrollRail(1)}
-                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-white/10 bg-white/5 text-zinc-400 transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-border bg-subtle text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
                 aria-label="Scroll projects right"
               >
                 <ChevronRight className="h-4 w-4" aria-hidden />

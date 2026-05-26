@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
-import { gsap, initGsap, revealDefaults } from "@/lib/gsap";
+import { createDirectionalScrollReveal, initGsap } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 type AnimatedSectionProps = {
@@ -31,28 +31,9 @@ export function AnimatedSection({
     const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
     if (!items.length) return;
 
-    const ctx = gsap.context(() => {
-      gsap.set(items, { opacity: 0, y: revealDefaults.y });
+    const trigger = createDirectionalScrollReveal(root, items, { delay });
 
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger: root,
-            start: revealDefaults.start,
-            toggleActions: revealDefaults.toggleActions,
-          },
-        })
-        .to(items, {
-          opacity: 1,
-          y: 0,
-          duration: revealDefaults.duration,
-          ease: revealDefaults.ease,
-          stagger: revealDefaults.stagger,
-          delay,
-        });
-    }, root);
-
-    return () => ctx.revert();
+    return () => trigger.kill();
   }, [delay, prefersReducedMotion]);
 
   if (prefersReducedMotion) {

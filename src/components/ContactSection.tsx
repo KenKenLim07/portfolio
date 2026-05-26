@@ -47,8 +47,8 @@ const links: {
 
 export function ContactSection() {
   return (
-    <Section id="contact" className="border-t border-white/5">
-      <div className="radius-panel-lg relative overflow-hidden border border-white/10">
+    <Section id="contact" className="border-t border-border">
+      <div className="radius-panel-lg relative overflow-hidden border border-border">
         <div className="pointer-events-none absolute inset-0 glow-orb opacity-80" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-transparent to-violet-950/30" />
 
@@ -89,7 +89,7 @@ export function ContactSection() {
 
           <AnimatedSection delay={0.1}>
             <AnimatedItem>
-              <div className="radius-panel border border-white/10 bg-[var(--form-surface)] p-6 md:p-8">
+              <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
                 <h3 className="font-display mb-1 text-lg font-semibold text-foreground">
                   Send a message
                 </h3>

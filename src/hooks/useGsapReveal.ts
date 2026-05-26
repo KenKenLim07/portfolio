@@ -2,21 +2,19 @@
 
 import { useEffect, type RefObject } from "react";
 import { useReducedMotion } from "framer-motion";
-import { gsap, initGsap, revealDefaults } from "@/lib/gsap";
+import { createDirectionalScrollReveal, initGsap } from "@/lib/gsap";
 
 export type GsapRevealOptions = {
   delay?: number;
   y?: number;
   duration?: number;
   start?: string;
-  toggleActions?: string;
   /** ScrollTrigger trigger element (defaults to the animated element) */
   triggerRef?: RefObject<HTMLElement | null>;
 };
 
 /**
- * Tajmirul-style scroll reveal: animates in when scrolling down into view,
- * reverses when scrolling back up (GSAP ScrollTrigger toggleActions).
+ * Direction-aware scroll reveal for a single element (e.g. project cards).
  */
 export function useGsapReveal(
   targetRef: RefObject<HTMLElement | null>,
@@ -29,32 +27,16 @@ export function useGsapReveal(
     const el = targetRef.current;
     if (!el || prefersReducedMotion) return;
 
-    const trigger = options.triggerRef?.current ?? el;
-    const y = options.y ?? revealDefaults.y;
-    const duration = options.duration ?? revealDefaults.duration;
+    const triggerEl = options.triggerRef?.current ?? el;
 
-    const ctx = gsap.context(() => {
-      gsap.set(el, { opacity: 0, y });
+    const trigger = createDirectionalScrollReveal(triggerEl, el, {
+      delay: options.delay,
+      y: options.y,
+      duration: options.duration,
+      start: options.start,
+    });
 
-      gsap
-        .timeline({
-          scrollTrigger: {
-            trigger,
-            start: options.start ?? revealDefaults.start,
-            toggleActions:
-              options.toggleActions ?? revealDefaults.toggleActions,
-          },
-        })
-        .to(el, {
-          opacity: 1,
-          y: 0,
-          duration,
-          ease: revealDefaults.ease,
-          delay: options.delay ?? 0,
-        });
-    }, el);
-
-    return () => ctx.revert();
+    return () => trigger.kill();
   }, [
     targetRef,
     options.triggerRef,
@@ -62,7 +44,6 @@ export function useGsapReveal(
     options.y,
     options.duration,
     options.start,
-    options.toggleActions,
     prefersReducedMotion,
   ]);
 }

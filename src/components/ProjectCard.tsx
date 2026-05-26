@@ -49,15 +49,15 @@ export function ProjectCard({
               cn("h-full shrink-0 snap-start", RAIL_CARD_WIDTH),
               isActive
                 ? "border-indigo-400/40 ring-1 ring-indigo-400/30"
-                : "border-white/10 hover:border-white/20",
+                : "border-border hover:border-border",
               onSelect && "cursor-pointer",
             )
-          : "border-white/10 hover:border-white/20",
+          : "border-border hover:border-border",
       )}
       layout={!prefersReducedMotion && !isRail}
     >
       {/* 2:1 matches exported screenshots (1400×700) — avoids crop from 16:9 frames */}
-      <div className="relative aspect-[2/1] overflow-hidden rounded-t-panel-lg bg-zinc-950">
+      <div className="relative aspect-[2/1] overflow-hidden rounded-t-panel-lg bg-image-well">
         <div
           className={cn(
             "absolute inset-0 bg-gradient-to-br opacity-40",
@@ -76,7 +76,7 @@ export function ProjectCard({
               : "(max-width: 1024px) 100vw, 1280px"
           }
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-image-well/80 via-transparent to-transparent" />
       </div>
 
       <div className={cn("relative", isRail ? "p-4 sm:p-5" : "p-6 md:p-8")}>
@@ -119,7 +119,7 @@ export function ProjectCard({
                 href={project.liveUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="radius-control inline-flex cursor-pointer items-center gap-2 bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
+                className="radius-control inline-flex cursor-pointer items-center gap-2 bg-foreground px-5 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:opacity-90"
                 onClick={(e) => e.stopPropagation()}
               >
                 Live Demo
@@ -129,7 +129,7 @@ export function ProjectCard({
             {project.githubUrl && (
               <Link
                 href={project.githubUrl}
-                className="radius-control inline-flex cursor-pointer items-center gap-2 border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10"
+                className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
                 onClick={(e) => e.stopPropagation()}
               >
                 GitHub
@@ -148,7 +148,7 @@ export function ProjectCard({
               </span>
             )}
             {project.githubUrl && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-wider text-muted">
                 Code
                 <GitHubIcon className="h-3 w-3" />
               </span>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
 import { GsapProvider } from "@/components/GsapProvider";
-import { SiteBackground } from "@/components/SiteBackground";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
 
@@ -16,6 +16,17 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   display: "swap",
 });
+
+const themeInitScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem("theme");
+    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    var dark = stored === "dark" || (stored !== "light" && prefersDark);
+    document.documentElement.classList.toggle("dark", dark);
+  } catch (e) {}
+})();
+`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -61,12 +72,15 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${archivo.variable} ${spaceGrotesk.variable} h-full scroll-smooth`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full overflow-x-hidden bg-transparent font-sans text-foreground antialiased">
-        <GsapProvider>
-          <SiteBackground />
-          <div className="relative z-[1]">{children}</div>
-        </GsapProvider>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="min-h-full overflow-x-hidden bg-background font-sans text-foreground antialiased transition-colors duration-300">
+        <ThemeProvider>
+          <GsapProvider>{children}</GsapProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

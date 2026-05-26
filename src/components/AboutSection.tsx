@@ -6,7 +6,7 @@ import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function AboutSection() {
   return (
-    <Section id="about" className="border-t border-white/5">
+    <Section id="about" className="border-t border-border">
       <SectionHeading label="" title="About Me" description={ABOUT.lead} />
 
       <AnimatedSection className="mb-14 md:mb-20">
@@ -53,7 +53,7 @@ export function AboutSection() {
           </AnimatedItem>
 
           <AnimatedItem>
-            <div className="radius-panel border border-white/10 bg-surface p-6 md:p-8">
+            <div className="radius-panel border border-border bg-surface p-6 md:p-8">
               <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
                 Experience Building
               </h3>
@@ -61,7 +61,7 @@ export function AboutSection() {
                 {ABOUT_EXPERIENCE.map((item) => (
                   <li
                     key={item}
-                    className="flex items-center gap-3 border-b border-white/5 pb-3 text-sm text-muted last:border-0 last:pb-0"
+                    className="flex items-center gap-3 border-b border-border pb-3 text-sm text-muted last:border-0 last:pb-0"
                   >
                     <span className="h-1 w-8 rounded-full bg-gradient-to-r from-indigo-500/80 to-violet-500/40" />
                     {item}

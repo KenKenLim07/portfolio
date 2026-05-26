@@ -141,7 +141,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="radius-control inline-flex w-full cursor-pointer items-center justify-center gap-2 bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+        className="radius-control inline-flex w-full cursor-pointer items-center justify-center gap-2 bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
       >
         {isSubmitting ? (
           <>

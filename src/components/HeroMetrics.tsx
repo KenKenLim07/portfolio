@@ -34,10 +34,10 @@ export function HeroMetrics({
       <div
         className={cn(
           stacked
-            ? "flex w-full flex-col gap-3 border-t border-white/10 pt-4 lg:gap-3.5 lg:pt-4"
+            ? "flex w-full flex-col gap-3 border-t border-border pt-4 lg:gap-3.5 lg:pt-4"
             : compact
-              ? "grid grid-cols-3 gap-2 border-t border-white/10 pt-4 sm:gap-3 sm:pt-5"
-              : "grid grid-cols-3 gap-2 border-t border-white/10 pt-4 sm:gap-3 sm:pt-5 lg:flex lg:flex-wrap lg:items-start lg:justify-between lg:gap-6 lg:pt-8",
+              ? "grid grid-cols-3 gap-2 border-t border-border pt-4 sm:gap-3 sm:pt-5"
+              : "grid grid-cols-3 gap-2 border-t border-border pt-4 sm:gap-3 sm:pt-5 lg:flex lg:flex-wrap lg:items-start lg:justify-between lg:gap-6 lg:pt-8",
           HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-fuchsia-300/90",
         )}
       >
@@ -47,12 +47,12 @@ export function HeroMetrics({
             className={cn(
               "min-w-0",
               stacked
-                ? i > 0 && "border-t border-white/10 pt-3.5 lg:pt-4"
+                ? i > 0 && "border-t border-border pt-3.5 lg:pt-4"
                 : compact
                   ? undefined
                   : cn(
                       "lg:flex-1 lg:basis-auto",
-                      i > 0 && "lg:border-l lg:border-white/10 lg:pl-8",
+                      i > 0 && "lg:border-l lg:border-border lg:pl-8",
                     ),
             )}
           >
@@ -70,7 +70,7 @@ export function HeroMetrics({
             </p>
             <p
               className={cn(
-                "mt-0.5 uppercase leading-snug tracking-[0.12em] text-zinc-500",
+                "mt-0.5 uppercase leading-snug tracking-[0.12em] text-muted",
                 compact
                   ? "text-[9px]"
                   : "text-[9px] sm:text-[10px] lg:mt-1.5 lg:text-xs lg:tracking-[0.14em]",

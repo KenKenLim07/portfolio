@@ -7,7 +7,7 @@ import { AnimatedItem, AnimatedStagger } from "@/components/ui/AnimatedSection";
 
 export function ProcessSection() {
   return (
-    <Section id="process" className="border-t border-white/5">
+    <Section id="process" className="border-t border-border">
       <SectionHeading
         label=""
         title="How I Work"
@@ -17,7 +17,7 @@ export function ProcessSection() {
 
       <AnimatedStagger className="relative">
         <div
-          className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-indigo-500/40 via-white/10 to-transparent md:block lg:left-1/2 lg:-translate-x-px"
+          className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-indigo-500/40 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
           aria-hidden
         />
 
@@ -30,7 +30,7 @@ export function ProcessSection() {
                 }`}
               >
                 <div className="flex items-center gap-4 md:w-1/2 lg:justify-end lg:pr-12">
-                  <span className="font-display text-4xl font-light text-white/15 md:hidden lg:block lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:text-5xl">
+                  <span className="font-display text-4xl font-light text-foreground/15 md:hidden lg:block lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:text-5xl">
                     {step.step}
                   </span>
                   <div

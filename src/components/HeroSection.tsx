@@ -58,7 +58,7 @@ function HeroCtas({
         <Link
           href="#projects"
           className={cn(
-            "radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
+            "radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:opacity-90",
             stacked
               ? large
                 ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
@@ -77,7 +77,7 @@ function HeroCtas({
         <Link
           href="#contact"
           className={cn(
-            "radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5",
+            "radius-control inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]",
             stacked
               ? large
                 ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
@@ -120,7 +120,7 @@ function HeroCopy({
           </span>
           {HERO_AVAILABILITY}
         </span>
-        <span className="hidden h-px w-8 bg-white/15 sm:block" />
+        <span className="hidden h-px w-8 bg-border sm:block" />
         <HeroRotatingText />
       </HeroEntranceItem>
 
@@ -188,7 +188,7 @@ export function HeroSection() {
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_45%_at_50%_0%,rgba(99,102,241,0.16),transparent_55%)]" />
+      <div className="hero-section-glow pointer-events-none absolute inset-0" />
 
       {/* Mobile: headline top, CTAs + metrics anchored in lower viewport */}
       <div
@@ -259,9 +259,9 @@ export function HeroSection() {
           animate={ready && !reduced ? { y: [0, 5, 0] } : undefined}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ArrowDown className="h-4 w-4 text-zinc-600" aria-hidden />
+          <ArrowDown className="h-4 w-4 text-muted" aria-hidden />
         </motion.div>
-        <span className="text-[10px] uppercase tracking-[0.35em] text-zinc-600">
+        <span className="text-[10px] uppercase tracking-[0.35em] text-muted">
           Scroll
         </span>
       </motion.div>

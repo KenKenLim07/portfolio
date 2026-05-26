@@ -20,8 +20,8 @@ type FloatingFieldProps = {
 
 /** Floated label sits on the top border; bg must match --form-surface to cut the line cleanly */
 const LABEL_FLOAT =
-  "peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:px-1.5 peer-focus:text-xs peer-focus:leading-none peer-focus:bg-[var(--form-surface)] peer-focus:text-zinc-400 " +
-  "peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:-translate-y-1/2 peer-[:not(:placeholder-shown)]:px-1.5 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:leading-none peer-[:not(:placeholder-shown)]:bg-[var(--form-surface)] peer-[:not(:placeholder-shown)]:text-zinc-400";
+  "peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:px-1.5 peer-focus:text-xs peer-focus:leading-none peer-focus:bg-[var(--form-surface)] peer-focus:text-muted " +
+  "peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:-translate-y-1/2 peer-[:not(:placeholder-shown)]:px-1.5 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:leading-none peer-[:not(:placeholder-shown)]:bg-[var(--form-surface)] peer-[:not(:placeholder-shown)]:text-muted";
 
 export function FloatingField({
   id: idProp,
@@ -62,8 +62,8 @@ export function FloatingField({
         className={cn(
           "radius-control relative flex cursor-text border bg-[var(--form-surface)] px-3 transition-colors duration-200",
           multiline ? "items-start py-3" : "min-h-12 items-center",
-          "border-white/15",
-          "focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/10",
+          "border-border",
+          "focus-within:border-border focus-within:ring-1 focus-within:ring-[var(--fill-hover)]",
           error &&
             "border-red-500/70 focus-within:border-red-500/70 focus-within:ring-red-500/20",
         )}

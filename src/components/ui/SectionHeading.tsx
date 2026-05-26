@@ -29,7 +29,7 @@ export function SectionHeading({
     >
       {label && (
         <AnimatedItem>
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
             {label}
           </p>
         </AnimatedItem>

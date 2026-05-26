@@ -14,7 +14,7 @@ const groups = [
 
 export function TechStackSection() {
   return (
-    <Section id="tech-stack" className="border-t border-white/5">
+    <Section id="tech-stack" className="border-t border-border">
       <SectionHeading
         label=""
         title="My Stack"
@@ -24,18 +24,18 @@ export function TechStackSection() {
       <AnimatedStagger className="grid gap-6 md:grid-cols-3">
         {groups.map((group) => (
           <AnimatedItem key={group.key}>
-            <div className="radius-panel group h-full cursor-default border border-white/10 bg-surface p-6 transition-colors duration-200 hover:border-white/20">
+            <div className="radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border">
               <div
                 className={`mb-6 h-1 w-12 rounded-full bg-gradient-to-r ${group.accent}`}
               />
-              <h3 className="mb-5 font-mono text-xs font-medium lowercase tracking-[0.15em] text-zinc-400">
+              <h3 className="mb-5 font-mono text-xs font-medium lowercase tracking-[0.15em] text-muted">
                 {group.key}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {TECH_STACK[group.key].map((tech) => (
                   <Badge
                     key={tech}
-                    className="transition-colors duration-200 group-hover:border-white/20 group-hover:bg-white/10"
+                    className="transition-colors duration-200 group-hover:border-border group-hover:bg-[var(--fill-hover)]"
                   >
                     {tech}
                   </Badge>
