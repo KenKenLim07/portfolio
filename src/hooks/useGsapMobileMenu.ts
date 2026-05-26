@@ -12,9 +12,7 @@ type UseGsapMobileMenuOptions = {
 };
 
 /**
- * Tajmirul-style mobile drawer: one GSAP timeline —
- * backdrop fade + panel slide + corner radius morph + link stagger.
- * Reverses cleanly on close.
+ * Tajmirul-style mobile drawer. Timeline is built once; only play/reverse on open toggle.
  */
 export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
   const prefersReducedMotion = useReducedMotion();
@@ -28,25 +26,29 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
     const panel = panelRef.current;
     if (!overlay || !panel) return;
 
-    if (prefersReducedMotion) {
-      gsap.set(overlay, {
-        opacity: open ? 1 : 0,
-        pointerEvents: open ? "auto" : "none",
-      });
-      gsap.set(panel, {
-        xPercent: open ? 0 : 100,
-        borderTopLeftRadius: RADIUS_REST,
-        borderBottomLeftRadius: RADIUS_REST,
-      });
-      const links = panel.querySelectorAll<HTMLElement>("[data-menu-link]");
-      gsap.set(links, { opacity: open ? 1 : 0, x: 0 });
-      return;
-    }
-
     const links = panel.querySelectorAll<HTMLElement>("[data-menu-link]");
 
     const ctx = gsap.context(() => {
-      gsap.set(overlay, { opacity: 0, pointerEvents: "none" });
+      if (prefersReducedMotion) {
+        gsap.set(overlay, {
+        opacity: 0,
+        pointerEvents: "none",
+        visibility: "hidden",
+      });
+        gsap.set(panel, {
+          xPercent: 100,
+          borderTopLeftRadius: RADIUS_REST,
+          borderBottomLeftRadius: RADIUS_REST,
+        });
+        gsap.set(links, { opacity: 0, x: 0 });
+        return;
+      }
+
+      gsap.set(overlay, {
+        opacity: 0,
+        pointerEvents: "none",
+        visibility: "hidden",
+      });
       gsap.set(panel, {
         xPercent: 100,
         borderTopLeftRadius: RADIUS_ENTER,
@@ -63,7 +65,10 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
             duration: 0.42,
             ease: "power2.out",
             onStart: () => {
-              gsap.set(overlay, { pointerEvents: "auto" });
+              gsap.set(overlay, {
+                pointerEvents: "auto",
+                visibility: "visible",
+              });
             },
           },
           0,
@@ -91,7 +96,10 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
           0.2,
         )
         .eventCallback("onReverseComplete", () => {
-          gsap.set(overlay, { pointerEvents: "none" });
+          gsap.set(overlay, {
+            pointerEvents: "none",
+            visibility: "hidden",
+          });
         });
     }, panel);
 
@@ -100,10 +108,25 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
       timelineRef.current = null;
       ctx.revert();
     };
-  }, [open, prefersReducedMotion]);
+  }, [prefersReducedMotion]);
 
   useEffect(() => {
+    const overlay = overlayRef.current;
+    const panel = panelRef.current;
+    if (!overlay || !panel) return;
+
     if (prefersReducedMotion) {
+      const links = panel.querySelectorAll<HTMLElement>("[data-menu-link]");
+      gsap.set(overlay, {
+        opacity: open ? 1 : 0,
+        pointerEvents: open ? "auto" : "none",
+      });
+      gsap.set(panel, {
+        xPercent: open ? 0 : 100,
+        borderTopLeftRadius: RADIUS_REST,
+        borderBottomLeftRadius: RADIUS_REST,
+      });
+      gsap.set(links, { opacity: open ? 1 : 0, x: 0 });
       return;
     }
 

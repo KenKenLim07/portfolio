@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
 import { GsapProvider } from "@/components/GsapProvider";
-import { ScrollGuard } from "@/components/ScrollGuard";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
@@ -28,6 +27,14 @@ const themeInitScript = `
   } catch (e) {}
 })();
 `;
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  interactiveWidget: "resizes-visual",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -80,7 +87,6 @@ export default function RootLayout({
       </head>
       <body className="min-h-full overflow-x-hidden bg-background font-sans text-foreground antialiased transition-colors duration-300">
         <ThemeProvider>
-          <ScrollGuard />
           <GsapProvider>{children}</GsapProvider>
         </ThemeProvider>
       </body>

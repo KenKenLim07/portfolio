@@ -13,6 +13,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
     let lastWidth = window.innerWidth;
     const refresh = () => {
+      if (window.matchMedia("(max-width: 1023px)").matches) return;
       const width = window.innerWidth;
       if (width === lastWidth) return;
       lastWidth = width;

@@ -110,6 +110,14 @@ html {
   }
 }
 
+/* Mobile: never hide content waiting for ScrollTrigger (prevents hero flash on tap/resize) */
+@media (max-width: 1023px) {
+  .gsap-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -171,6 +179,12 @@ body {
 /* Always-dark mobile drawer */
 .mobile-menu-overlay {
   background-color: var(--menu-overlay);
+}
+
+.mobile-menu-overlay--closed {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .mobile-menu-panel {
