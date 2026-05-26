@@ -50,11 +50,11 @@
   --overlay: rgba(0, 0, 0, 0.55);
   --glass: rgba(28, 26, 23, 0.72);
   --glass-solid: rgba(18, 17, 16, 0.94);
-  --accent-from: #6366f1;
-  --accent-to: #8b5cf6;
-  --hero-glow: rgba(99, 102, 241, 0.14);
+  --accent-from: #a68b6a;
+  --accent-to: #c4a574;
+  --hero-glow: rgba(166, 139, 106, 0.2);
   --form-surface: #1c1a17;
-  --selection-bg: rgba(99, 102, 241, 0.35);
+  --selection-bg: rgba(154, 125, 92, 0.35);
   --selection-fg: #f5f0e8;
   --menu-bg: #141210;
   --menu-fg: #f5f0e8;
@@ -144,7 +144,7 @@ body {
   );
 }
 
-/* Always-dark mobile drawer */
+/* Always-dark mobile drawer — display toggled by GSAP hook (closed = display:none) */
 .mobile-menu-overlay {
   background-color: var(--menu-overlay);
 }
@@ -238,8 +238,8 @@ body {
 .glow-orb {
   background: radial-gradient(
     circle,
-    rgba(99, 102, 241, 0.15) 0%,
-    rgba(139, 92, 246, 0.08) 40%,
+    var(--hero-glow) 0%,
+    color-mix(in srgb, var(--accent-to) 12%, transparent) 45%,
     transparent 70%
   );
 }

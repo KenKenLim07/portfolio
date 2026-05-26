@@ -17,7 +17,7 @@ export function ProcessSection() {
 
       <AnimatedStagger className="relative">
         <div
-          className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-indigo-500/40 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
+          className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
           aria-hidden
         />
 
@@ -38,7 +38,7 @@ export function ProcessSection() {
                       index % 2 === 1 ? "lg:ml-auto" : "lg:mr-auto"
                     } lg:max-w-md`}
                   >
-                    <p className="mb-2 text-xs font-medium uppercase tracking-widest text-indigo-300">
+                    <p className="mb-2 font-mono text-xs font-medium uppercase tracking-[0.2em] text-[var(--accent-from)]">
                       Step {step.step}
                     </p>
                     <h3 className="font-display text-xl font-semibold text-foreground">

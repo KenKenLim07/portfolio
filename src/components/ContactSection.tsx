@@ -50,7 +50,7 @@ export function ContactSection() {
     <Section id="contact" className="border-t border-border">
       <div className="radius-panel-lg relative overflow-hidden border border-border">
         <div className="pointer-events-none absolute inset-0 glow-orb opacity-80" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-950/40 via-transparent to-violet-950/30" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--accent-from)]/20 via-transparent to-[var(--accent-to)]/15" />
 
         <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
           <AnimatedSection>

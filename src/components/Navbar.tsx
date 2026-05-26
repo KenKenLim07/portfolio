@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useReducedMotion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
@@ -17,7 +16,6 @@ const SCROLL_THRESHOLD = 32;
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const prefersReducedMotion = useReducedMotion();
 
   const { overlayRef, panelRef } = useGsapMobileMenu({
     open: mobileOpen,
@@ -100,7 +98,8 @@ export function Navbar() {
       <div
         ref={overlayRef}
         className="mobile-menu-overlay fixed inset-0 z-40 lg:hidden"
-        style={prefersReducedMotion && !mobileOpen ? { display: "none" } : undefined}
+        style={{ display: "none" }}
+        aria-hidden={!mobileOpen}
       >
         <button
           type="button"
