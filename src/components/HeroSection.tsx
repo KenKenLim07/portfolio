@@ -26,10 +26,13 @@ function HeroCtas({
   delay = 0.5,
   className,
   variant = "inline",
+  narrow = false,
 }: {
   delay?: number;
   className?: string;
   variant?: "inline" | "stack";
+  /** Content-width stacked buttons (mobile / tablet hero) */
+  narrow?: boolean;
 }) {
   const stacked = variant === "stack";
 
@@ -45,7 +48,9 @@ function HeroCtas({
       <div
         className={cn(
           stacked
-            ? "flex w-full min-w-0 flex-col gap-3"
+            ? narrow
+              ? "flex flex-col items-start gap-2"
+              : "flex w-full min-w-0 flex-col gap-3"
             : "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
@@ -55,15 +60,16 @@ function HeroCtas({
           className={cn(
             "radius-control group inline-flex cursor-pointer items-center justify-center gap-1.5 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
             stacked
-              ? "w-full px-5 py-2.5 text-sm lg:px-5 lg:py-2.5"
+              ? narrow
+                ? "px-4 py-2 text-sm"
+                : "w-full px-5 py-2.5 text-sm"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
         >
           View projects
           <ArrowRight
             className={cn(
-              "shrink-0 transition-transform duration-200 group-hover:translate-x-0.5",
-              stacked ? "h-4 w-4" : "h-3.5 w-3.5 sm:h-4 sm:w-4",
+              "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-x-0.5",
             )}
           />
         </Link>
@@ -72,7 +78,9 @@ function HeroCtas({
           className={cn(
             "radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5",
             stacked
-              ? "w-full px-5 py-2.5 text-sm lg:px-5 lg:py-2.5"
+              ? narrow
+                ? "px-4 py-2 text-sm"
+                : "w-full px-5 py-2.5 text-sm"
               : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
           )}
         >
@@ -98,11 +106,11 @@ function HeroCopy({
       <HeroEntranceItem
         className={cn(
           "flex flex-wrap items-center gap-2 sm:gap-3",
-          compact ? "mb-4" : "mb-7 sm:mb-8 lg:mb-8",
+          compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8",
         )}
         delay={0.05}
       >
-        <span className="radius-chip inline-flex items-center gap-2 border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300/90">
+        <span className="radius-chip inline-flex items-center gap-2 border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300/90 sm:px-3.5 sm:py-2 sm:text-xs">
           <span className="relative flex h-1.5 w-1.5">
             {!reduced && (
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50" />
@@ -135,7 +143,7 @@ function HeroCopy({
           "max-w-xl leading-relaxed text-muted",
           compact
             ? "mt-3 line-clamp-3 text-sm"
-            : "mt-6 text-base leading-relaxed sm:mt-7 sm:text-[1.0625rem] lg:mt-10 lg:text-lg",
+            : "mt-5 max-w-[36ch] text-[1.0625rem] leading-relaxed sm:mt-6 sm:max-w-xl sm:text-lg lg:mt-10 lg:max-w-xl lg:text-lg",
           introClassName,
         )}
         delay={0.35}
@@ -177,23 +185,31 @@ export function HeroSection() {
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12),transparent)]" />
 
-      {/* Mobile: min full viewport — content from top; quiet space below metrics, no flex spacer */}
+      {/* Mobile: headline top, CTAs + metrics anchored in lower viewport */}
       <div
         className={cn(
-          "relative mx-auto box-border flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-20 pt-[max(4.5rem,env(safe-area-inset-top))] sm:px-6 sm:pb-24 md:px-8 lg:hidden",
+          "relative mx-auto box-border flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] sm:px-6 md:px-8 lg:hidden",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
       >
         <div
           className={cn(
+            "shrink-0",
             HERO_LAYOUT_DEBUG &&
               "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
           )}
         >
           <HeroCopy />
         </div>
-        <HeroCtas delay={0.5} className="mt-9 sm:mt-10" />
-        <HeroMetrics delay={0.58} className="mt-8 sm:mt-9" />
+        <div
+          className={cn(
+            "mt-auto flex w-full flex-col gap-6 pt-8 sm:gap-7 sm:pt-9",
+            HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
+          )}
+        >
+          <HeroCtas delay={0.5} variant="stack" narrow />
+          <HeroMetrics delay={0.58} variant="row" />
+        </div>
       </div>
 
       {/* Desktop: locked to one viewport — content scaled to fit */}

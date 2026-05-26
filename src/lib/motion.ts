@@ -1,5 +1,8 @@
 export const easeOut = [0.22, 1, 0.36, 1] as const;
 
+/** Soft deceleration for slide / morph panels (Tajmirul-style drawers) */
+export const easeDrawer = [0.16, 1, 0.3, 1] as const;
+
 export const fadeInUp = {
   hidden: { opacity: 0, y: 24 },
   visible: {

@@ -100,8 +100,8 @@ body {
 
 @media (max-width: 1023px) {
   .hero-mega {
-    font-size: clamp(2.125rem, 10vw, 2.75rem);
-    line-height: 0.94;
+    font-size: clamp(2.375rem, 11vw, 3.35rem);
+    line-height: 0.92;
   }
 }
 

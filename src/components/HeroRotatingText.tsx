@@ -29,14 +29,14 @@ export function HeroRotatingText() {
 
   if (prefersReducedMotion) {
     return (
-      <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted sm:tracking-[0.25em]">
+      <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted sm:text-sm sm:tracking-[0.22em]">
         {roles[0]}
       </span>
     );
   }
 
   return (
-    <span className="inline-grid max-w-[min(100%,20rem)] text-xs font-medium uppercase tracking-[0.18em] text-muted sm:max-w-none sm:tracking-[0.25em]">
+    <span className="inline-grid max-w-[min(100%,20rem)] text-xs font-medium uppercase tracking-[0.18em] text-muted sm:max-w-none sm:text-sm sm:tracking-[0.22em]">
       {/* Sizer — reserves width/height for the longest label (fixes mobile clipping) */}
       <span
         className="invisible col-start-1 row-start-1 whitespace-nowrap leading-none"
