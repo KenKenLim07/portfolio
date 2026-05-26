@@ -24,7 +24,7 @@ export function TechStackSection() {
       <AnimatedStagger className="grid gap-6 md:grid-cols-3">
         {groups.map((group) => (
           <AnimatedItem key={group.key}>
-            <div className="group h-full cursor-default rounded-2xl border border-white/10 bg-surface p-6 transition-colors duration-200 hover:border-white/20">
+            <div className="radius-panel group h-full cursor-default border border-white/10 bg-surface p-6 transition-colors duration-200 hover:border-white/20">
               <div
                 className={`mb-6 h-1 w-12 rounded-full bg-gradient-to-r ${group.accent}`}
               />

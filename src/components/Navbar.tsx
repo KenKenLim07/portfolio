@@ -30,7 +30,7 @@ export function Navbar() {
     <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 md:px-6 md:pt-5">
       <nav
         className={cn(
-          "relative z-10 mx-auto flex max-w-7xl items-center justify-between rounded-2xl px-5 py-3 transition-all duration-300 md:px-6",
+          "radius-panel relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-3 transition-all duration-300 md:px-6",
           scrolled || mobileOpen
             ? "glass-solid"
             : "bg-transparent",
@@ -49,7 +49,7 @@ export function Navbar() {
             <li key={link.href}>
               <Link
                 href={link.href}
-                className="cursor-pointer rounded-full px-4 py-2 text-sm text-muted transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
+                className="radius-chip cursor-pointer px-4 py-2 text-sm text-muted transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -59,14 +59,14 @@ export function Navbar() {
 
         <Link
           href="#contact"
-          className="hidden cursor-pointer rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10 lg:inline-flex"
+          className="radius-control hidden cursor-pointer border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10 lg:inline-flex"
         >
           Get in touch
         </Link>
 
         <button
           type="button"
-          className="cursor-pointer rounded-full p-2 text-foreground transition-colors duration-200 hover:bg-white/10 lg:hidden"
+          className="radius-chip cursor-pointer p-2 text-foreground transition-colors duration-200 hover:bg-white/10 lg:hidden"
           aria-expanded={mobileOpen}
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           onClick={() => setMobileOpen((open) => !open)}
@@ -92,14 +92,14 @@ export function Navbar() {
               animate={{ opacity: 1, y: 0 }}
               exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
-              className="glass-solid relative z-10 mx-auto mt-3 max-w-7xl rounded-2xl p-4 lg:hidden"
+              className="glass-solid radius-panel relative z-10 mx-auto mt-3 max-w-7xl p-4 lg:hidden"
             >
             <ul className="flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="block cursor-pointer rounded-xl px-4 py-3 text-sm text-muted transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
+                    className="radius-control block cursor-pointer px-4 py-3 text-sm text-muted transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
                     onClick={() => setMobileOpen(false)}
                   >
                     {link.label}
@@ -109,7 +109,7 @@ export function Navbar() {
               <li className="mt-2 border-t border-white/10 pt-2">
                 <Link
                   href="#contact"
-                  className="block cursor-pointer rounded-xl bg-foreground px-4 py-3 text-center text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
+                  className="radius-control block cursor-pointer bg-foreground px-4 py-3 text-center text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200"
                   onClick={() => setMobileOpen(false)}
                 >
                   Get in touch

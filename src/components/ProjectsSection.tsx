@@ -72,7 +72,7 @@ export function ProjectsSection() {
             type="button"
             onClick={() => handleFilter(item.id)}
             className={cn(
-              "cursor-pointer rounded-full border px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors duration-200 sm:text-[11px]",
+              "radius-chip cursor-pointer border px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors duration-200 sm:text-[11px]",
               filter === item.id
                 ? "border-indigo-400/40 bg-indigo-500/15 text-indigo-100"
                 : "border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-zinc-200",
@@ -97,7 +97,7 @@ export function ProjectsSection() {
           </motion.div>
         </AnimatePresence>
       ) : (
-        <p className="rounded-2xl border border-white/10 bg-surface px-6 py-12 text-center text-sm text-muted">
+        <p className="radius-panel border border-white/10 bg-surface px-6 py-12 text-center text-sm text-muted">
           No projects in this category yet.
         </p>
       )}
@@ -118,7 +118,7 @@ export function ProjectsSection() {
               <button
                 type="button"
                 onClick={() => scrollRail(-1)}
-                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-white/10 bg-white/5 text-zinc-400 transition-colors duration-200 hover:border-white/20 hover:text-foreground"
                 aria-label="Scroll projects left"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden />
@@ -126,7 +126,7 @@ export function ProjectsSection() {
               <button
                 type="button"
                 onClick={() => scrollRail(1)}
-                className="inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-white/10 bg-white/5 text-zinc-400 transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+                className="radius-chip inline-flex h-9 w-9 cursor-pointer items-center justify-center border border-white/10 bg-white/5 text-zinc-400 transition-colors duration-200 hover:border-white/20 hover:text-foreground"
                 aria-label="Scroll projects right"
               >
                 <ChevronRight className="h-4 w-4" aria-hidden />

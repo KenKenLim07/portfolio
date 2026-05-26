@@ -81,7 +81,7 @@ export function HeroVisual() {
       className="relative mx-auto w-full max-w-xl overflow-hidden sm:max-w-2xl md:max-w-3xl lg:mx-0 lg:max-w-none"
     >
       <div
-        className="relative flex min-h-[min(680px,88dvh)] w-full flex-col overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-950 shadow-2xl shadow-black/50 sm:min-h-[620px] lg:min-h-[720px] xl:min-h-[800px]"
+        className="radius-panel-lg relative flex min-h-[min(680px,88dvh)] w-full flex-col overflow-hidden border border-white/10 bg-gradient-to-br from-zinc-950 via-black to-zinc-950 shadow-2xl shadow-black/50 sm:min-h-[620px] lg:min-h-[720px] xl:min-h-[800px]"
         aria-label={`${MY_BRAIN.previewTitle} — ${MY_BRAIN.interactionHint}`}
       >
         <motion.div
@@ -364,7 +364,7 @@ export function HeroVisual() {
               }`}
             />
             <span
-              className={`max-w-[3.75rem] truncate rounded-md border px-1 py-px text-center text-[7px] font-medium leading-tight tracking-wide backdrop-blur-sm sm:max-w-[4.25rem] sm:px-1.5 sm:text-[8px] ${
+              className={`radius-chip max-w-[3.75rem] truncate border px-1 py-px text-center text-[7px] font-medium leading-tight tracking-wide backdrop-blur-sm sm:max-w-[4.25rem] sm:px-1.5 sm:text-[8px] ${
                 activeId === node.id
                   ? "border-indigo-300/50 bg-indigo-950/90 text-indigo-100"
                   : "border-white/10 bg-zinc-950/85 text-zinc-400"

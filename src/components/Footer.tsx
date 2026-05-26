@@ -39,7 +39,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="cursor-pointer rounded-full border border-white/10 p-2.5 text-muted transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+            className="radius-chip cursor-pointer border border-white/10 p-2.5 text-muted transition-colors duration-200 hover:border-white/20 hover:text-foreground"
           >
             <GitHubIcon />
           </a>
@@ -48,7 +48,7 @@ export function Footer() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="cursor-pointer rounded-full border border-white/10 p-2.5 text-muted transition-colors duration-200 hover:border-white/20 hover:text-foreground"
+            className="radius-chip cursor-pointer border border-white/10 p-2.5 text-muted transition-colors duration-200 hover:border-white/20 hover:text-foreground"
           >
             <LinkedInIcon />
           </a>

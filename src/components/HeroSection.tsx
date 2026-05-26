@@ -4,10 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, ArrowDown } from "lucide-react";
-import { HERO_AVAILABILITY, HERO_STATS, SITE } from "@/lib/constants";
+import {
+  ENABLE_HERO_BRAIN,
+  HERO_AVAILABILITY,
+  HERO_STATS,
+  SITE,
+} from "@/lib/constants";
 import { fadeInUp, easeOut } from "@/lib/motion";
 import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { HeroVisual } from "@/components/HeroVisual";
+import { HeroHighlights } from "@/components/HeroHighlights";
 import { HeroAurora } from "@/components/HeroAurora";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import {
@@ -57,7 +63,7 @@ export function HeroSection() {
     <section
       ref={sectionRef}
       id="home"
-      className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 sm:pt-28 sm:pb-20 md:min-h-[105vh] md:pt-32 md:pb-28"
+      className={`relative overflow-x-hidden pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-28 ${ENABLE_HERO_BRAIN ? "min-h-[100dvh] md:min-h-[105vh]" : "min-h-[100dvh]"}`}
     >
       <HeroAurora />
       <div className="pointer-events-none absolute inset-0 grid-pattern opacity-20" />
@@ -123,14 +129,14 @@ export function HeroSection() {
             >
               <Link
                 href="#projects"
-                className="group inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 sm:px-7"
+                className="radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 sm:px-7"
               >
                 View Projects
                 <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
               </Link>
               <Link
                 href="#contact"
-                className="inline-flex cursor-pointer items-center justify-center rounded-full border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5 sm:px-7"
+                className="radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5 sm:px-7"
               >
                 Start a project
               </Link>
@@ -164,10 +170,18 @@ export function HeroSection() {
 
           <div className="min-w-0 lg:col-span-7 lg:pl-0 xl:col-span-7">
             <motion.div
-              className="w-full min-w-0 overflow-hidden lg:flex lg:min-h-[720px] lg:items-center xl:min-h-[800px]"
-              style={useScrollEffects ? { y: visualY } : undefined}
+              className={
+                ENABLE_HERO_BRAIN
+                  ? "w-full min-w-0 overflow-hidden lg:flex lg:min-h-[720px] lg:items-center xl:min-h-[800px]"
+                  : "w-full min-w-0 lg:pt-2"
+              }
+              style={
+                ENABLE_HERO_BRAIN && useScrollEffects
+                  ? { y: visualY }
+                  : undefined
+              }
             >
-              <HeroVisual />
+              {ENABLE_HERO_BRAIN ? <HeroVisual /> : <HeroHighlights />}
             </motion.div>
           </div>
         </div>

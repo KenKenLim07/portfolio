@@ -8,6 +8,45 @@ export const SITE = {
   url: "https://portfolio.example.com",
 } as const;
 
+/** Set true to restore the interactive knowledge-graph hero panel */
+export const ENABLE_HERO_BRAIN = false;
+
+/** Hero right column — capability pillars (minimal, max 3) */
+export const HERO_CAPABILITIES = [
+  {
+    title: "AI & data systems",
+    description:
+      "NLP, scraping pipelines, sentiment analysis, and production dashboards.",
+  },
+  {
+    title: "Full-stack delivery",
+    description:
+      "Next.js frontends with FastAPI, Supabase, Redis, and Dockerized backends.",
+  },
+  {
+    title: "Products in the wild",
+    description:
+      "News intelligence, marketplace tooling, and premium business websites — live and maintained.",
+  },
+] as const;
+
+/** Short labels for hero work tiles (full titles live on project cards) */
+export const HERO_WORK_LABELS: Record<string, { tag: string; shortTitle: string }> =
+  {
+    "news-intelligence": {
+      tag: "Thesis · Best Paper",
+      shortTitle: "PH VibeCheck AI",
+    },
+    "skyward-restaurant": {
+      tag: "Web · Iloilo",
+      shortTitle: "Skyward Japanese Cuisine",
+    },
+    "iphone-scraper": {
+      tag: "Commerce · Automation",
+      shortTitle: "IAASE iPhone Deals",
+    },
+  };
+
 /** Hero “My brain” knowledge map — ties to #about */
 export const MY_BRAIN = {
   previewTitle: "Developer Knowledge Graph",
@@ -73,9 +112,9 @@ export const BRAIN_KNOWLEDGE: readonly BrainSkill[] = [
 export const HERO_AVAILABILITY = "Open to new projects" as const;
 
 export const HERO_STATS = [
-  { emphasis: `${BRAIN_KNOWLEDGE.length}+`, label: "skills mapped" },
+  { emphasis: "3", label: "live products" },
   { emphasis: "Full-stack", label: "+ AI systems" },
-  { emphasis: "Ship", label: "data → product" },
+  { emphasis: "Thesis", label: "Best Paper" },
 ] as const;
 
 export const NAV_LINKS = [
@@ -133,7 +172,6 @@ export const PROJECTS: Project[] = [
       "Undergraduate thesis (Best Paper Award in NLP line up): real-time Philippine news aggregation with automated scraping, VADER sentiment scores showing how outlets portray topics, spaCy entity extraction, and Pearson correlation analysis comparing how sources differ in tone — plus search, trends, and entity dashboards across major PH publishers.",
     stack: [
       "Next.js",
-      "Docker",
       "FastAPI",
       "Supabase",
       "Redis",
@@ -292,4 +330,7 @@ export const ABOUT_EXPERIENCE = [
   "Analytics platforms",
   "AI-assisted workflows",
   "Business-focused web experiences",
+  "Data visualization systems",
+  "Scraping pipelines",
+  "Data Science",
 ] as const;

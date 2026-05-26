@@ -34,7 +34,7 @@ export function ProcessSection() {
                     {step.step}
                   </span>
                   <div
-                    className={`glass w-full rounded-2xl p-6 md:p-8 ${
+                    className={`glass radius-panel w-full p-6 md:p-8 ${
                       index % 2 === 1 ? "lg:ml-auto" : "lg:mr-auto"
                     } lg:max-w-md`}
                   >

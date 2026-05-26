@@ -127,7 +127,7 @@ export function ContactForm() {
         <p
           role="status"
           className={cn(
-            "rounded-md border px-4 py-3 text-sm",
+            "radius-control border px-4 py-3 text-sm",
             status === "success" &&
               "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
             status === "error" &&
@@ -141,7 +141,7 @@ export function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
+        className="radius-control inline-flex w-full cursor-pointer items-center justify-center gap-2 bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/40"
       >
         {isSubmitting ? (
           <>

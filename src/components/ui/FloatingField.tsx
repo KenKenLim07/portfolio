@@ -60,7 +60,7 @@ export function FloatingField({
         role="presentation"
         onClick={focusInput}
         className={cn(
-          "relative flex cursor-text rounded-md border bg-[var(--form-surface)] px-3 transition-colors duration-200",
+          "radius-control relative flex cursor-text border bg-[var(--form-surface)] px-3 transition-colors duration-200",
           multiline ? "items-start py-3" : "min-h-12 items-center",
           "border-white/15",
           "focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/10",

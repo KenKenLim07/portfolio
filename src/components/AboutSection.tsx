@@ -28,7 +28,7 @@ export function AboutSection() {
 
         <AnimatedSection className="space-y-8">
           <AnimatedItem>
-            <div className="glass rounded-2xl p-6 md:p-8">
+            <div className="glass radius-panel p-6 md:p-8">
               <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
                 Core Focus
               </h3>
@@ -44,7 +44,7 @@ export function AboutSection() {
           </AnimatedItem>
 
           <AnimatedItem>
-            <div className="rounded-2xl border border-white/10 bg-surface p-6 md:p-8">
+            <div className="radius-panel border border-white/10 bg-surface p-6 md:p-8">
               <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
                 Experience Building
               </h3>
