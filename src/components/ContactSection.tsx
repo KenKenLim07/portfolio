@@ -55,13 +55,8 @@ export function ContactSection() {
         <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
           <AnimatedSection>
             <AnimatedItem>
-              <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-muted">
-                Contact
-              </p>
-            </AnimatedItem>
-            <AnimatedItem>
-              <h2 className="font-display max-w-xl text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-                Let&apos;s Build Something Modern
+              <h2 className="section-mega max-w-xl text-foreground">
+                Get in Touch
               </h2>
             </AnimatedItem>
             <AnimatedItem>

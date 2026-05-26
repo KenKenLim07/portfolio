@@ -6,8 +6,14 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-white/5 py-12 md:py-16">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 md:flex-row md:items-center md:justify-between md:px-8 lg:px-12">
+    <footer className="relative overflow-hidden border-t border-white/5 py-12 md:py-16">
+      <p
+        className="pointer-events-none absolute bottom-0 left-6 font-display text-[clamp(4rem,18vw,12rem)] font-bold leading-none tracking-tighter text-white/[0.03] select-none md:left-8 lg:left-12"
+        aria-hidden
+      >
+        {SITE.name.split(" ")[0]}
+      </p>
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 md:flex-row md:items-center md:justify-between md:px-8 lg:px-12">
         <div>
           <Link
             href="#home"

@@ -11,6 +11,9 @@ export const SITE = {
 /** Set true to restore the interactive knowledge-graph hero panel */
 export const ENABLE_HERO_BRAIN = false;
 
+/** Temporary layout debug — colored borders on hero regions. Set false before shipping. */
+export const HERO_LAYOUT_DEBUG = false;
+
 /** Hero right column — capability pillars (minimal, max 3) */
 export const HERO_CAPABILITIES = [
   {
@@ -29,23 +32,6 @@ export const HERO_CAPABILITIES = [
       "News intelligence, marketplace tooling, and premium business websites — live and maintained.",
   },
 ] as const;
-
-/** Short labels for hero work tiles (full titles live on project cards) */
-export const HERO_WORK_LABELS: Record<string, { tag: string; shortTitle: string }> =
-  {
-    "news-intelligence": {
-      tag: "Thesis · Best Paper",
-      shortTitle: "PH VibeCheck AI",
-    },
-    "skyward-restaurant": {
-      tag: "Web · Iloilo",
-      shortTitle: "Skyward Japanese Cuisine",
-    },
-    "iphone-scraper": {
-      tag: "Commerce · Automation",
-      shortTitle: "IAASE iPhone Deals",
-    },
-  };
 
 /** Hero “My brain” knowledge map — ties to #about */
 export const MY_BRAIN = {
@@ -111,19 +97,52 @@ export const BRAIN_KNOWLEDGE: readonly BrainSkill[] = [
 /** Hero status line + quick stats (edit freely) */
 export const HERO_AVAILABILITY = "Open to new projects" as const;
 
-export const HERO_STATS = [
-  { emphasis: "3", label: "live products" },
-  { emphasis: "Full-stack", label: "+ AI systems" },
-  { emphasis: "Thesis", label: "Best Paper" },
+/** Hero metric blocks (large number + label) */
+export const HERO_METRICS = [
+  { value: "3+", label: "Live products" },
+  { value: "Full-stack", label: "+ AI systems" },
+  { value: "Best Paper", label: "Thesis award" },
 ] as const;
+
+/** @deprecated Use HERO_METRICS */
+export const HERO_STATS = HERO_METRICS.map((m) => ({
+  emphasis: m.value,
+  label: m.label,
+}));
 
 export const NAV_LINKS = [
   { label: "Home", href: "#home" },
-  { label: "Projects", href: "#projects" },
   { label: "About", href: "#about" },
+  { label: "Experience", href: "#experience" },
+  { label: "Projects", href: "#projects" },
   { label: "Services", href: "#services" },
   { label: "Tech Stack", href: "#tech-stack" },
   { label: "Contact", href: "#contact" },
+] as const;
+
+/** Work history — edit with your real roles */
+export const EXPERIENCE = [
+  {
+    company: "Independent & client projects",
+    role: "Full-Stack Developer & AI Systems Engineer",
+    period: "2022 — Present",
+    description:
+      "Designing and shipping production web apps, AI dashboards, scraping pipelines, and premium business sites for clients in the Philippines and abroad.",
+  },
+  {
+    company: "Thesis research — PH VibeCheck AI",
+    role: "AI / NLP Systems Developer",
+    period: "2024 — 2025",
+    description:
+      "Built a real-time Philippine news intelligence platform with sentiment analysis, entity extraction, and cross-outlet correlation — recognized with a Best Paper award.",
+  },
+  {
+    company: "Product experiments",
+    role: "Founding engineer (personal products)",
+    period: "Ongoing",
+    description:
+      "IAASE marketplace intelligence, restaurant and commerce web products, and internal tools spanning Next.js, FastAPI, Supabase, and automation.",
+  },
 ] as const;
 
 export const SOCIAL_LINKS = {
@@ -274,6 +293,15 @@ export const TECH_STACK = {
   ],
 } as const;
 
+/** Deduped stack tags for hero panel (max 10) */
+export const HERO_STACK_PREVIEW = [
+  ...new Set([
+    ...TECH_STACK.frontend,
+    ...TECH_STACK.backend,
+    ...TECH_STACK.ai,
+  ]),
+].slice(0, 10) as readonly string[];
+
 export const PROCESS_STEPS = [
   {
     step: "01",
@@ -308,7 +336,9 @@ export const PROCESS_STEPS = [
 ] as const;
 
 export const ABOUT = {
-  title: "Scalable engineering-Intelligent systems.",
+  belief:
+    "I believe in user-centered engineering — every system I build is tailored to real users, measurable outcomes, and production reliability.",
+  title: "This is me.",
   lead: "I build AI-powered platforms, modern web applications, and digital systems engineered for performance, usability, and scale.",
   paragraphs: [
     "I am Jose Marie Lim, a Full-Stack Developer and AI Systems Engineer working across backend infrastructure, premium frontend development, real-time systems, analytics pipelines, and workflow automation.",

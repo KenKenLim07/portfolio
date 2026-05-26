@@ -1,202 +1,244 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, ArrowDown } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowDown, ArrowRight } from "lucide-react";
 import {
   ENABLE_HERO_BRAIN,
   HERO_AVAILABILITY,
-  HERO_STATS,
+  HERO_LAYOUT_DEBUG,
   SITE,
 } from "@/lib/constants";
-import { fadeInUp, easeOut } from "@/lib/motion";
+import { easeOut } from "@/lib/motion";
 import { useHeroEntrance } from "@/hooks/useHeroEntrance";
 import { HeroVisual } from "@/components/HeroVisual";
-import { HeroHighlights } from "@/components/HeroHighlights";
-import { HeroAurora } from "@/components/HeroAurora";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
+import { HeroMetrics } from "@/components/HeroMetrics";
 import {
   HeroEntranceGroup,
   HeroEntranceChild,
   HeroEntranceItem,
 } from "@/components/ui/HeroEntrance";
+import { cn } from "@/lib/utils";
+
+function HeroCtas({
+  delay = 0.5,
+  className,
+  variant = "inline",
+}: {
+  delay?: number;
+  className?: string;
+  variant?: "inline" | "stack";
+}) {
+  const stacked = variant === "stack";
+
+  return (
+    <HeroEntranceItem
+      className={cn(
+        "overflow-visible",
+        HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-sky-400 bg-sky-400/5 p-1",
+        className,
+      )}
+      delay={delay}
+    >
+      <div
+        className={cn(
+          stacked
+            ? "flex w-full min-w-0 flex-col gap-3"
+            : "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
+          HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
+        )}
+      >
+        <Link
+          href="#projects"
+          className={cn(
+            "radius-control group inline-flex cursor-pointer items-center justify-center gap-1.5 bg-foreground font-medium text-background transition-colors duration-200 hover:bg-zinc-200",
+            stacked
+              ? "w-full px-6 py-3.5 text-sm"
+              : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
+          )}
+        >
+          View projects
+          <ArrowRight
+            className={cn(
+              "shrink-0 transition-transform duration-200 group-hover:translate-x-0.5",
+              stacked ? "h-4 w-4" : "h-3.5 w-3.5 sm:h-4 sm:w-4",
+            )}
+          />
+        </Link>
+        <Link
+          href="#contact"
+          className={cn(
+            "radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5",
+            stacked
+              ? "w-full px-6 py-3.5 text-sm"
+              : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
+          )}
+        >
+          Get in touch
+        </Link>
+      </div>
+    </HeroEntranceItem>
+  );
+}
+
+function HeroCopy({
+  introClassName,
+  compact = false,
+}: {
+  introClassName?: string;
+  compact?: boolean;
+}) {
+  const { prefersReducedMotion } = useHeroEntrance();
+  const reduced = prefersReducedMotion;
+
+  return (
+    <>
+      <HeroEntranceItem
+        className={cn(
+          "flex flex-wrap items-center gap-2 sm:gap-3",
+          compact ? "mb-4" : "mb-7 sm:mb-8 lg:mb-10",
+        )}
+        delay={0.05}
+      >
+        <span className="radius-chip inline-flex items-center gap-2 border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-emerald-300/90">
+          <span className="relative flex h-1.5 w-1.5">
+            {!reduced && (
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/50" />
+            )}
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </span>
+          {HERO_AVAILABILITY}
+        </span>
+        <span className="hidden h-px w-8 bg-white/15 sm:block" />
+        <HeroRotatingText />
+      </HeroEntranceItem>
+
+      <h1 className="font-display font-semibold tracking-tight">
+        <HeroEntranceGroup delay={0.12}>
+          <HeroEntranceChild>
+            <span className="hero-mega text-foreground">Full-Stack</span>
+          </HeroEntranceChild>
+          <HeroEntranceChild>
+            <span className="hero-mega hero-mega-muted">&amp; AI Systems</span>
+          </HeroEntranceChild>
+          <HeroEntranceChild>
+            <span className="hero-mega text-foreground">Engineer</span>
+          </HeroEntranceChild>
+        </HeroEntranceGroup>
+      </h1>
+
+      <HeroEntranceItem
+        as="p"
+        className={cn(
+          "max-w-xl leading-relaxed text-muted",
+          compact
+            ? "mt-3 line-clamp-3 text-sm"
+            : "mt-6 text-base leading-relaxed sm:mt-7 sm:text-[1.0625rem] lg:mt-10 lg:text-lg",
+          introClassName,
+        )}
+        delay={0.35}
+      >
+        Hi! I&apos;m {SITE.name.split(" ").slice(0, 2).join(" ")}. {SITE.description}
+      </HeroEntranceItem>
+    </>
+  );
+}
 
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const { ready, prefersReducedMotion } = useHeroEntrance();
+  const reduced = prefersReducedMotion;
 
-  const [scrollFx, setScrollFx] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(min-width: 1024px)");
-    setScrollFx(mq.matches);
-    const handler = () => setScrollFx(mq.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end start"],
-  });
-
-  const visualY = useTransform(scrollYProgress, [0.5, 1], [0, 48]);
-  const contentOpacity = useTransform(scrollYProgress, [0.82, 1], [1, 0]);
-  const contentY = useTransform(scrollYProgress, [0.82, 1], [0, 32]);
-
-  const useScrollEffects = scrollFx && !prefersReducedMotion;
-
-  const entrance = (delay: number) => {
-    if (prefersReducedMotion) return {};
-    return {
-      initial: fadeInUp.hidden,
-      animate: ready ? fadeInUp.visible : fadeInUp.hidden,
-      transition: { duration: 0.6, delay, ease: easeOut },
-    };
-  };
-
-  const headlineClass =
-    "block text-[clamp(2.25rem,8vw,5rem)] leading-[1.05]";
+  if (ENABLE_HERO_BRAIN) {
+    return (
+      <section
+        ref={sectionRef}
+        id="home"
+        className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
+      >
+        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-10" />
+        <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-6 md:px-8 lg:px-12">
+          <HeroVisual />
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
       ref={sectionRef}
       id="home"
-      className={`relative overflow-x-hidden pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-28 ${ENABLE_HERO_BRAIN ? "min-h-[100dvh] md:min-h-[105vh]" : "min-h-[100dvh]"}`}
+      className={cn(
+        "relative overflow-x-hidden",
+        HERO_LAYOUT_DEBUG && "border-4 border-red-500",
+      )}
     >
-      <HeroAurora />
-      <div className="pointer-events-none absolute inset-0 grid-pattern opacity-20" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(99,102,241,0.12),transparent)]" />
 
-      <div className="pointer-events-none absolute -left-12 top-[14%] hidden select-none font-display text-[clamp(6rem,18vw,14rem)] font-bold leading-none tracking-tighter text-white/[0.025] sm:block">
-        {SITE.name.split(" ")[0]}
+      {/* Mobile: content-height hero — no flex spacer (that was forcing a full screen of empty space) */}
+      <div
+        className={cn(
+          "relative mx-auto flex w-full max-w-7xl flex-col px-5 pb-12 pt-[max(5.25rem,env(safe-area-inset-top))] sm:px-6 sm:pb-14 md:px-8 lg:hidden",
+          HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
+        )}
+      >
+        <div
+          className={cn(
+            HERO_LAYOUT_DEBUG &&
+              "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
+          )}
+        >
+          <HeroCopy />
+        </div>
+        <HeroCtas delay={0.5} className="mt-9 sm:mt-10" />
+        <HeroMetrics delay={0.58} className="mt-8 sm:mt-9" />
+      </div>
+
+      {/* Desktop: two columns */}
+      <div
+        className={cn(
+          "relative mx-auto hidden w-full max-w-7xl px-8 py-36 lg:block lg:min-h-[100dvh] lg:px-12",
+          HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
+        )}
+      >
+        <div className="grid grid-cols-12 items-center gap-10 xl:gap-14">
+          <div
+            className={cn(
+              "col-span-7 xl:col-span-7",
+              HERO_LAYOUT_DEBUG &&
+                "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-2",
+            )}
+          >
+            <HeroCopy introClassName="lg:mt-10 lg:text-lg" />
+          </div>
+          <div
+            className={cn(
+              "col-span-5 xl:col-span-5",
+              HERO_LAYOUT_DEBUG &&
+                "rounded-sm border-2 border-dashed border-violet-400 bg-violet-400/5 p-2",
+            )}
+          >
+            <div className="flex w-full flex-col gap-8 xl:gap-10">
+              <HeroCtas delay={0.5} variant="stack" className="w-full" />
+              <HeroMetrics delay={0.62} variant="column" className="w-full" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <motion.div
-        className="relative mx-auto w-full max-w-7xl px-5 sm:px-6 md:px-8 lg:px-12"
-        style={
-          useScrollEffects
-            ? { opacity: contentOpacity, y: contentY }
-            : undefined
-        }
-      >
-        <div className="grid items-center gap-10 sm:gap-12 lg:grid-cols-12 lg:items-stretch lg:gap-6 xl:gap-10">
-          <div className="min-w-0 lg:col-span-5 xl:col-span-5">
-            <HeroEntranceItem
-              className="mb-6 flex min-w-0 flex-wrap items-center gap-3 sm:mb-8 sm:gap-4"
-              delay={0.05}
-            >
-              <span className="font-mono text-xs tabular-nums text-zinc-500">
-                01
-              </span>
-              <span className="h-px w-8 bg-white/15 sm:w-14" />
-              <HeroRotatingText />
-            </HeroEntranceItem>
-
-            <h1 className="font-display font-semibold tracking-tight">
-              <HeroEntranceGroup delay={0.1}>
-                <HeroEntranceChild>
-                  <span className={`${headlineClass} text-foreground`}>
-                    Building
-                  </span>
-                </HeroEntranceChild>
-                <HeroEntranceChild>
-                  <span
-                    className={`${headlineClass} hero-shimmer-text`}
-                  >
-                    Intelligent
-                  </span>
-                </HeroEntranceChild>
-                <HeroEntranceChild>
-                  <span className={`${headlineClass} text-foreground`}>
-                    Digital Systems
-                  </span>
-                </HeroEntranceChild>
-              </HeroEntranceGroup>
-            </h1>
-
-            <HeroEntranceItem
-              as="p"
-              className="mt-6 max-w-xl text-base leading-relaxed text-muted sm:mt-8 md:text-lg"
-              delay={0.4}
-            >
-              {SITE.description}
-            </HeroEntranceItem>
-
-            <HeroEntranceItem
-              className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4"
-              delay={0.5}
-            >
-              <Link
-                href="#projects"
-                className="radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground px-6 py-3.5 text-sm font-medium text-background transition-colors duration-200 hover:bg-zinc-200 sm:px-7"
-              >
-                View Projects
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-              </Link>
-              <Link
-                href="#contact"
-                className="radius-control inline-flex cursor-pointer items-center justify-center border border-white/15 px-6 py-3.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/5 sm:px-7"
-              >
-                Start a project
-              </Link>
-            </HeroEntranceItem>
-
-            <HeroEntranceItem
-              className="mt-10 flex flex-col gap-4 border-t border-white/10 pt-8 sm:mt-14 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-8"
-              delay={0.6}
-            >
-              <div className="flex items-center gap-2.5">
-                <span className="relative flex h-2 w-2">
-                  {!prefersReducedMotion && (
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/40 opacity-75" />
-                  )}
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400/90" />
-                </span>
-                <span className="text-sm text-zinc-400">
-                  {HERO_AVAILABILITY}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-4 font-mono text-xs text-zinc-500 sm:gap-6">
-                {HERO_STATS.map((stat) => (
-                  <span key={stat.label}>
-                    <span className="text-foreground">{stat.emphasis}</span>{" "}
-                    {stat.label}
-                  </span>
-                ))}
-              </div>
-            </HeroEntranceItem>
-          </div>
-
-          <div className="min-w-0 lg:col-span-7 lg:pl-0 xl:col-span-7">
-            <motion.div
-              className={
-                ENABLE_HERO_BRAIN
-                  ? "w-full min-w-0 overflow-hidden lg:flex lg:min-h-[720px] lg:items-center xl:min-h-[800px]"
-                  : "w-full min-w-0 lg:pt-2"
-              }
-              style={
-                ENABLE_HERO_BRAIN && useScrollEffects
-                  ? { y: visualY }
-                  : undefined
-              }
-            >
-              {ENABLE_HERO_BRAIN ? <HeroVisual /> : <HeroHighlights />}
-            </motion.div>
-          </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex"
-        style={useScrollEffects ? { opacity: contentOpacity } : undefined}
-        {...entrance(0.75)}
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 lg:flex"
+        initial={reduced ? false : { opacity: 0 }}
+        animate={ready ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ delay: 0.7, duration: 0.5, ease: easeOut }}
       >
         <motion.div
-          animate={ready && !prefersReducedMotion ? { y: [0, 5, 0] } : undefined}
+          animate={ready && !reduced ? { y: [0, 5, 0] } : undefined}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
         >
-          <ArrowDown className="h-4 w-4 text-zinc-500" />
+          <ArrowDown className="h-4 w-4 text-zinc-600" aria-hidden />
         </motion.div>
         <span className="text-[10px] uppercase tracking-[0.35em] text-zinc-600">
           Scroll

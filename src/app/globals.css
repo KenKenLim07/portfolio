@@ -87,6 +87,37 @@ body {
   border-radius: var(--radius-chip);
 }
 
+/* Tajmirul-inspired hero typography */
+.hero-mega {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9vw, 6.5rem);
+  font-weight: 600;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 1023px) {
+  .hero-mega {
+    font-size: clamp(2.125rem, 10vw, 2.75rem);
+    line-height: 0.94;
+  }
+}
+
+.hero-mega-muted {
+  color: rgba(161, 161, 170, 0.85);
+}
+
+.section-mega {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
 .text-gradient {
   background: linear-gradient(
     135deg,

@@ -7,6 +7,8 @@ type SectionHeadingProps = {
   description?: string;
   align?: "left" | "center";
   className?: string;
+  /** Tajmirul-style uppercase mega title */
+  variant?: "default" | "mega";
 };
 
 export function SectionHeading({
@@ -15,22 +17,31 @@ export function SectionHeading({
   description,
   align = "left",
   className,
+  variant = "mega",
 }: SectionHeadingProps) {
   return (
     <AnimatedSection
       className={cn(
-        "mb-16 md:mb-20",
-        align === "center" && "text-center mx-auto max-w-3xl",
+        "mb-14 md:mb-20",
+        align === "center" && "mx-auto max-w-3xl text-center",
         className,
       )}
     >
+      {label && (
+        <AnimatedItem>
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-zinc-500">
+            {label}
+          </p>
+        </AnimatedItem>
+      )}
       <AnimatedItem>
-        <p className="mb-4 text-sm font-medium uppercase tracking-[0.2em] text-muted">
-          {label}
-        </p>
-      </AnimatedItem>
-      <AnimatedItem>
-        <h2 className="font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+        <h2
+          className={cn(
+            variant === "mega"
+              ? "section-mega text-foreground"
+              : "font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl",
+          )}
+        >
           {title}
         </h2>
       </AnimatedItem>
@@ -38,7 +49,7 @@ export function SectionHeading({
         <AnimatedItem>
           <p
             className={cn(
-              "mt-5 max-w-2xl text-lg leading-relaxed text-muted",
+              "mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg",
               align === "center" && "mx-auto",
             )}
           >

@@ -60,9 +60,9 @@ export function ProjectsSection() {
   return (
     <Section id="projects" className="border-t border-white/5">
       <SectionHeading
-        label="Featured Work"
-        title="Product showcases"
-        description="Selected projects spanning AI platforms, cinematic brand experiences, and high-conversion commerce — built with engineering depth and intentional design."
+        label=""
+        title="Selected Projects"
+        description="AI platforms, production web apps, and commerce tooling — shipped and maintained."
       />
 
       <div className="mb-8 flex flex-wrap gap-2 sm:mb-10">

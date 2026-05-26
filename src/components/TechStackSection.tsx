@@ -16,9 +16,9 @@ export function TechStackSection() {
   return (
     <Section id="tech-stack" className="border-t border-white/5">
       <SectionHeading
-        label="Tech Stack"
-        title="Modern tooling, production-ready"
-        description="A curated stack for premium interfaces, scalable backends, and intelligent data systems."
+        label=""
+        title="My Stack"
+        description="Tools I use to build fast interfaces, reliable backends, and intelligent data products."
       />
 
       <AnimatedStagger className="grid gap-6 md:grid-cols-3">
@@ -28,8 +28,8 @@ export function TechStackSection() {
               <div
                 className={`mb-6 h-1 w-12 rounded-full bg-gradient-to-r ${group.accent}`}
               />
-              <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
-                {group.label}
+              <h3 className="mb-5 font-mono text-xs font-medium lowercase tracking-[0.15em] text-zinc-400">
+                {group.key}
               </h3>
               <div className="flex flex-wrap gap-2">
                 {TECH_STACK[group.key].map((tech) => (

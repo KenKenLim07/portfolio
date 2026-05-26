@@ -39,17 +39,17 @@ export function Navbar() {
       >
         <Link
           href="#home"
-          className="font-display text-lg font-semibold tracking-tight text-foreground transition-colors duration-200 hover:text-zinc-300 cursor-pointer"
+          className="cursor-pointer font-mono text-xs font-medium uppercase tracking-[0.2em] text-foreground transition-colors duration-200 hover:text-zinc-300"
         >
-          {SITE.name}
+          {SITE.name.split(" ")[0]}
         </Link>
 
-        <ul className="hidden items-center gap-1 lg:flex">
+        <ul className="hidden items-center gap-6 lg:flex">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <Link
                 href={link.href}
-                className="radius-chip cursor-pointer px-4 py-2 text-sm text-muted transition-colors duration-200 hover:bg-white/5 hover:text-foreground"
+                className="cursor-pointer text-xs font-medium uppercase tracking-[0.18em] text-muted transition-colors duration-200 hover:text-foreground"
               >
                 {link.label}
               </Link>
@@ -59,7 +59,7 @@ export function Navbar() {
 
         <Link
           href="#contact"
-          className="radius-control hidden cursor-pointer border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10 lg:inline-flex"
+          className="radius-control hidden cursor-pointer border border-white/15 bg-white/5 px-5 py-2.5 text-xs font-medium uppercase tracking-[0.15em] text-foreground transition-colors duration-200 hover:border-white/25 hover:bg-white/10 lg:inline-flex"
         >
           Get in touch
         </Link>

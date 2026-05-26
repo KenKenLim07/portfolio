@@ -7,11 +7,20 @@ import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 export function AboutSection() {
   return (
     <Section id="about" className="border-t border-white/5">
-      <SectionHeading
-        label="About"
-        title={ABOUT.title}
-        description={ABOUT.lead}
-      />
+      <SectionHeading label="" title="About Me" description={ABOUT.lead} />
+
+      <AnimatedSection className="mb-14 md:mb-20">
+        <AnimatedItem>
+          <blockquote className="max-w-4xl font-display text-xl leading-snug tracking-tight text-foreground md:text-2xl lg:text-3xl">
+            {ABOUT.belief}
+          </blockquote>
+        </AnimatedItem>
+        <AnimatedItem>
+          <p className="mt-8 font-mono text-sm uppercase tracking-[0.2em] text-indigo-300/90">
+            {ABOUT.title}
+          </p>
+        </AnimatedItem>
+      </AnimatedSection>
 
       <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
         <AnimatedSection>

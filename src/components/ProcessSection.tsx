@@ -9,8 +9,8 @@ export function ProcessSection() {
   return (
     <Section id="process" className="border-t border-white/5 bg-surface/30">
       <SectionHeading
-        label="Process"
-        title="A focused workflow from idea to launch"
+        label=""
+        title="How I Work"
         description="A minimal, repeatable process that keeps strategy, design, and engineering aligned."
         align="center"
       />

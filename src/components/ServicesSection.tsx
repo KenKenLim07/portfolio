@@ -30,9 +30,9 @@ export function ServicesSection() {
   return (
     <Section id="services" className="border-t border-white/5 bg-surface/30">
       <SectionHeading
-        label="Services"
-        title="What I build for clients"
-        description="From premium marketing sites to intelligent dashboards — focused offerings designed for modern brands and growing businesses."
+        label=""
+        title="Services"
+        description="From premium marketing sites to intelligent dashboards — focused offerings for modern brands and growing businesses."
       />
 
       <AnimatedStagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
