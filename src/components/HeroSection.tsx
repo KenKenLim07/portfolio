@@ -180,7 +180,7 @@ export function HeroSection() {
     return (
       <section
         id="home"
-        className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
+        className="relative min-h-svh overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
       >
         <div className="pointer-events-none absolute inset-0 grid-pattern opacity-10" />
         <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-6 md:px-8 lg:px-12">
@@ -194,14 +194,14 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
+        "relative overflow-x-hidden lg:h-svh lg:max-h-svh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
       <div className="hero-section-glow pointer-events-none absolute inset-0" />
 
       <AnimatedSection
-        className="relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden"
+        className="relative mx-auto flex min-h-svh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden"
         start="top 88%"
         delay={0.05}
       >

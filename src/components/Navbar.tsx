@@ -3,32 +3,24 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useReducedMotion } from "framer-motion";
-import { Menu, X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
+import { useScrollSpin } from "@/hooks/useScrollSpin";
+import { MobileMenuButton } from "@/components/MobileMenuButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const linkClass =
   "cursor-pointer font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors duration-200 hover:text-foreground";
 
-const SCROLL_THRESHOLD = 32;
-
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+  const { scrolled, rotation: burgerRotation } = useScrollSpin(mobileOpen);
 
   const { overlayRef, panelRef } = useGsapMobileMenu({
     open: mobileOpen,
   });
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -90,11 +82,7 @@ export function Navbar() {
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
         onClick={toggleMenu}
       >
-        {mobileOpen ? (
-          <X className="h-6 w-6" strokeWidth={1.75} aria-hidden />
-        ) : (
-          <Menu className="h-6 w-6" strokeWidth={1.75} aria-hidden />
-        )}
+        <MobileMenuButton open={mobileOpen} scrollRotation={burgerRotation} />
       </button>
 
       <div
