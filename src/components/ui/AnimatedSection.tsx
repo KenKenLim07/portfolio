@@ -23,6 +23,8 @@ type AnimatedSectionProps = {
   start?: string;
   /** ScrollTrigger end position (controls when exit happens) */
   end?: string;
+  /** Exit opacity target for leave/leaveBack. */
+  exitOpacity?: number;
 };
 
 /**
@@ -36,6 +38,7 @@ export function AnimatedSection({
   variant = "default",
   start,
   end,
+  exitOpacity,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -43,6 +46,7 @@ export function AnimatedSection({
     start ?? (variant === "tail" ? tailRevealScroll.start : revealDefaults.start);
   const resolvedEnd =
     end ?? (variant === "tail" ? tailRevealScroll.end : undefined);
+  const resolvedExitOpacity = exitOpacity ?? (variant === "tail" ? 0.2 : 0);
 
   useEffect(() => {
     initGsap();
@@ -56,10 +60,11 @@ export function AnimatedSection({
       delay,
       start: resolvedStart,
       end: resolvedEnd,
+      exitOpacity: resolvedExitOpacity,
     });
 
     return () => trigger.kill();
-  }, [delay, resolvedStart, resolvedEnd, prefersReducedMotion]);
+  }, [delay, resolvedStart, resolvedEnd, resolvedExitOpacity, prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
@@ -94,6 +99,7 @@ export function AnimatedStagger({
   variant,
   start,
   end,
+  exitOpacity,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -101,6 +107,7 @@ export function AnimatedStagger({
   variant?: "default" | "tail";
   start?: string;
   end?: string;
+  exitOpacity?: number;
 }) {
   return (
     <AnimatedSection
@@ -109,6 +116,7 @@ export function AnimatedStagger({
       variant={variant}
       start={start}
       end={end}
+      exitOpacity={exitOpacity}
     >
       {children}
     </AnimatedSection>

@@ -26,8 +26,10 @@ export const revealDefaults = {
  * - Same band gives enter-back / leave-back more room on scroll up
  */
 export const tailRevealScroll = {
-  start: "top bottom-=12%",
-  end: "bottom 38%",
+  // Slightly narrower than before so re-entry on scroll-up happens sooner.
+  start: "top bottom-=4%",
+  // Keep tail visible longer before exit to avoid sudden empty gaps.
+  end: "bottom 30%",
 } as const;
 
 export type DirectionalRevealOptions = {
@@ -43,6 +45,11 @@ export type DirectionalRevealOptions = {
    * which makes exit animations easier to time (e.g. only fade the “tail”).
    */
   end?: string;
+  /**
+   * Exit opacity target used by onLeave/onLeaveBack.
+   * Useful for "tail" blocks where full fade-to-zero can feel too abrupt.
+   */
+  exitOpacity?: number;
 };
 
 /**
@@ -63,6 +70,7 @@ export function createDirectionalScrollReveal(
   const ease = options.ease ?? revealDefaults.ease;
   const start = options.start ?? revealDefaults.start;
   const end = options.end;
+  const exitOpacity = options.exitOpacity ?? 0;
   const delay = options.delay ?? 0;
   const exitDuration = duration * 0.65;
 
@@ -93,16 +101,27 @@ export function createDirectionalScrollReveal(
     },
     onLeave: () => {
       gsap.killTweensOf(targets);
-      gsap.to(targets, { opacity: 0, y: -y, ...exit });
+      gsap.to(targets, { opacity: exitOpacity, y: -y, ...exit });
     },
     onEnterBack: () => {
       gsap.killTweensOf(targets);
-      gsap.set(targets, { opacity: 0, y: -y });
       gsap.to(targets, { opacity: 1, y: 0, ...enter });
     },
     onLeaveBack: () => {
       gsap.killTweensOf(targets);
-      gsap.to(targets, { opacity: 0, y, ...exit });
+      // Near the top of the page, avoid a second "leave back" fade that can feel
+      // like a duplicate reveal/flicker on the first section.
+      if (typeof window !== "undefined" && window.scrollY <= 4) {
+        gsap.to(targets, {
+          opacity: 1,
+          y: 0,
+          duration: Math.min(0.22, duration * 0.35),
+          ease,
+          overwrite: "auto",
+        });
+        return;
+      }
+      gsap.to(targets, { opacity: exitOpacity, y, ...exit });
     },
   });
 }
