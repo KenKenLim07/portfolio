@@ -35,7 +35,7 @@ export function ServicesSection() {
         description="From premium marketing sites to intelligent dashboards — focused offerings for modern brands and growing businesses."
       />
 
-      <AnimatedStagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" end="bottom 15%">
+      <AnimatedStagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3" variant="tail">
         {SERVICES.map((service) => {
           const Icon = iconMap[service.icon];
           return (

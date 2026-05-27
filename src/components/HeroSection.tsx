@@ -13,6 +13,7 @@ import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
 import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
+import { tailRevealScroll } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 function HeroCtas({
@@ -192,12 +193,7 @@ function HeroTail({
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <AnimatedSection
-      className={cn("relative", className)}
-      start="top 88%"
-      end="bottom 15%"
-      delay={0.18}
-    >
+    <AnimatedSection className={cn("relative", className)} variant="tail" delay={0.18}>
       {children}
       {!prefersReducedMotion && showScrollCue && (
         <HeroScrollCue
@@ -250,7 +246,7 @@ export function HeroSection() {
             HERO_LAYOUT_DEBUG &&
               "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
           )}
-          start="top 88%"
+          start={tailRevealScroll.start}
           delay={0.05}
         >
           <HeroCopy />
@@ -280,7 +276,7 @@ export function HeroSection() {
               HERO_LAYOUT_DEBUG &&
                 "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
             )}
-            start="top 88%"
+            start={tailRevealScroll.start}
             delay={0.05}
           >
             <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
@@ -304,8 +300,7 @@ export function HeroSection() {
         {!prefersReducedMotion && (
           <AnimatedSection
             className="pointer-events-none absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 flex justify-center"
-            start="top 88%"
-            end="bottom 15%"
+            variant="tail"
             delay={0.28}
           >
             <HeroScrollCue />

@@ -19,6 +19,17 @@ export const revealDefaults = {
   start: "top 85%",
 };
 
+/**
+ * Wider scroll band for tail blocks (hero CTAs/metrics, section footers).
+ * - Enter sooner on scroll down (`start` below viewport edge)
+ * - Exit sooner on scroll down (`end` higher in the viewport)
+ * - Same band gives enter-back / leave-back more room on scroll up
+ */
+export const tailRevealScroll = {
+  start: "top bottom-=12%",
+  end: "bottom 38%",
+} as const;
+
 export type DirectionalRevealOptions = {
   delay?: number;
   y?: number;

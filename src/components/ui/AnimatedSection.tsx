@@ -2,14 +2,24 @@
 
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "framer-motion";
-import { createDirectionalScrollReveal, initGsap } from "@/lib/gsap";
+import {
+  createDirectionalScrollReveal,
+  initGsap,
+  revealDefaults,
+  tailRevealScroll,
+} from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
 type AnimatedSectionProps = {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  /** ScrollTrigger start position (default: top 85%) */
+  /**
+   * `tail` uses a wider scroll band so enter/exit aren’t pinned to the viewport edge.
+   * Override with explicit `start` / `end` when needed.
+   */
+  variant?: "default" | "tail";
+  /** ScrollTrigger start position (default: top 85%, or tail preset) */
   start?: string;
   /** ScrollTrigger end position (controls when exit happens) */
   end?: string;
@@ -23,11 +33,16 @@ export function AnimatedSection({
   children,
   className,
   delay = 0,
+  variant = "default",
   start,
   end,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
+  const resolvedStart =
+    start ?? (variant === "tail" ? tailRevealScroll.start : revealDefaults.start);
+  const resolvedEnd =
+    end ?? (variant === "tail" ? tailRevealScroll.end : undefined);
 
   useEffect(() => {
     initGsap();
@@ -39,12 +54,12 @@ export function AnimatedSection({
 
     const trigger = createDirectionalScrollReveal(root, items, {
       delay,
-      start,
-      end,
+      start: resolvedStart,
+      end: resolvedEnd,
     });
 
     return () => trigger.kill();
-  }, [delay, start, end, prefersReducedMotion]);
+  }, [delay, resolvedStart, resolvedEnd, prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
@@ -76,17 +91,25 @@ export function AnimatedStagger({
   children,
   className,
   delay = 0,
+  variant,
   start,
   end,
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
+  variant?: "default" | "tail";
   start?: string;
   end?: string;
 }) {
   return (
-    <AnimatedSection className={className} delay={delay} start={start} end={end}>
+    <AnimatedSection
+      className={className}
+      delay={delay}
+      variant={variant}
+      start={start}
+      end={end}
+    >
       {children}
     </AnimatedSection>
   );
