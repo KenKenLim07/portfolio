@@ -3,7 +3,6 @@ import { Archivo, Space_Grotesk } from "next/font/google";
 import Script from "next/script";
 import { GsapProvider } from "@/components/GsapProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { DoubleTapBlocker } from "@/components/DoubleTapBlocker";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
 
@@ -81,7 +80,6 @@ export default function RootLayout({
           {themeInitScript}
         </Script>
         <ThemeProvider>
-          <DoubleTapBlocker />
           <GsapProvider>{children}</GsapProvider>
         </ThemeProvider>
       </body>
