@@ -108,6 +108,13 @@ body {
   font-family: var(--font-space-grotesk), system-ui, sans-serif;
 }
 
+/* Reduce double-tap ghost activation on mobile without disabling pinch zoom. */
+a,
+button,
+[role="button"] {
+  touch-action: manipulation;
+}
+
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-fg);

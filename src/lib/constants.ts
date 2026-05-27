@@ -111,12 +111,12 @@ export const HERO_STATS = HERO_METRICS.map((m) => ({
 }));
 
 export const NAV_LINKS = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Projects", href: "#projects" },
-  { label: "Services", href: "#services" },
-  { label: "Tech Stack", href: "#tech-stack" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
+  { label: "Projects", href: "/#projects" },
+  { label: "Services", href: "/#services" },
+  { label: "Tech Stack", href: "/#tech-stack" },
+  { label: "Contact", href: "/#contact" },
 ] as const;
 
 export const SOCIAL_LINKS = {
