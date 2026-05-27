@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
+import Script from "next/script";
 import { GsapProvider } from "@/components/GsapProvider";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
@@ -74,10 +75,10 @@ export default function RootLayout({
       className={`${archivo.variable} ${spaceGrotesk.variable} h-full scroll-smooth`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full overflow-x-hidden bg-background font-sans text-foreground antialiased transition-colors duration-300">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
         <ThemeProvider>
           <GsapProvider>{children}</GsapProvider>
         </ThemeProvider>

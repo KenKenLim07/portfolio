@@ -20,14 +20,13 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         className ?? "text-muted hover:text-foreground",
       )}
       aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      suppressHydrationWarning
     >
-      <span suppressHydrationWarning>
-        {theme === "dark" ? (
-          <Sun className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-        ) : (
-          <Moon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
-        )}
-      </span>
+      {theme === "dark" ? (
+        <Sun className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+      ) : (
+        <Moon className="h-5 w-5" strokeWidth={1.75} aria-hidden />
+      )}
     </button>
   );
 }

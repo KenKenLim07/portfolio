@@ -12,19 +12,27 @@ type ScrollBurgerIconProps = {
   resetDelayMs?: number;
 };
 
-const BURGER_GAP = 4;
-const CHEVRON_ANGLE = 56;
-const CHEVRON_X = 2.5;
-const BURGER_WIDTH = 18;
-const BURGER_X = 3;
+const APEX = { x: 12, yDown: 16, yUp: 8 };
+const BURGER = {
+  top: { x1: 3, y1: 9, x2: 21, y2: 9 },
+  bottom: { x1: 3, y1: 15, x2: 21, y2: 15 },
+};
+const CHEVRON_DOWN = {
+  top: { x1: 3, y1: 10, x2: APEX.x, y2: APEX.yDown },
+  bottom: { x1: 21, y1: 10, x2: APEX.x, y2: APEX.yDown },
+};
+const CHEVRON_UP = {
+  top: { x1: 3, y1: 14, x2: APEX.x, y2: APEX.yUp },
+  bottom: { x1: 21, y1: 14, x2: APEX.x, y2: APEX.yUp },
+};
 
 export function ScrollBurgerIcon({
   className,
   disabled = false,
   resetDelayMs = 300,
 }: ScrollBurgerIconProps) {
-  const topRef = useRef<SVGRectElement>(null);
-  const bottomRef = useRef<SVGRectElement>(null);
+  const topRef = useRef<SVGLineElement>(null);
+  const bottomRef = useRef<SVGLineElement>(null);
   const lastYRef = useRef(0);
   const resetTimerRef = useRef<number | null>(null);
 
@@ -34,42 +42,40 @@ export function ScrollBurgerIcon({
     const bottom = bottomRef.current;
     if (!top || !bottom) return;
 
-    // To make a real V / ^ (not an X), hinge both lines toward the center:
-    // top pivots from the right end, bottom pivots from the left end.
-    gsap.set(top, { transformOrigin: "100% 50%" });
-    gsap.set(bottom, { transformOrigin: "0% 50%" });
-    gsap.set(top, { y: -BURGER_GAP, rotate: 0, x: 0 });
-    gsap.set(bottom, { y: BURGER_GAP, rotate: 0, x: 0 });
+    const setLine = (
+      el: SVGLineElement,
+      coords: { x1: number; y1: number; x2: number; y2: number },
+    ) => {
+      el.setAttribute("x1", String(coords.x1));
+      el.setAttribute("y1", String(coords.y1));
+      el.setAttribute("x2", String(coords.x2));
+      el.setAttribute("y2", String(coords.y2));
+    };
 
+    setLine(top, BURGER.top);
+    setLine(bottom, BURGER.bottom);
     lastYRef.current = window.scrollY;
 
-    const toBurger = () => {
-      gsap.to([top, bottom], {
-        rotate: 0,
-        duration: 0.3,
+    const tweenLine = (
+      el: SVGLineElement,
+      coords: { x1: number; y1: number; x2: number; y2: number },
+      duration: number,
+    ) =>
+      gsap.to(el, {
+        attr: coords,
+        duration,
         ease: "power3.out",
       });
-      gsap.to(top, { y: -BURGER_GAP, x: 0, duration: 0.3, ease: "power3.out" });
-      gsap.to(bottom, { y: BURGER_GAP, x: 0, duration: 0.3, ease: "power3.out" });
+
+    const toBurger = () => {
+      tweenLine(top, BURGER.top, 0.3);
+      tweenLine(bottom, BURGER.bottom, 0.3);
     };
 
     const toChevron = (direction: "up" | "down") => {
-      // “V” for down, “^” for up.
-      const sign = direction === "down" ? 1 : -1;
-      gsap.to(top, {
-        rotate: -sign * CHEVRON_ANGLE,
-        y: 0,
-        x: CHEVRON_X,
-        duration: 0.22,
-        ease: "power3.out",
-      });
-      gsap.to(bottom, {
-        rotate: sign * CHEVRON_ANGLE,
-        y: 0,
-        x: -CHEVRON_X,
-        duration: 0.22,
-        ease: "power3.out",
-      });
+      const shape = direction === "down" ? CHEVRON_DOWN : CHEVRON_UP;
+      tweenLine(top, shape.top, 0.22);
+      tweenLine(bottom, shape.bottom, 0.22);
     };
 
     const clearReset = () => {
@@ -79,9 +85,7 @@ export function ScrollBurgerIcon({
 
     const scheduleReset = () => {
       clearReset();
-      resetTimerRef.current = window.setTimeout(() => {
-        toBurger();
-      }, resetDelayMs);
+      resetTimerRef.current = window.setTimeout(toBurger, resetDelayMs);
     };
 
     const onScroll = () => {
@@ -111,26 +115,19 @@ export function ScrollBurgerIcon({
       viewBox="0 0 24 24"
       className={cn("h-6 w-6", className)}
       aria-hidden
-      fill="currentColor"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
     >
-      {/* Wider two-line burger (morphs via transforms) */}
-      <rect
-        ref={topRef}
-        x={BURGER_X}
-        y={12}
-        width={BURGER_WIDTH}
-        height={2}
-        rx={1}
-      />
-      <rect
+      <line ref={topRef} x1={BURGER.top.x1} y1={BURGER.top.y1} x2={BURGER.top.x2} y2={BURGER.top.y2} />
+      <line
         ref={bottomRef}
-        x={BURGER_X}
-        y={12}
-        width={BURGER_WIDTH}
-        height={2}
-        rx={1}
+        x1={BURGER.bottom.x1}
+        y1={BURGER.bottom.y1}
+        x2={BURGER.bottom.x2}
+        y2={BURGER.bottom.y2}
       />
     </svg>
   );
 }
-

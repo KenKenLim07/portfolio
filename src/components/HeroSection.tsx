@@ -154,11 +154,16 @@ function HeroCopy({
   );
 }
 
-function HeroScrollCue() {
+function HeroScrollCue({ className }: { className?: string }) {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <AnimatedItem className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-1.5">
+    <AnimatedItem
+      className={cn(
+        "pointer-events-none flex flex-col items-center gap-1.5",
+        className,
+      )}
+    >
       <motion.div
         animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -170,6 +175,39 @@ function HeroScrollCue() {
         aria-hidden
       />
     </AnimatedItem>
+  );
+}
+
+function HeroTail({
+  children,
+  className,
+  scrollCueClassName,
+  showScrollCue = true,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  scrollCueClassName?: string;
+  showScrollCue?: boolean;
+}) {
+  const prefersReducedMotion = useReducedMotion();
+
+  return (
+    <AnimatedSection
+      className={cn("relative", className)}
+      start="top 88%"
+      end="bottom 15%"
+      delay={0.18}
+    >
+      {children}
+      {!prefersReducedMotion && showScrollCue && (
+        <HeroScrollCue
+          className={cn(
+            "absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2",
+            scrollCueClassName,
+          )}
+        />
+      )}
+    </AnimatedSection>
   );
 }
 
@@ -200,67 +238,80 @@ export function HeroSection() {
     >
       <div className="hero-section-glow pointer-events-none absolute inset-0" />
 
-      <AnimatedSection
-        className="relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden"
-        start="top 88%"
-        end="bottom 15%"
-        delay={0.05}
+      <div
+        className={cn(
+          "relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
+          HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
+        )}
       >
-        <div
+        <AnimatedSection
           className={cn(
             "shrink-0",
             HERO_LAYOUT_DEBUG &&
               "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
           )}
+          start="top 88%"
+          delay={0.05}
         >
           <HeroCopy />
-        </div>
-        <div
+        </AnimatedSection>
+
+        <HeroTail
           className={cn(
-            "mt-auto flex w-full flex-col gap-6 pt-8 sm:gap-7 sm:pt-9",
+            "mt-auto flex w-full flex-col gap-6 pt-8 pb-12 sm:gap-7 sm:pt-9 sm:pb-14",
             HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
           )}
         >
           <HeroCtas variant="stack" large />
           <HeroMetrics variant="row" />
-        </div>
-        {!prefersReducedMotion && <HeroScrollCue />}
-      </AnimatedSection>
+        </HeroTail>
+      </div>
 
-      <AnimatedSection
+      <div
         className={cn(
           "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
-        start="top 88%"
-        end="bottom 15%"
-        delay={0.05}
       >
         <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
-          <div
+          <AnimatedSection
             className={cn(
               "col-span-7 xl:col-span-7",
               HERO_LAYOUT_DEBUG &&
                 "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
             )}
+            start="top 88%"
+            delay={0.05}
           >
             <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
-          </div>
-          <div
+          </AnimatedSection>
+
+          <HeroTail
             className={cn(
               "col-span-5 xl:col-span-5",
               HERO_LAYOUT_DEBUG &&
                 "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
             )}
+            showScrollCue={false}
           >
             <div className="flex w-full flex-col gap-5">
               <HeroCtas variant="stack" className="w-full" />
               <HeroMetrics variant="column" className="w-full" />
             </div>
-          </div>
+          </HeroTail>
         </div>
-        {!prefersReducedMotion && <HeroScrollCue />}
-      </AnimatedSection>
+
+        {!prefersReducedMotion && (
+          <AnimatedSection
+            className="pointer-events-none absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 flex justify-center"
+            start="top 88%"
+            end="bottom 15%"
+            delay={0.28}
+          >
+            <HeroScrollCue />
+          </AnimatedSection>
+        )}
+      </div>
     </section>
   );
 }
