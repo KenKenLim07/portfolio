@@ -203,6 +203,7 @@ export function HeroSection() {
       <AnimatedSection
         className="relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden"
         start="top 88%"
+        end="bottom 15%"
         delay={0.05}
       >
         <div
@@ -232,6 +233,7 @@ export function HeroSection() {
           HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
         )}
         start="top 88%"
+        end="bottom 15%"
         delay={0.05}
       >
         <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
@@ -248,7 +250,7 @@ export function HeroSection() {
             className={cn(
               "col-span-5 xl:col-span-5",
               HERO_LAYOUT_DEBUG &&
-                "rounded-sm border-2 border-dashed border-violet-400 bg-violet-400/5 p-1",
+                "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
             )}
           >
             <div className="flex w-full flex-col gap-5">

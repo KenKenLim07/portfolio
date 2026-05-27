@@ -30,7 +30,8 @@ export function AboutSection() {
           ))}
         </AnimatedSection>
 
-        <AnimatedSection>
+        {/* Tail block: fade out only when the tail is about to leave viewport */}
+        <AnimatedSection end="bottom 15%">
           <AnimatedItem>
             <div className="glass radius-panel p-6 md:p-8">
               <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">

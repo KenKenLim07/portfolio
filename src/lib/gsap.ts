@@ -26,6 +26,12 @@ export type DirectionalRevealOptions = {
   stagger?: number;
   ease?: string;
   start?: string;
+  /**
+   * Optional ScrollTrigger end position.
+   * When provided, `onLeave`/`onLeaveBack` fire when the trigger passes `end`,
+   * which makes exit animations easier to time (e.g. only fade the “tail”).
+   */
+  end?: string;
 };
 
 /**
@@ -45,6 +51,7 @@ export function createDirectionalScrollReveal(
   const stagger = options.stagger ?? revealDefaults.stagger;
   const ease = options.ease ?? revealDefaults.ease;
   const start = options.start ?? revealDefaults.start;
+  const end = options.end;
   const delay = options.delay ?? 0;
   const exitDuration = duration * 0.65;
 
@@ -67,6 +74,7 @@ export function createDirectionalScrollReveal(
   return ScrollTrigger.create({
     trigger,
     start,
+    end,
     onEnter: () => {
       gsap.killTweensOf(targets);
       gsap.set(targets, { opacity: 0, y });

@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ScrollBurgerIcon } from "@/components/ui/ScrollBurgerIcon";
 import { cn } from "@/lib/utils";
 
 const linkClass =
@@ -91,7 +92,7 @@ export function Navbar() {
         {mobileOpen ? (
           <X className="h-6 w-6" strokeWidth={1.75} aria-hidden />
         ) : (
-          <Menu className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+          <ScrollBurgerIcon className="h-6 w-6" resetDelayMs={300} disabled={mobileOpen} />
         )}
       </button>
 

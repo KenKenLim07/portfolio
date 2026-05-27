@@ -11,6 +11,8 @@ type AnimatedSectionProps = {
   delay?: number;
   /** ScrollTrigger start position (default: top 85%) */
   start?: string;
+  /** ScrollTrigger end position (controls when exit happens) */
+  end?: string;
 };
 
 /**
@@ -22,6 +24,7 @@ export function AnimatedSection({
   className,
   delay = 0,
   start,
+  end,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
@@ -34,10 +37,14 @@ export function AnimatedSection({
     const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
     if (!items.length) return;
 
-    const trigger = createDirectionalScrollReveal(root, items, { delay, start });
+    const trigger = createDirectionalScrollReveal(root, items, {
+      delay,
+      start,
+      end,
+    });
 
     return () => trigger.kill();
-  }, [delay, start, prefersReducedMotion]);
+  }, [delay, start, end, prefersReducedMotion]);
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
@@ -69,13 +76,17 @@ export function AnimatedStagger({
   children,
   className,
   delay = 0,
+  start,
+  end,
 }: {
   children: React.ReactNode;
   className?: string;
   delay?: number;
+  start?: string;
+  end?: string;
 }) {
   return (
-    <AnimatedSection className={className} delay={delay}>
+    <AnimatedSection className={className} delay={delay} start={start} end={end}>
       {children}
     </AnimatedSection>
   );

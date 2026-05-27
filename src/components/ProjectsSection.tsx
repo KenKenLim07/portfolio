@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 
@@ -71,114 +72,131 @@ export function ProjectsSection() {
           No projects yet.
         </p>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
-          <div className="space-y-8 lg:space-y-0" onMouseLeave={() => setShowPreview(false)}>
-            {projects.map((project, index) => {
-              const isActive = project.id === active?.id;
-              const stackPreview = project.stack.slice(0, 3);
-              const overflow = project.stack.length - stackPreview.length;
+        <AnimatedSection end="bottom 15%">
+          <AnimatedItem>
+            <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
+              <div
+                className="space-y-8 lg:space-y-0"
+                onMouseLeave={() => setShowPreview(false)}
+              >
+                {projects.map((project, index) => {
+                  const isActive = project.id === active?.id;
+                  const stackPreview = project.stack.slice(0, 3);
+                  const overflow = project.stack.length - stackPreview.length;
 
-              return (
-                <button
-                  key={project.id}
-                  type="button"
-                  className={cn(
-                    "group w-full cursor-pointer text-left transition-colors duration-200",
-                    "p-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                    "lg:border-b lg:border-border/60 lg:py-6 lg:first:pt-0 lg:last:border-b-0",
-                    isActive && showPreview ? "lg:text-foreground" : "lg:text-muted",
-                  )}
-                  onClick={() => openProject(project.id)}
-                  onMouseEnter={() => {
-                    setActiveId(project.id);
-                    setShowPreview(true);
-                  }}
-                  onFocus={() => {
-                    setActiveId(project.id);
-                    setShowPreview(true);
-                  }}
-                  onBlur={() => setShowPreview(false)}
-                  aria-label={`Open ${project.title} details`}
-                >
-                  {/* Mobile: full-width within section padding, then title + stack */}
-                  <div className="relative aspect-[2/1] overflow-hidden rounded-panel-lg bg-zinc-950 lg:hidden">
-                    <div
-                      className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
-                      aria-hidden
-                    />
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      className="object-cover"
-                      style={{ objectPosition: project.imagePosition ?? "center top" }}
-                      sizes="(max-width: 1024px) 100vw, 720px"
-                    />
-                    <div
-                      className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
-                      aria-hidden
-                    />
-                  </div>
-
-                  <div className="mt-4 lg:mt-0">
-                    <ProjectTitle index={index} title={project.title} />
-
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {stackPreview.map((tech, i) => (
-                        <Badge key={`${project.id}-${tech}-${i}`} className="text-[10px]">
-                          {tech}
-                        </Badge>
-                      ))}
-                      {overflow > 0 && (
-                        <Badge className="text-[10px]">+{overflow}</Badge>
+                  return (
+                    <button
+                      key={project.id}
+                      type="button"
+                      className={cn(
+                        "group w-full cursor-pointer text-left transition-colors duration-200",
+                        "p-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                        "lg:border-b lg:border-border/60 lg:py-6 lg:first:pt-0 lg:last:border-b-0",
+                        isActive && showPreview ? "lg:text-foreground" : "lg:text-muted",
                       )}
+                      onClick={() => openProject(project.id)}
+                      onMouseEnter={() => {
+                        setActiveId(project.id);
+                        setShowPreview(true);
+                      }}
+                      onFocus={() => {
+                        setActiveId(project.id);
+                        setShowPreview(true);
+                      }}
+                      onBlur={() => setShowPreview(false)}
+                      aria-label={`Open ${project.title} details`}
+                    >
+                      {/* Mobile: full-width within section padding, then title + stack */}
+                      <div className="relative aspect-[2/1] overflow-hidden rounded-panel-lg bg-zinc-950 lg:hidden">
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
+                          aria-hidden
+                        />
+                        <Image
+                          src={project.image}
+                          alt={project.title}
+                          fill
+                          className="object-cover"
+                          style={{
+                            objectPosition: project.imagePosition ?? "center top",
+                          }}
+                          sizes="(max-width: 1024px) 100vw, 720px"
+                        />
+                        <div
+                          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
+                          aria-hidden
+                        />
+                      </div>
+
+                      <div className="mt-4 lg:mt-0">
+                        <ProjectTitle index={index} title={project.title} />
+
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                          {stackPreview.map((tech, i) => (
+                            <Badge
+                              key={`${project.id}-${tech}-${i}`}
+                              className="text-[10px]"
+                            >
+                              {tech}
+                            </Badge>
+                          ))}
+                          {overflow > 0 && (
+                            <Badge className="text-[10px]">+{overflow}</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Desktop: boxed hover preview */}
+              <div className="sticky top-28 hidden lg:block">
+                {showPreview && active && activeIndex >= 0 ? (
+                  <div className="radius-panel-lg overflow-hidden bg-surface">
+                    <div className="relative aspect-[2/1] bg-zinc-950">
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br opacity-20 ${active.gradient}`}
+                        aria-hidden
+                      />
+                      <Image
+                        src={active.image}
+                        alt={active.title}
+                        fill
+                        className="object-cover"
+                        style={{
+                          objectPosition: active.imagePosition ?? "center top",
+                        }}
+                        sizes="420px"
+                        priority
+                      />
+                      <div
+                        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
+                        aria-hidden
+                      />
+                    </div>
+
+                    <div className="p-5">
+                      <ProjectTitle index={activeIndex} title={active.title} />
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {active.stack.map((tech, i) => (
+                          <Badge
+                            key={`${active.id}-${tech}-${i}`}
+                            className="text-[10px]"
+                          >
+                            {tech}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Desktop: boxed hover preview */}
-          <div className="sticky top-28 hidden lg:block">
-            {showPreview && active && activeIndex >= 0 ? (
-              <div className="radius-panel-lg overflow-hidden bg-surface">
-                <div className="relative aspect-[2/1] bg-zinc-950">
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br opacity-20 ${active.gradient}`}
-                    aria-hidden
-                  />
-                  <Image
-                    src={active.image}
-                    alt={active.title}
-                    fill
-                    className="object-cover"
-                    style={{ objectPosition: active.imagePosition ?? "center top" }}
-                    sizes="420px"
-                    priority
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
-                    aria-hidden
-                  />
-                </div>
-
-                <div className="p-5">
-                  <ProjectTitle index={activeIndex} title={active.title} />
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {active.stack.map((tech, i) => (
-                      <Badge key={`${active.id}-${tech}-${i}`} className="text-[10px]">
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                ) : (
+                  <div className="h-[12px]" aria-hidden />
+                )}
               </div>
-            ) : (
-              <div className="h-[12px]" aria-hidden />
-            )}
-          </div>
-        </div>
+            </div>
+          </AnimatedItem>
+        </AnimatedSection>
       )}
     </Section>
   );

@@ -9,6 +9,7 @@ export type GsapRevealOptions = {
   y?: number;
   duration?: number;
   start?: string;
+  end?: string;
   /** ScrollTrigger trigger element (defaults to the animated element) */
   triggerRef?: RefObject<HTMLElement | null>;
 };
@@ -34,6 +35,7 @@ export function useGsapReveal(
       y: options.y,
       duration: options.duration,
       start: options.start,
+      end: options.end,
     });
 
     return () => trigger.kill();
@@ -44,6 +46,7 @@ export function useGsapReveal(
     options.y,
     options.duration,
     options.start,
+    options.end,
     prefersReducedMotion,
   ]);
 }

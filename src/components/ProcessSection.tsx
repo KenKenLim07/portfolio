@@ -15,7 +15,7 @@ export function ProcessSection() {
         align="center"
       />
 
-      <AnimatedStagger className="relative">
+      <AnimatedStagger className="relative" end="bottom 15%">
         <div
           className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
           aria-hidden
