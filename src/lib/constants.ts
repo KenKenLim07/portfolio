@@ -262,8 +262,6 @@ export const TECH_STACK = {
     "DistilBERT",
     "VADER NLP",
     "spaCy",
-    "Real-Time Data Pipelines",
-    "Sentiment Analysis",
   ],
 } as const;
 
