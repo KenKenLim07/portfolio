@@ -79,7 +79,7 @@ export function Navbar() {
       <button
         type="button"
         className={cn(
-          "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2 transition-colors duration-200 lg:hidden",
+          "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2.5 transition-colors duration-200 lg:hidden",
           mobileOpen
             ? "mobile-menu-chrome hover:text-[var(--menu-fg)]"
             : "text-muted hover:text-foreground",
@@ -90,9 +90,14 @@ export function Navbar() {
         onClick={toggleMenu}
       >
         {mobileOpen ? (
-          <X className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+          <X className="h-7 w-7" strokeWidth={2.2} aria-hidden />
         ) : (
-          <ScrollBurgerIcon className="h-6 w-6" resetDelayMs={300} disabled={mobileOpen} />
+          <ScrollBurgerIcon
+            className="h-7 w-7"
+            strokeWidth={2.4}
+            resetDelayMs={300}
+            disabled={mobileOpen}
+          />
         )}
       </button>
 

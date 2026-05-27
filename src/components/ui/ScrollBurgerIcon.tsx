@@ -10,6 +10,8 @@ type ScrollBurgerIconProps = {
   disabled?: boolean;
   /** Reset delay after scroll stops (ms). */
   resetDelayMs?: number;
+  /** Visual stroke width for better prominence on mobile. */
+  strokeWidth?: number;
 };
 
 const APEX = { x: 12, yDown: 16, yUp: 8 };
@@ -30,6 +32,7 @@ export function ScrollBurgerIcon({
   className,
   disabled = false,
   resetDelayMs = 300,
+  strokeWidth = 2.4,
 }: ScrollBurgerIconProps) {
   const topRef = useRef<SVGLineElement>(null);
   const bottomRef = useRef<SVGLineElement>(null);
@@ -113,11 +116,11 @@ export function ScrollBurgerIcon({
   return (
     <svg
       viewBox="0 0 24 24"
-      className={cn("h-6 w-6", className)}
+      className={cn("h-7 w-7", className)}
       aria-hidden
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
     >
       <line ref={topRef} x1={BURGER.top.x1} y1={BURGER.top.y1} x2={BURGER.top.x2} y2={BURGER.top.y2} />
