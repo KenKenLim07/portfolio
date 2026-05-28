@@ -3,7 +3,6 @@ import { HeroSideRail } from "@/components/HeroSideRail";
 import { HeroSection } from "@/components/HeroSection";
 import { AboutSection } from "@/components/AboutSection";
 import { ProjectsSection } from "@/components/ProjectsSection";
-import { ServicesSection } from "@/components/ServicesSection";
 import { TechStackSection } from "@/components/TechStackSection";
 import { ProcessSection } from "@/components/ProcessSection";
 import { ContactSection } from "@/components/ContactSection";
@@ -18,7 +17,6 @@ export default function Home() {
         <HeroSection />
         <AboutSection />
         <ProjectsSection />
-        <ServicesSection />
         <TechStackSection />
         <ProcessSection />
         <ContactSection />

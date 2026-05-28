@@ -114,7 +114,6 @@ export const NAV_LINKS = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Projects", href: "#projects" },
-  { label: "Services", href: "#services" },
   { label: "Tech Stack", href: "#tech-stack" },
   { label: "Contact", href: "#contact" },
 ] as const;
@@ -210,59 +209,29 @@ export const PROJECTS: Project[] = [
   },
 ];
 
-export const SERVICES = [
-  {
-    title: "Premium Business Websites",
-    description:
-      "High-converting, brand-forward websites engineered for credibility and growth.",
-    icon: "Globe",
-  },
-  {
-    title: "Restaurant Websites",
-    description:
-      "Cinematic dining experiences with mobile-first menus, reservations, and storytelling.",
-    icon: "UtensilsCrossed",
-  },
-  {
-    title: "Fullstack Web Applications",
-    description:
-      "Scalable platforms with modern frontends, robust APIs, and production-ready architecture.",
-    icon: "Layers",
-  },
-  {
-    title: "AI-Powered Dashboards",
-    description:
-      "Intelligent analytics interfaces with real-time data, NLP, and automated insights.",
-    icon: "Brain",
-  },
-  {
-    title: "UI/UX Design",
-    description:
-      "Minimal, premium interfaces with intentional hierarchy and polished interactions.",
-    icon: "Palette",
-  },
-  {
-    title: "SEO Optimization",
-    description:
-      "Technical SEO, performance tuning, and structured content for discoverability.",
-    icon: "Search",
-  },
-  {
-    title: "Data Visualization Systems",
-    description:
-      "Clear, actionable charts and dashboards for complex operational data.",
-    icon: "BarChart3",
-  },
-] as const;
-
 export const TECH_STACK = {
-  frontend: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion", "Vite"],
-  backend: ["FastAPI", "Supabase", "Redis", "Celery", "Docker", "PostgreSQL", "Python"],
-  ai: [
-    "DistilBERT",
-    "VADER NLP",
-    "spaCy",
+  frontend: [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "JavaScript",
+    "Tailwind CSS",
+    "Framer Motion",
+    "GSAP",
+    "Vite",
   ],
+  backend: [
+    "Node.js",
+    "FastAPI",
+    "Supabase",
+    "Firebase",
+    "Redis",
+    "Celery",
+    "Docker",
+    "PostgreSQL",
+    "Python",
+  ],
+  ai: ["DistilBERT", "VADER NLP", "spaCy"],
 } as const;
 
 /** Deduped stack tags for hero panel (max 10) */
