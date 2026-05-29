@@ -71,18 +71,18 @@ export type ScrollScrubConfig = {
 };
 
 /**
- * Below-fold sections — stronger travel than hero + delayed enter so slide-in reads on scroll.
+ * Below-fold sections — big travel, short enter/exit windows = fast snap in & out on scroll.
  */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
-  scrub: 1.05,
+  scrub: 0.8,
   y: 128,
-  stagger: 0.13,
+  stagger: 0.07,
   exitOpacity: 0.02,
-  enterDelay: 0.16,
-  enterAt: 0.42,
-  exitAt: 0.66,
+  enterDelay: 0.12,
+  enterAt: 0.24,
+  exitAt: 0.84,
   ease: heroScrollReveal.ease,
 };
 
@@ -103,8 +103,8 @@ export function bindSectionScrollScrub(
 
   const { y, exitOpacity, scrub, start, end, stagger } = config;
   const enterDelay = config.enterDelay ?? 0;
-  const enterAt = config.enterAt ?? 0.42;
-  const exitAt = config.exitAt ?? 0.66;
+  const enterAt = config.enterAt ?? 0.24;
+  const exitAt = config.exitAt ?? 0.84;
   const hold = Math.max(0, exitAt - enterAt);
   const exitSpan = Math.max(0, 1 - exitAt);
   const enterWindow = Math.max(0.08, enterAt - enterDelay);
@@ -128,8 +128,8 @@ export function bindSectionScrollScrub(
 
   items.forEach((item, index) => {
     const enterStart = enterDelay + index * staggerEach;
-    const enterDuration = Math.max(0.08, enterAt - enterStart);
-    const exitStart = exitAt + index * staggerEach * 0.7;
+    const enterDuration = Math.max(0.04, enterAt - enterStart);
+    const exitStart = exitAt + index * staggerEach * 0.35;
 
     tl.fromTo(
       item,
