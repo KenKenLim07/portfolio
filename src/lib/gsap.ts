@@ -76,13 +76,13 @@ export type ScrollScrubConfig = {
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
-  scrub: 0.8,
+  scrub: 1.05,
   y: 128,
-  stagger: 0.07,
+  stagger: 0.13,
   exitOpacity: 0.02,
-  enterDelay: 0.12,
-  enterAt: 0.24,
-  exitAt: 0.84,
+  enterDelay: 0.16,
+  enterAt: 0.42,
+  exitAt: 0.66,
   ease: heroScrollReveal.ease,
 };
 
