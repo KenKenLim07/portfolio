@@ -68,21 +68,26 @@ export type ScrollScrubConfig = {
   enterAt?: number;
   /** Scroll progress (0–1) where exit begins */
   exitAt?: number;
+  /** Stagger between lines on exit (defaults to `stagger`; hero uses ~0.11) */
+  exitStagger?: number;
 };
 
 /**
- * Below-fold sections — big travel, short enter/exit windows = fast snap in & out on scroll.
+ * Below-fold sections — fast enter, hero-style “suck up” exit on scroll down.
+ * Tune speed: widen/narrow `enterAt - enterDelay` (in) and `1 - exitAt` (out).
  */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
-  scrub: 0.8,
+  scrub: 0.95,
   y: 128,
   stagger: 0.16,
-  exitOpacity: 0.02,
+  exitStagger: heroScrollReveal.stagger,
+  exitOpacity: heroScrollReveal.exitOpacity,
   enterDelay: 0.16,
   enterAt: 0.42,
-  exitAt: 0.66,
+  /** Earlier exit + longer span ≈ hero tail getting pulled up */
+  exitAt: 0.52,
   ease: heroScrollReveal.ease,
 };
 
@@ -102,9 +107,10 @@ export function bindSectionScrollScrub(
   if (!items.length) return null;
 
   const { y, exitOpacity, scrub, start, end, stagger } = config;
+  const exitStagger = config.exitStagger ?? stagger;
   const enterDelay = config.enterDelay ?? 0;
   const enterAt = config.enterAt ?? 0.42;
-  const exitAt = config.exitAt ?? 0.66;
+  const exitAt = config.exitAt ?? 0.52;
   const hold = Math.max(0, exitAt - enterAt);
   const exitSpan = Math.max(0, 1 - exitAt);
   const enterWindow = Math.max(0.08, enterAt - enterDelay);
@@ -129,7 +135,6 @@ export function bindSectionScrollScrub(
   items.forEach((item, index) => {
     const enterStart = enterDelay + index * staggerEach;
     const enterDuration = Math.max(0.08, enterAt - enterStart);
-    const exitStart = exitAt + index * staggerEach * 0.7;
 
     tl.fromTo(
       item,
@@ -149,19 +154,21 @@ export function bindSectionScrollScrub(
       { opacity: 1, y: 0, ease: "none", duration: hold },
       enterAt,
     );
-
-    tl.to(
-      item,
-      {
-        opacity: exitOpacity,
-        y: -y,
-        ease: "none",
-        duration: exitSpan,
-        force3D: true,
-      },
-      exitStart,
-    );
   });
+
+  // Hero-style: one exit tween + stagger (not per-line delayed starts that never finish)
+  tl.to(
+    items,
+    {
+      opacity: exitOpacity,
+      y: -y,
+      stagger: exitStagger,
+      ease: "none",
+      duration: exitSpan,
+      force3D: true,
+    },
+    exitAt,
+  );
 
   return tl;
 }
