@@ -73,11 +73,11 @@ export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
   scrub: 1.15,
-  y: 72,
+  y: 80,
   stagger: 0.09,
-  exitOpacity: 0.06,
-  enterAt: 0.24,
-  exitAt: 0.76,
+  exitOpacity: 0.12,
+  enterAt: 0.28,
+  exitAt: 0.72,
   ease: "power2.inOut",
 };
 
@@ -85,7 +85,10 @@ export function queryRevealItems(root: Element): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>("[data-gsap-reveal]"));
 }
 
-/** Scrubbed enter / hold / exit for an entire section */
+/**
+ * Scrubbed enter / hold / exit for an entire section.
+ * One keyframed tween (no stagger) so scrub + scroll-up stay smooth like the hero.
+ */
 export function bindSectionScrollScrub(
   section: Element,
   items: HTMLElement[],
@@ -93,53 +96,34 @@ export function bindSectionScrollScrub(
 ) {
   if (!items.length) return null;
 
-  const { y, stagger, exitOpacity, scrub, start, end } = config;
-  const enterAt = config.enterAt ?? 0.24;
-  const exitAt = config.exitAt ?? 0.76;
+  const { y, exitOpacity, scrub, start, end } = config;
+  const enterAt = config.enterAt ?? 0.28;
+  const exitAt = config.exitAt ?? 0.72;
+  const hold = Math.max(0, exitAt - enterAt);
+  const exitSpan = Math.max(0, 1 - exitAt);
 
   gsap.set(items, { opacity: 0, y, force3D: true });
 
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: section,
-      start,
-      end,
-      scrub,
-      invalidateOnRefresh: true,
-    },
-  });
-
-  tl.to(
-    items,
-    {
-      opacity: 1,
-      y: 0,
-      stagger,
+  return gsap
+    .timeline({
+      scrollTrigger: {
+        trigger: section,
+        start,
+        end,
+        scrub,
+        invalidateOnRefresh: true,
+      },
+    })
+    .to(items, {
       ease: "none",
-      duration: enterAt,
+      duration: 1,
       force3D: true,
-    },
-    0,
-  );
-  tl.to(
-    items,
-    { opacity: 1, y: 0, ease: "none", duration: exitAt - enterAt },
-    enterAt,
-  );
-  tl.to(
-    items,
-    {
-      opacity: exitOpacity,
-      y: -y,
-      stagger,
-      ease: "none",
-      duration: 1 - exitAt,
-      force3D: true,
-    },
-    exitAt,
-  );
-
-  return tl;
+      keyframes: [
+        { opacity: 1, y: 0, duration: enterAt },
+        { opacity: 1, y: 0, duration: hold },
+        { opacity: exitOpacity, y: -y, duration: exitSpan },
+      ],
+    });
 }
 
 /** Hero: mount entrance handled separately; scrub fades the full block out on scroll down */
