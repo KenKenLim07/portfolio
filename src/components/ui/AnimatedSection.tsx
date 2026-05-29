@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
 import { useReducedMotion } from "framer-motion";
 import {
   createDirectionalScrollReveal,
+  gsap,
   initGsap,
   revealDefaults,
   tailRevealScroll,
@@ -14,23 +16,12 @@ type AnimatedSectionProps = {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  /**
-   * `tail` uses a wider scroll band so enter/exit aren’t pinned to the viewport edge.
-   * Override with explicit `start` / `end` when needed.
-   */
   variant?: "default" | "tail";
-  /** ScrollTrigger start position (default: top 85%, or tail preset) */
   start?: string;
-  /** ScrollTrigger end position (controls when exit happens) */
   end?: string;
-  /** Exit opacity target for leave/leaveBack. */
   exitOpacity?: number;
 };
 
-/**
- * Scroll-triggered stagger reveal (GSAP ScrollTrigger).
- * Wrap direct children in <AnimatedItem> for staggered motion.
- */
 export function AnimatedSection({
   children,
   className,
@@ -48,23 +39,38 @@ export function AnimatedSection({
     end ?? (variant === "tail" ? tailRevealScroll.end : undefined);
   const resolvedExitOpacity = exitOpacity ?? (variant === "tail" ? 0.2 : 0);
 
-  useEffect(() => {
-    initGsap();
-    const root = ref.current;
-    if (!root || prefersReducedMotion) return;
+  useGSAP(
+    () => {
+      initGsap();
+      const root = ref.current;
+      if (!root || prefersReducedMotion) return;
 
-    const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
-    if (!items.length) return;
+      const ctx = gsap.context(() => {
+        const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
+        if (!items.length) return;
 
-    const trigger = createDirectionalScrollReveal(root, items, {
-      delay,
-      start: resolvedStart,
-      end: resolvedEnd,
-      exitOpacity: resolvedExitOpacity,
-    });
+        createDirectionalScrollReveal(root, items, {
+          delay,
+          start: resolvedStart,
+          end: resolvedEnd,
+          exitOpacity: resolvedExitOpacity,
+        });
+      }, root);
 
-    return () => trigger.kill();
-  }, [delay, resolvedStart, resolvedEnd, resolvedExitOpacity, prefersReducedMotion]);
+      return () => ctx.revert();
+    },
+    {
+      scope: ref,
+      dependencies: [
+        delay,
+        resolvedStart,
+        resolvedEnd,
+        resolvedExitOpacity,
+        prefersReducedMotion,
+      ],
+      revertOnUpdate: true,
+    },
+  );
 
   if (prefersReducedMotion) {
     return <div className={className}>{children}</div>;
@@ -91,7 +97,6 @@ export function AnimatedItem({
   );
 }
 
-/** Same as AnimatedSection — stagger children marked with AnimatedItem */
 export function AnimatedStagger({
   children,
   className,

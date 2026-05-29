@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { type RefObject } from "react";
+import { useGSAP } from "@gsap/react";
 import { useReducedMotion } from "framer-motion";
-import { createDirectionalScrollReveal, initGsap } from "@/lib/gsap";
+import { createDirectionalScrollReveal, gsap, initGsap } from "@/lib/gsap";
 
 export type GsapRevealOptions = {
   delay?: number;
@@ -10,7 +11,7 @@ export type GsapRevealOptions = {
   duration?: number;
   start?: string;
   end?: string;
-  /** ScrollTrigger trigger element (defaults to the animated element) */
+  exitOpacity?: number;
   triggerRef?: RefObject<HTMLElement | null>;
 };
 
@@ -23,30 +24,40 @@ export function useGsapReveal(
 ) {
   const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    initGsap();
-    const el = targetRef.current;
-    if (!el || prefersReducedMotion) return;
+  useGSAP(
+    () => {
+      initGsap();
+      const el = targetRef.current;
+      if (!el || prefersReducedMotion) return;
 
-    const triggerEl = options.triggerRef?.current ?? el;
+      const triggerEl = options.triggerRef?.current ?? el;
 
-    const trigger = createDirectionalScrollReveal(triggerEl, el, {
-      delay: options.delay,
-      y: options.y,
-      duration: options.duration,
-      start: options.start,
-      end: options.end,
-    });
+      const ctx = gsap.context(() => {
+        createDirectionalScrollReveal(triggerEl, el, {
+          delay: options.delay,
+          y: options.y,
+          duration: options.duration,
+          start: options.start,
+          end: options.end,
+          exitOpacity: options.exitOpacity,
+        });
+      }, el);
 
-    return () => trigger.kill();
-  }, [
-    targetRef,
-    options.triggerRef,
-    options.delay,
-    options.y,
-    options.duration,
-    options.start,
-    options.end,
-    prefersReducedMotion,
-  ]);
+      return () => ctx.revert();
+    },
+    {
+      scope: targetRef,
+      dependencies: [
+        options.delay,
+        options.y,
+        options.duration,
+        options.start,
+        options.end,
+        options.exitOpacity,
+        options.triggerRef,
+        prefersReducedMotion,
+      ],
+      revertOnUpdate: true,
+    },
+  );
 }

@@ -56,6 +56,7 @@ export function useGsapMobileMenu({ open }: UseGsapMobileMenuOptions) {
     initializedRef.current = true;
     if (prefersReducedMotion) return;
 
+    // Scope timeline to panel; useGSAP is registered app-wide via initGsap().
     const ctx = gsap.context(() => {
       timelineRef.current = gsap
         .timeline({ paused: true })

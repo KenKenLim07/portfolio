@@ -1,12 +1,16 @@
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 let registered = false;
 
-/** Register ScrollTrigger once (client-only). */
+/** Shared media query for accessibility-aware GSAP setup. */
+export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+/** Register GSAP plugins once (client-only). */
 export function initGsap() {
   if (typeof window === "undefined" || registered) return;
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, useGSAP);
   registered = true;
 }
 
@@ -16,20 +20,16 @@ export const revealDefaults = {
   duration: 0.75,
   stagger: 0.08,
   ease: "power3.out" as const,
-  start: "top 85%",
+  start: "clamp(top 85%)",
 };
 
 /**
  * Wider scroll band for tail blocks (hero CTAs/metrics, section footers).
- * - Enter sooner on scroll down (`start` below viewport edge)
- * - Exit sooner on scroll down (`end` higher in the viewport)
- * - Same band gives enter-back / leave-back more room on scroll up
+ * `clamp()` keeps triggers inside page bounds (ScrollTrigger best practice).
  */
 export const tailRevealScroll = {
-  // Slightly narrower than before so re-entry on scroll-up happens sooner.
-  start: "top bottom-=4%",
-  // Keep tail visible longer before exit to avoid sudden empty gaps.
-  end: "bottom 30%",
+  start: "clamp(top bottom-=4%)",
+  end: "clamp(bottom 30%)",
 } as const;
 
 export type DirectionalRevealOptions = {
@@ -39,16 +39,7 @@ export type DirectionalRevealOptions = {
   stagger?: number;
   ease?: string;
   start?: string;
-  /**
-   * Optional ScrollTrigger end position.
-   * When provided, `onLeave`/`onLeaveBack` fire when the trigger passes `end`,
-   * which makes exit animations easier to time (e.g. only fade the “tail”).
-   */
   end?: string;
-  /**
-   * Exit opacity target used by onLeave/onLeaveBack.
-   * Useful for "tail" blocks where full fade-to-zero can feel too abrupt.
-   */
   exitOpacity?: number;
 };
 
@@ -58,6 +49,8 @@ export type DirectionalRevealOptions = {
  * - Scroll down past → exit upward (0 → y-)
  * - Scroll up into view → drop from above (y- → 0)
  * - Scroll up past → exit downward (0 → y+)
+ *
+ * Call inside gsap.context() / useGSAP so ScrollTriggers revert on cleanup.
  */
 export function createDirectionalScrollReveal(
   trigger: Element,
@@ -88,7 +81,7 @@ export function createDirectionalScrollReveal(
     overwrite: "auto" as const,
   };
 
-  gsap.set(targets, { opacity: 0, y });
+  gsap.set(targets, { opacity: 0, y, force3D: true });
 
   return ScrollTrigger.create({
     trigger,
@@ -97,33 +90,32 @@ export function createDirectionalScrollReveal(
     onEnter: () => {
       gsap.killTweensOf(targets);
       gsap.set(targets, { opacity: 0, y });
-      gsap.to(targets, { opacity: 1, y: 0, ...enter });
+      gsap.to(targets, { opacity: 1, y: 0, force3D: true, ...enter });
     },
     onLeave: () => {
       gsap.killTweensOf(targets);
-      gsap.to(targets, { opacity: exitOpacity, y: -y, ...exit });
+      gsap.to(targets, { opacity: exitOpacity, y: -y, force3D: true, ...exit });
     },
     onEnterBack: () => {
       gsap.killTweensOf(targets);
-      gsap.to(targets, { opacity: 1, y: 0, ...enter });
+      gsap.to(targets, { opacity: 1, y: 0, force3D: true, ...enter });
     },
     onLeaveBack: () => {
       gsap.killTweensOf(targets);
-      // Near the top of the page, avoid a second "leave back" fade that can feel
-      // like a duplicate reveal/flicker on the first section.
       if (typeof window !== "undefined" && window.scrollY <= 4) {
         gsap.to(targets, {
           opacity: 1,
           y: 0,
+          force3D: true,
           duration: Math.min(0.22, duration * 0.35),
           ease,
           overwrite: "auto",
         });
         return;
       }
-      gsap.to(targets, { opacity: exitOpacity, y, ...exit });
+      gsap.to(targets, { opacity: exitOpacity, y, force3D: true, ...exit });
     },
   });
 }
 
-export { gsap, ScrollTrigger };
+export { gsap, ScrollTrigger, useGSAP };
