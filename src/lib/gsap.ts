@@ -128,8 +128,8 @@ export function bindSectionScrollScrub(
 
   items.forEach((item, index) => {
     const enterStart = enterDelay + index * staggerEach;
-    const enterDuration = Math.max(0.04, enterAt - enterStart);
-    const exitStart = exitAt + index * staggerEach * 0.35;
+    const enterDuration = Math.max(0.08, enterAt - enterStart);
+    const exitStart = exitAt + index * staggerEach * 0.7;
 
     tl.fromTo(
       item,
