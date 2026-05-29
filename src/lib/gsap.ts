@@ -68,17 +68,17 @@ export type ScrollScrubConfig = {
   exitAt?: number;
 };
 
-/** Below-fold sections: enter → hold → exit, scrubbed to scroll through the section */
+/** Below-fold sections — same motion scale as hero (per-line stagger) */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
-  scrub: 1.15,
-  y: 80,
-  stagger: 0.09,
-  exitOpacity: 0.12,
-  enterAt: 0.28,
-  exitAt: 0.72,
-  ease: "power2.inOut",
+  scrub: heroScrollReveal.scrub,
+  y: heroScrollReveal.y,
+  stagger: heroScrollReveal.stagger,
+  exitOpacity: heroScrollReveal.exitOpacity,
+  enterAt: 0.3,
+  exitAt: 0.7,
+  ease: heroScrollReveal.ease,
 };
 
 export function queryRevealItems(root: Element): HTMLElement[] {
@@ -86,8 +86,8 @@ export function queryRevealItems(root: Element): HTMLElement[] {
 }
 
 /**
- * Scrubbed enter / hold / exit for an entire section.
- * One keyframed tween (no stagger) so scrub + scroll-up stay smooth like the hero.
+ * Scrubbed enter / hold / exit — one timeline slot per `[data-gsap-reveal]` line
+ * (staggered like hero mount + hero exit), not one block for the whole section.
  */
 export function bindSectionScrollScrub(
   section: Element,
@@ -96,34 +96,67 @@ export function bindSectionScrollScrub(
 ) {
   if (!items.length) return null;
 
-  const { y, exitOpacity, scrub, start, end } = config;
-  const enterAt = config.enterAt ?? 0.28;
-  const exitAt = config.exitAt ?? 0.72;
+  const { y, exitOpacity, scrub, start, end, stagger } = config;
+  const enterAt = config.enterAt ?? 0.3;
+  const exitAt = config.exitAt ?? 0.7;
   const hold = Math.max(0, exitAt - enterAt);
   const exitSpan = Math.max(0, 1 - exitAt);
 
+  const staggerEach =
+    items.length > 1
+      ? Math.min(stagger, (enterAt * 0.85) / (items.length - 1))
+      : 0;
+
   gsap.set(items, { opacity: 0, y, force3D: true });
 
-  return gsap
-    .timeline({
-      scrollTrigger: {
-        trigger: section,
-        start,
-        end,
-        scrub,
-        invalidateOnRefresh: true,
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start,
+      end,
+      scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  items.forEach((item, index) => {
+    const enterStart = index * staggerEach;
+    const enterDuration = Math.max(0.06, enterAt - enterStart);
+    const exitStart = exitAt + index * staggerEach * 0.55;
+
+    tl.fromTo(
+      item,
+      { opacity: 0, y, force3D: true },
+      {
+        opacity: 1,
+        y: 0,
+        ease: "none",
+        duration: enterDuration,
+        force3D: true,
       },
-    })
-    .to(items, {
-      ease: "none",
-      duration: 1,
-      force3D: true,
-      keyframes: [
-        { opacity: 1, y: 0, duration: enterAt },
-        { opacity: 1, y: 0, duration: hold },
-        { opacity: exitOpacity, y: -y, duration: exitSpan },
-      ],
-    });
+      enterStart,
+    );
+
+    tl.to(
+      item,
+      { opacity: 1, y: 0, ease: "none", duration: hold },
+      enterAt,
+    );
+
+    tl.to(
+      item,
+      {
+        opacity: exitOpacity,
+        y: -y,
+        ease: "none",
+        duration: exitSpan,
+        force3D: true,
+      },
+      exitStart,
+    );
+  });
+
+  return tl;
 }
 
 /** Hero: mount entrance handled separately; scrub fades the full block out on scroll down */

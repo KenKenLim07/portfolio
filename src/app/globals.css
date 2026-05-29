@@ -100,7 +100,8 @@ html {
 @media (prefers-reduced-motion: no-preference) {
   .gsap-reveal {
     opacity: 0;
-    transform: translate3d(0, 5rem, 0);
+    /* ~96px — matches heroScrollReveal.y */
+    transform: translate3d(0, 6rem, 0);
     will-change: transform, opacity;
   }
 
