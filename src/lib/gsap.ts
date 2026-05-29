@@ -103,8 +103,8 @@ export function bindSectionScrollScrub(
 
   const { y, exitOpacity, scrub, start, end, stagger } = config;
   const enterDelay = config.enterDelay ?? 0;
-  const enterAt = config.enterAt ?? 0.24;
-  const exitAt = config.exitAt ?? 0.84;
+  const enterAt = config.enterAt ?? 0.42;
+  const exitAt = config.exitAt ?? 0.66;
   const hold = Math.max(0, exitAt - enterAt);
   const exitSpan = Math.max(0, 1 - exitAt);
   const enterWindow = Math.max(0.08, enterAt - enterDelay);
