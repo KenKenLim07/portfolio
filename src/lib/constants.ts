@@ -99,9 +99,9 @@ export const HERO_AVAILABILITY = "Open to new projects" as const;
 
 /** Hero metric blocks (large number + label) */
 export const HERO_METRICS = [
-  { value: "3+", label: "Live products" },
+  { value: "7+", label: "Live products" },
   { value: "Full-stack", label: "+ AI systems" },
-  { value: "Best Paper", label: "Thesis award" },
+  { value: "End-to-end", label: "Product delivery" },
 ] as const;
 
 /** @deprecated Use HERO_METRICS */

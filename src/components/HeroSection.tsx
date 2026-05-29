@@ -160,21 +160,21 @@ function HeroScrollCue({ className }: { className?: string }) {
 
   return (
     <AnimatedItem
-      className={cn(
-        "pointer-events-none flex flex-col items-center gap-1.5",
-        className,
-      )}
+      className={cn("pointer-events-none flex items-center justify-center", className)}
     >
       <motion.div
         animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <ArrowDown className="h-4 w-4 text-muted" aria-hidden />
-      </motion.div>
-      <div
-        className="h-px w-16 rounded-full bg-[linear-gradient(90deg,transparent,var(--accent-from),var(--accent-to),transparent)] opacity-70"
         aria-hidden
-      />
+      >
+        <svg
+          viewBox="0 0 12 8"
+          className="h-3 w-3 text-muted"
+          fill="currentColor"
+        >
+          <path d="M6 8 0 0h12L6 8z" />
+        </svg>
+      </motion.div>
     </AnimatedItem>
   );
 }
