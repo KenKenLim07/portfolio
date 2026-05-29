@@ -62,22 +62,27 @@ export type ScrollScrubConfig = {
   stagger: number;
   exitOpacity: number;
   ease?: string;
-  /** Timeline position (0–1) where enter finishes */
+  /** Scroll progress (0–1) before lines start entering — content stays hidden */
+  enterDelay?: number;
+  /** Scroll progress (0–1) where the last line finishes entering */
   enterAt?: number;
-  /** Timeline position (0–1) where exit begins */
+  /** Scroll progress (0–1) where exit begins */
   exitAt?: number;
 };
 
-/** Below-fold sections — same motion scale as hero (per-line stagger) */
+/**
+ * Below-fold sections — stronger travel than hero + delayed enter so slide-in reads on scroll.
+ */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
-  scrub: heroScrollReveal.scrub,
-  y: heroScrollReveal.y,
-  stagger: heroScrollReveal.stagger,
-  exitOpacity: heroScrollReveal.exitOpacity,
-  enterAt: 0.3,
-  exitAt: 0.7,
+  scrub: 1.05,
+  y: 128,
+  stagger: 0.13,
+  exitOpacity: 0.02,
+  enterDelay: 0.16,
+  enterAt: 0.42,
+  exitAt: 0.66,
   ease: heroScrollReveal.ease,
 };
 
@@ -97,14 +102,16 @@ export function bindSectionScrollScrub(
   if (!items.length) return null;
 
   const { y, exitOpacity, scrub, start, end, stagger } = config;
-  const enterAt = config.enterAt ?? 0.3;
-  const exitAt = config.exitAt ?? 0.7;
+  const enterDelay = config.enterDelay ?? 0;
+  const enterAt = config.enterAt ?? 0.42;
+  const exitAt = config.exitAt ?? 0.66;
   const hold = Math.max(0, exitAt - enterAt);
   const exitSpan = Math.max(0, 1 - exitAt);
+  const enterWindow = Math.max(0.08, enterAt - enterDelay);
 
   const staggerEach =
     items.length > 1
-      ? Math.min(stagger, (enterAt * 0.85) / (items.length - 1))
+      ? Math.min(stagger, (enterWindow * 0.85) / (items.length - 1))
       : 0;
 
   gsap.set(items, { opacity: 0, y, force3D: true });
@@ -120,9 +127,9 @@ export function bindSectionScrollScrub(
   });
 
   items.forEach((item, index) => {
-    const enterStart = index * staggerEach;
-    const enterDuration = Math.max(0.06, enterAt - enterStart);
-    const exitStart = exitAt + index * staggerEach * 0.55;
+    const enterStart = enterDelay + index * staggerEach;
+    const enterDuration = Math.max(0.08, enterAt - enterStart);
+    const exitStart = exitAt + index * staggerEach * 0.7;
 
     tl.fromTo(
       item,
