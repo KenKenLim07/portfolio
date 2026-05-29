@@ -82,7 +82,7 @@ export const sectionScrollReveal: ScrollScrubConfig = {
   exitOpacity: 0.02,
   enterDelay: 0.12,
   enterAt: 0.24,
-  exitAt: 0.92,
+  exitAt: 0.60,
   ease: heroScrollReveal.ease,
 };
 
