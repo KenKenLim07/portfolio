@@ -21,7 +21,7 @@ export function TechStackSection() {
         description="Tools I use to build fast interfaces, reliable backends, and intelligent data products."
       />
 
-      <AnimatedStagger className="grid gap-6 md:grid-cols-3" variant="tail">
+      <AnimatedStagger className="grid gap-6 md:grid-cols-3">
         {groups.map((group) => (
           <AnimatedItem key={group.key}>
             <div className="radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border">

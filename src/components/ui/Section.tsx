@@ -1,3 +1,7 @@
+"use client";
+
+import { useRef } from "react";
+import { useSectionScrollReveal } from "@/hooks/useSectionScrollReveal";
 import { cn } from "@/lib/utils";
 
 type SectionProps = {
@@ -13,8 +17,13 @@ export function Section({
   className,
   containerClassName,
 }: SectionProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useSectionScrollReveal(sectionRef);
+
   return (
     <section
+      ref={sectionRef}
       id={id}
       className={cn("relative scroll-mt-28 py-24 md:py-32", className)}
     >

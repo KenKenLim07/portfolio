@@ -4,6 +4,7 @@ import { useSyncExternalStore, type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
+  createScrubScrollReveal,
   gsap,
   heroScrollReveal,
   initGsap,
@@ -81,25 +82,15 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
 }
 
 function bindHeroScrollScrub(home: HTMLElement, all: HTMLElement[]) {
-  gsap.timeline({
-    scrollTrigger: {
-      trigger: home,
-      start: heroScrollReveal.start,
-      end: heroScrollReveal.end,
-      scrub: heroScrollReveal.scrub,
-      invalidateOnRefresh: true,
-    },
-  }).fromTo(
-    all,
-    { opacity: 1, y: 0, force3D: true },
-    {
-      opacity: heroScrollReveal.exitOpacity,
-      y: -heroScrollReveal.y,
-      stagger: heroScrollReveal.stagger,
-      ease: "none",
-      force3D: true,
-    },
-  );
+  createScrubScrollReveal(home, all, {
+    mode: "exitOnly",
+    start: heroScrollReveal.start,
+    end: heroScrollReveal.end,
+    scrub: heroScrollReveal.scrub,
+    y: heroScrollReveal.y,
+    stagger: heroScrollReveal.stagger,
+    exitOpacity: heroScrollReveal.exitOpacity,
+  });
 }
 
 /**

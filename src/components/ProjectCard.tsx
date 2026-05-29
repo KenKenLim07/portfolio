@@ -3,7 +3,6 @@
 import { useRef } from "react";
 import Image from "next/image";
 import { motion, useReducedMotion } from "framer-motion";
-import { useGsapReveal } from "@/hooks/useGsapReveal";
 import type { Project } from "@/lib/constants";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
@@ -32,14 +31,10 @@ export function ProjectCard({
   const stackPreview = project.stack.slice(0, stackPreviewCount);
   const stackOverflow = project.stack.length - stackPreview.length;
 
-  useGsapReveal(cardRef, {
-    y: isRail ? 20 : 32,
-    start: "top 92%",
-  });
-
   const card = (
     <motion.article
       ref={cardRef}
+      data-gsap-reveal
       className={cn(
         "gsap-reveal radius-panel-lg group relative overflow-hidden border bg-surface text-left transition-colors duration-300",
         isRail

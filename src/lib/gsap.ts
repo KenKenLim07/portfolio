@@ -42,17 +42,109 @@ export const heroTailExitScroll = {
  * Unified hero scroll exit — scrubbed to scroll distance (not a one-shot tween).
  * Wider band + larger travel than section defaults.
  */
-export const heroScrollReveal = {
-  start: "clamp(top top)",
-  /** Wider band — exit plays across more scroll distance */
-  end: "clamp(bottom 22%)",
+/** Shared buttery scrub motion (hero + sections) */
+export const scrubRevealMotion = {
   scrub: 1.25,
+  y: 88,
+  stagger: 0.1,
+  exitOpacity: 0.05,
+} as const;
+
+export const heroScrollReveal = {
+  ...scrubRevealMotion,
   y: 96,
-  duration: 0.95,
   stagger: 0.11,
   exitOpacity: 0.04,
+  start: "clamp(top top)",
+  end: "clamp(bottom 22%)",
+  duration: 0.95,
   ease: "power2.inOut" as const,
 } as const;
+
+/** Below-fold sections: enter while scrolling in, exit while scrolling out */
+export const sectionScrollReveal = {
+  ...scrubRevealMotion,
+  start: "clamp(top 90%)",
+  end: "clamp(bottom 10%)",
+  /** Timeline position (0–1) where exit begins */
+  enterAt: 0.46,
+} as const;
+
+export type ScrubRevealMode = "enterExit" | "exitOnly";
+
+export type ScrubRevealOptions = {
+  mode?: ScrubRevealMode;
+  start?: string;
+  end?: string;
+  scrub?: number;
+  y?: number;
+  stagger?: number;
+  exitOpacity?: number;
+  enterAt?: number;
+};
+
+/** Scrub-linked scroll reveal — one timeline tied to scroll distance */
+export function createScrubScrollReveal(
+  trigger: Element,
+  targets: gsap.TweenTarget,
+  options: ScrubRevealOptions = {},
+) {
+  const mode = options.mode ?? "enterExit";
+  const y = options.y ?? scrubRevealMotion.y;
+  const stagger = options.stagger ?? scrubRevealMotion.stagger;
+  const exitOpacity = options.exitOpacity ?? scrubRevealMotion.exitOpacity;
+  const scrub = options.scrub ?? scrubRevealMotion.scrub;
+  const start =
+    options.start ??
+    (mode === "exitOnly" ? heroScrollReveal.start : sectionScrollReveal.start);
+  const end =
+    options.end ??
+    (mode === "exitOnly" ? heroScrollReveal.end : sectionScrollReveal.end);
+  const enterAt = options.enterAt ?? sectionScrollReveal.enterAt;
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger,
+      start,
+      end,
+      scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  if (mode === "exitOnly") {
+    tl.fromTo(
+      targets,
+      { opacity: 1, y: 0, force3D: true },
+      {
+        opacity: exitOpacity,
+        y: -y,
+        stagger,
+        ease: "none",
+        force3D: true,
+      },
+    );
+  } else {
+    tl.fromTo(
+      targets,
+      { opacity: 0, y, force3D: true },
+      { opacity: 1, y: 0, stagger, ease: "none", force3D: true },
+      0,
+    ).to(
+      targets,
+      {
+        opacity: exitOpacity,
+        y: -y,
+        stagger,
+        ease: "none",
+        force3D: true,
+      },
+      enterAt,
+    );
+  }
+
+  return tl;
+}
 
 export type DirectionalRevealOptions = {
   delay?: number;

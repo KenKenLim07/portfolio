@@ -72,7 +72,7 @@ export function ProjectsSection() {
           No projects yet.
         </p>
       ) : (
-        <AnimatedSection variant="tail">
+        <AnimatedSection>
           <AnimatedItem>
             <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
               <div

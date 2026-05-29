@@ -3,19 +3,26 @@
 import { type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
-import { createDirectionalScrollReveal, gsap, initGsap } from "@/lib/gsap";
+import {
+  createScrubScrollReveal,
+  gsap,
+  initGsap,
+  scrubRevealMotion,
+  sectionScrollReveal,
+  ScrollTrigger,
+} from "@/lib/gsap";
 
 export type GsapRevealOptions = {
-  delay?: number;
   y?: number;
-  duration?: number;
   start?: string;
   end?: string;
+  scrub?: number;
   exitOpacity?: number;
-  revealIfInView?: boolean;
+  enterAt?: number;
   triggerRef?: RefObject<HTMLElement | null>;
 };
 
+/** Standalone scrub reveal (e.g. one card when not inside a `Section`) */
 export function useGsapReveal(
   targetRef: RefObject<HTMLElement | null>,
   options: GsapRevealOptions = {},
@@ -29,31 +36,36 @@ export function useGsapReveal(
       if (!el || prefersReducedMotion) return;
 
       const triggerEl = options.triggerRef?.current ?? el;
+      if (!el.hasAttribute("data-gsap-reveal")) {
+        el.setAttribute("data-gsap-reveal", "");
+        el.classList.add("gsap-reveal");
+      }
 
       const ctx = gsap.context(() => {
-        createDirectionalScrollReveal(triggerEl, el, {
-          delay: options.delay,
-          y: options.y,
-          duration: options.duration,
-          start: options.start,
-          end: options.end,
-          exitOpacity: options.exitOpacity,
-          revealIfInView: options.revealIfInView,
+        createScrubScrollReveal(triggerEl, el, {
+          mode: "enterExit",
+          start: options.start ?? sectionScrollReveal.start,
+          end: options.end ?? sectionScrollReveal.end,
+          scrub: options.scrub ?? scrubRevealMotion.scrub,
+          y: options.y ?? scrubRevealMotion.y,
+          exitOpacity: options.exitOpacity ?? scrubRevealMotion.exitOpacity,
+          enterAt: options.enterAt ?? sectionScrollReveal.enterAt,
         });
       }, el);
+
+      requestAnimationFrame(() => ScrollTrigger.refresh());
 
       return () => ctx.revert();
     },
     {
       scope: targetRef,
       dependencies: [
-        options.delay,
         options.y,
-        options.duration,
         options.start,
         options.end,
+        options.scrub,
         options.exitOpacity,
-        options.revealIfInView,
+        options.enterAt,
         options.triggerRef,
         prefersReducedMotion,
       ],
