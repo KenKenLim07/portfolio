@@ -9,6 +9,8 @@ type SectionProps = {
   children: React.ReactNode;
   className?: string;
   containerClassName?: string;
+  /** Scrubbed enter/exit for all `[data-gsap-reveal]` inside (default: true) */
+  animated?: boolean;
 };
 
 export function Section({
@@ -16,15 +18,16 @@ export function Section({
   children,
   className,
   containerClassName,
+  animated = true,
 }: SectionProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useSectionScrollReveal(sectionRef);
+  const ref = useRef<HTMLElement>(null);
+  useSectionScrollReveal(ref, { enabled: animated });
 
   return (
     <section
-      ref={sectionRef}
+      ref={ref}
       id={id}
+      data-section-scroll={animated ? "" : undefined}
       className={cn("relative scroll-mt-28 py-24 md:py-32", className)}
     >
       <div

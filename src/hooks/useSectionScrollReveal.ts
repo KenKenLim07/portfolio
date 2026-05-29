@@ -4,45 +4,39 @@ import { type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
-  createScrubScrollReveal,
+  bindSectionScrollScrub,
   gsap,
   initGsap,
-  sectionScrollReveal,
+  queryRevealItems,
   ScrollTrigger,
-  type ScrubRevealOptions,
 } from "@/lib/gsap";
 
+type UseSectionScrollRevealOptions = {
+  enabled?: boolean;
+};
+
 /**
- * One scrubbed timeline per page section — all `[data-gsap-reveal]` children
- * enter and exit together (same feel as the hero).
+ * One scrubbed ScrollTrigger per section — all `[data-gsap-reveal]` children
+ * enter, hold, and exit together (same model as the hero).
  */
 export function useSectionScrollReveal(
   sectionRef: RefObject<HTMLElement | null>,
-  options: ScrubRevealOptions = {},
+  options: UseSectionScrollRevealOptions = {},
 ) {
   const prefersReducedMotion = useGsapReducedMotion();
+  const enabled = options.enabled !== false;
 
   useGSAP(
     () => {
-      initGsap();
       const section = sectionRef.current;
-      if (!section || prefersReducedMotion) return;
+      if (!section || prefersReducedMotion || !enabled) return;
 
-      const items = section.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
+      initGsap();
+      const items = queryRevealItems(section);
       if (!items.length) return;
 
       const ctx = gsap.context(() => {
-        createScrubScrollReveal(section, items, {
-          mode: "enterExit",
-          start: sectionScrollReveal.start,
-          end: sectionScrollReveal.end,
-          scrub: sectionScrollReveal.scrub,
-          y: sectionScrollReveal.y,
-          stagger: sectionScrollReveal.stagger,
-          exitOpacity: sectionScrollReveal.exitOpacity,
-          enterAt: sectionScrollReveal.enterAt,
-          ...options,
-        });
+        bindSectionScrollScrub(section, items);
       }, section);
 
       requestAnimationFrame(() => ScrollTrigger.refresh());
@@ -51,7 +45,7 @@ export function useSectionScrollReveal(
     },
     {
       scope: sectionRef,
-      dependencies: [prefersReducedMotion],
+      dependencies: [prefersReducedMotion, enabled],
       revertOnUpdate: true,
     },
   );

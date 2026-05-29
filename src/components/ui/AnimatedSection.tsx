@@ -3,8 +3,8 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Layout/grouping wrapper for staggered children.
- * Scroll animation is handled per-page-section by `Section` + `useSectionScrollReveal`.
+ * Layout wrapper only — scroll animation is driven by `Section` + `useSectionScrollReveal`
+ * (or `useHeroScrollReveal` for the hero). Mark children with `<AnimatedItem>`.
  */
 export function AnimatedSection({
   children,
@@ -30,6 +30,7 @@ export function AnimatedItem({
   );
 }
 
+/** @deprecated Use a plain `div` + `AnimatedItem` children; section hook handles stagger. */
 export function AnimatedStagger({
   children,
   className,
@@ -37,5 +38,5 @@ export function AnimatedStagger({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <AnimatedSection className={className}>{children}</AnimatedSection>;
+  return <div className={className}>{children}</div>;
 }

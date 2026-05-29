@@ -4,7 +4,7 @@ import { useSyncExternalStore, type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
-  createScrubScrollReveal,
+  bindHeroExitScrub,
   gsap,
   heroScrollReveal,
   initGsap,
@@ -81,21 +81,8 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
   return tl;
 }
 
-function bindHeroScrollScrub(home: HTMLElement, all: HTMLElement[]) {
-  createScrubScrollReveal(home, all, {
-    mode: "exitOnly",
-    start: heroScrollReveal.start,
-    end: heroScrollReveal.end,
-    scrub: heroScrollReveal.scrub,
-    y: heroScrollReveal.y,
-    stagger: heroScrollReveal.stagger,
-    exitOpacity: heroScrollReveal.exitOpacity,
-  });
-}
-
 /**
- * One scrubbed ScrollTrigger on `#home` — copy, tail, and cue move together
- * over a long scroll band (reverses cleanly on fast scroll up).
+ * Hero: mount entrance + scrubbed exit on `#home` for copy, tail, and cue.
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -116,11 +103,13 @@ export function useHeroScrollReveal(
 
         const mount = isHomeInView(home) ? playMountEntrance(root) : null;
 
+        const bindExit = () => bindHeroExitScrub(home, all);
+
         if (!mount) {
           gsap.set(all, { opacity: 0, y: heroScrollReveal.y, force3D: true });
-          bindHeroScrollScrub(home, all);
+          bindExit();
         } else {
-          mount.eventCallback("onComplete", () => bindHeroScrollScrub(home, all));
+          mount.eventCallback("onComplete", bindExit);
         }
       }, root);
 

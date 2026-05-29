@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { AnimatedItem, AnimatedSection } from "./AnimatedSection";
+import { AnimatedItem } from "./AnimatedSection";
 
 type SectionHeadingProps = {
   label: string;
@@ -20,7 +20,7 @@ export function SectionHeading({
   variant = "mega",
 }: SectionHeadingProps) {
   return (
-    <AnimatedSection
+    <div
       className={cn(
         "mb-14 md:mb-20",
         align === "center" && "mx-auto max-w-3xl text-center",
@@ -57,6 +57,6 @@ export function SectionHeading({
           </p>
         </AnimatedItem>
       )}
-    </AnimatedSection>
+    </div>
   );
 }

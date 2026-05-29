@@ -42,69 +42,66 @@ export const heroTailExitScroll = {
  * Unified hero scroll exit — scrubbed to scroll distance (not a one-shot tween).
  * Wider band + larger travel than section defaults.
  */
-/** Shared buttery scrub motion (hero + sections) */
-export const scrubRevealMotion = {
-  scrub: 1.25,
-  y: 88,
-  stagger: 0.1,
-  exitOpacity: 0.05,
-} as const;
-
 export const heroScrollReveal = {
-  ...scrubRevealMotion,
+  start: "clamp(top top)",
+  /** Wider band — exit plays across more scroll distance */
+  end: "clamp(bottom 22%)",
+  scrub: 1.25,
   y: 96,
+  duration: 0.95,
   stagger: 0.11,
   exitOpacity: 0.04,
-  start: "clamp(top top)",
-  end: "clamp(bottom 22%)",
-  duration: 0.95,
   ease: "power2.inOut" as const,
 } as const;
 
-/** Below-fold sections: enter while scrolling in, exit while scrolling out */
-export const sectionScrollReveal = {
-  ...scrubRevealMotion,
-  start: "clamp(top 90%)",
-  end: "clamp(bottom 10%)",
-  /** Timeline position (0–1) where exit begins */
-  enterAt: 0.46,
-} as const;
-
-export type ScrubRevealMode = "enterExit" | "exitOnly";
-
-export type ScrubRevealOptions = {
-  mode?: ScrubRevealMode;
-  start?: string;
-  end?: string;
-  scrub?: number;
-  y?: number;
-  stagger?: number;
-  exitOpacity?: number;
+export type ScrollScrubConfig = {
+  start: string;
+  end: string;
+  scrub: number;
+  y: number;
+  stagger: number;
+  exitOpacity: number;
+  ease?: string;
+  /** Timeline position (0–1) where enter finishes */
   enterAt?: number;
+  /** Timeline position (0–1) where exit begins */
+  exitAt?: number;
 };
 
-/** Scrub-linked scroll reveal — one timeline tied to scroll distance */
-export function createScrubScrollReveal(
-  trigger: Element,
-  targets: gsap.TweenTarget,
-  options: ScrubRevealOptions = {},
+/** Below-fold sections: enter → hold → exit, scrubbed to scroll through the section */
+export const sectionScrollReveal: ScrollScrubConfig = {
+  start: "clamp(top bottom)",
+  end: "clamp(bottom top)",
+  scrub: 1.15,
+  y: 72,
+  stagger: 0.09,
+  exitOpacity: 0.06,
+  enterAt: 0.24,
+  exitAt: 0.76,
+  ease: "power2.inOut",
+};
+
+export function queryRevealItems(root: Element): HTMLElement[] {
+  return Array.from(root.querySelectorAll<HTMLElement>("[data-gsap-reveal]"));
+}
+
+/** Scrubbed enter / hold / exit for an entire section */
+export function bindSectionScrollScrub(
+  section: Element,
+  items: HTMLElement[],
+  config: ScrollScrubConfig = sectionScrollReveal,
 ) {
-  const mode = options.mode ?? "enterExit";
-  const y = options.y ?? scrubRevealMotion.y;
-  const stagger = options.stagger ?? scrubRevealMotion.stagger;
-  const exitOpacity = options.exitOpacity ?? scrubRevealMotion.exitOpacity;
-  const scrub = options.scrub ?? scrubRevealMotion.scrub;
-  const start =
-    options.start ??
-    (mode === "exitOnly" ? heroScrollReveal.start : sectionScrollReveal.start);
-  const end =
-    options.end ??
-    (mode === "exitOnly" ? heroScrollReveal.end : sectionScrollReveal.end);
-  const enterAt = options.enterAt ?? sectionScrollReveal.enterAt;
+  if (!items.length) return null;
+
+  const { y, stagger, exitOpacity, scrub, start, end } = config;
+  const enterAt = config.enterAt ?? 0.24;
+  const exitAt = config.exitAt ?? 0.76;
+
+  gsap.set(items, { opacity: 0, y, force3D: true });
 
   const tl = gsap.timeline({
     scrollTrigger: {
-      trigger,
+      trigger: section,
       start,
       end,
       scrub,
@@ -112,38 +109,66 @@ export function createScrubScrollReveal(
     },
   });
 
-  if (mode === "exitOnly") {
-    tl.fromTo(
-      targets,
-      { opacity: 1, y: 0, force3D: true },
-      {
-        opacity: exitOpacity,
-        y: -y,
-        stagger,
-        ease: "none",
-        force3D: true,
-      },
-    );
-  } else {
-    tl.fromTo(
-      targets,
-      { opacity: 0, y, force3D: true },
-      { opacity: 1, y: 0, stagger, ease: "none", force3D: true },
-      0,
-    ).to(
-      targets,
-      {
-        opacity: exitOpacity,
-        y: -y,
-        stagger,
-        ease: "none",
-        force3D: true,
-      },
-      enterAt,
-    );
-  }
+  tl.to(
+    items,
+    {
+      opacity: 1,
+      y: 0,
+      stagger,
+      ease: "none",
+      duration: enterAt,
+      force3D: true,
+    },
+    0,
+  );
+  tl.to(
+    items,
+    { opacity: 1, y: 0, ease: "none", duration: exitAt - enterAt },
+    enterAt,
+  );
+  tl.to(
+    items,
+    {
+      opacity: exitOpacity,
+      y: -y,
+      stagger,
+      ease: "none",
+      duration: 1 - exitAt,
+      force3D: true,
+    },
+    exitAt,
+  );
 
   return tl;
+}
+
+/** Hero: mount entrance handled separately; scrub fades the full block out on scroll down */
+export function bindHeroExitScrub(section: Element, items: HTMLElement[]) {
+  if (!items.length) return null;
+
+  const config = heroScrollReveal;
+
+  return gsap
+    .timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: config.start,
+        end: config.end,
+        scrub: config.scrub,
+        invalidateOnRefresh: true,
+      },
+    })
+    .fromTo(
+      items,
+      { opacity: 1, y: 0, force3D: true },
+      {
+        opacity: config.exitOpacity,
+        y: -config.y,
+        stagger: config.stagger,
+        ease: "none",
+        force3D: true,
+      },
+    );
 }
 
 export type DirectionalRevealOptions = {

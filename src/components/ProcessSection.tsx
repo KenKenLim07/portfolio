@@ -3,7 +3,7 @@
 import { PROCESS_STEPS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedStagger } from "@/components/ui/AnimatedSection";
+import { AnimatedItem } from "@/components/ui/AnimatedSection";
 
 export function ProcessSection() {
   return (
@@ -15,7 +15,7 @@ export function ProcessSection() {
         align="center"
       />
 
-      <AnimatedStagger className="relative">
+      <div className="relative">
         <div
           className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
           aria-hidden
@@ -54,7 +54,7 @@ export function ProcessSection() {
             </AnimatedItem>
           ))}
         </div>
-      </AnimatedStagger>
+      </div>
     </Section>
   );
 }

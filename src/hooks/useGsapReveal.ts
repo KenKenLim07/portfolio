@@ -4,25 +4,24 @@ import { type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
-  createScrubScrollReveal,
+  bindSectionScrollScrub,
   gsap,
   initGsap,
-  scrubRevealMotion,
-  sectionScrollReveal,
+  queryRevealItems,
   ScrollTrigger,
+  sectionScrollReveal,
 } from "@/lib/gsap";
 
 export type GsapRevealOptions = {
   y?: number;
-  start?: string;
-  end?: string;
-  scrub?: number;
+  stagger?: number;
   exitOpacity?: number;
-  enterAt?: number;
-  triggerRef?: RefObject<HTMLElement | null>;
 };
 
-/** Standalone scrub reveal (e.g. one card when not inside a `Section`) */
+/**
+ * Attaches scrubbed section-style reveal to the nearest `<section>` ancestor.
+ * Prefer `Section` + `AnimatedItem` on the home page.
+ */
 export function useGsapReveal(
   targetRef: RefObject<HTMLElement | null>,
   options: GsapRevealOptions = {},
@@ -31,27 +30,29 @@ export function useGsapReveal(
 
   useGSAP(
     () => {
-      initGsap();
       const el = targetRef.current;
       if (!el || prefersReducedMotion) return;
 
-      const triggerEl = options.triggerRef?.current ?? el;
-      if (!el.hasAttribute("data-gsap-reveal")) {
-        el.setAttribute("data-gsap-reveal", "");
-        el.classList.add("gsap-reveal");
-      }
+      const section = el.closest("section");
+      if (!section) return;
+
+      initGsap();
+
+      const items = queryRevealItems(section);
+      if (!items.length) return;
+
+      const config = {
+        ...sectionScrollReveal,
+        ...(options.y !== undefined ? { y: options.y } : {}),
+        ...(options.stagger !== undefined ? { stagger: options.stagger } : {}),
+        ...(options.exitOpacity !== undefined
+          ? { exitOpacity: options.exitOpacity }
+          : {}),
+      };
 
       const ctx = gsap.context(() => {
-        createScrubScrollReveal(triggerEl, el, {
-          mode: "enterExit",
-          start: options.start ?? sectionScrollReveal.start,
-          end: options.end ?? sectionScrollReveal.end,
-          scrub: options.scrub ?? scrubRevealMotion.scrub,
-          y: options.y ?? scrubRevealMotion.y,
-          exitOpacity: options.exitOpacity ?? scrubRevealMotion.exitOpacity,
-          enterAt: options.enterAt ?? sectionScrollReveal.enterAt,
-        });
-      }, el);
+        bindSectionScrollScrub(section, items, config);
+      }, section);
 
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
@@ -61,12 +62,8 @@ export function useGsapReveal(
       scope: targetRef,
       dependencies: [
         options.y,
-        options.start,
-        options.end,
-        options.scrub,
+        options.stagger,
         options.exitOpacity,
-        options.enterAt,
-        options.triggerRef,
         prefersReducedMotion,
       ],
       revertOnUpdate: true,

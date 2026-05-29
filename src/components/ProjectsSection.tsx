@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
+import { AnimatedItem } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 
@@ -72,22 +72,20 @@ export function ProjectsSection() {
           No projects yet.
         </p>
       ) : (
-        <AnimatedSection>
-          <AnimatedItem>
-            <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
-              <div
-                className="space-y-8 lg:space-y-0"
-                onMouseLeave={() => setShowPreview(false)}
-              >
-                {projects.map((project, index) => {
+        <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
+          <div
+            className="space-y-8 lg:space-y-0"
+            onMouseLeave={() => setShowPreview(false)}
+          >
+            {projects.map((project, index) => {
                   const isActive = project.id === active?.id;
                   const stackPreview = project.stack.slice(0, 3);
                   const overflow = project.stack.length - stackPreview.length;
 
-                  return (
-                    <button
-                      key={project.id}
-                      type="button"
+              return (
+                <AnimatedItem key={project.id}>
+                  <button
+                    type="button"
                       className={cn(
                         "group w-full cursor-pointer text-left transition-colors duration-200",
                         "p-0 bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
@@ -145,13 +143,14 @@ export function ProjectsSection() {
                           )}
                         </div>
                       </div>
-                    </button>
-                  );
-                })}
-              </div>
+                  </button>
+                </AnimatedItem>
+              );
+            })}
+          </div>
 
-              {/* Desktop: boxed hover preview */}
-              <div className="sticky top-28 hidden lg:block">
+          <AnimatedItem className="sticky top-28 hidden lg:block">
+            <div>
                 {showPreview && active && activeIndex >= 0 ? (
                   <div className="radius-panel-lg overflow-hidden bg-surface">
                     <div className="relative aspect-[2/1] bg-zinc-950">
@@ -190,13 +189,12 @@ export function ProjectsSection() {
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="h-[12px]" aria-hidden />
-                )}
-              </div>
+            ) : (
+              <div className="h-[12px]" aria-hidden />
+            )}
             </div>
           </AnimatedItem>
-        </AnimatedSection>
+        </div>
       )}
     </Section>
   );
