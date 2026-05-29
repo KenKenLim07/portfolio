@@ -4,8 +4,7 @@ import { useEffect } from "react";
 import { initGsap, ScrollTrigger } from "@/lib/gsap";
 
 /**
- * Initializes GSAP ScrollTrigger and refreshes on resize / font load
- * so trigger positions stay accurate after layout shifts.
+ * Initializes GSAP ScrollTrigger and debounced refresh on resize / font load.
  */
 export function GsapProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {

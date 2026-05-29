@@ -2,12 +2,13 @@
 
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
-import { useReducedMotion } from "framer-motion";
+import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
   createDirectionalScrollReveal,
   gsap,
   initGsap,
   revealDefaults,
+  heroTailExitScroll,
   tailRevealScroll,
 } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,10 @@ type AnimatedSectionProps = {
   start?: string;
   end?: string;
   exitOpacity?: number;
+  /** Hero / above-fold: reveal on first paint without requiring scroll. */
+  revealIfInView?: boolean;
+  /** Pin scroll band to this element (e.g. `#home`) instead of the section root. */
+  scrollTrigger?: string;
 };
 
 export function AnimatedSection({
@@ -30,13 +35,20 @@ export function AnimatedSection({
   start,
   end,
   exitOpacity,
+  revealIfInView = false,
+  scrollTrigger,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useGsapReducedMotion();
   const resolvedStart =
     start ?? (variant === "tail" ? tailRevealScroll.start : revealDefaults.start);
   const resolvedEnd =
-    end ?? (variant === "tail" ? tailRevealScroll.end : undefined);
+    end ??
+    (variant === "tail"
+      ? revealIfInView
+        ? heroTailExitScroll.end
+        : tailRevealScroll.end
+      : undefined);
   const resolvedExitOpacity = exitOpacity ?? (variant === "tail" ? 0.2 : 0);
 
   useGSAP(
@@ -54,6 +66,9 @@ export function AnimatedSection({
           start: resolvedStart,
           end: resolvedEnd,
           exitOpacity: resolvedExitOpacity,
+          revealIfInView,
+          entranceOnly: revealIfInView,
+          scrollTrigger,
         });
       }, root);
 
@@ -66,6 +81,8 @@ export function AnimatedSection({
         resolvedStart,
         resolvedEnd,
         resolvedExitOpacity,
+        revealIfInView,
+        scrollTrigger,
         prefersReducedMotion,
       ],
       revertOnUpdate: true,
@@ -105,6 +122,7 @@ export function AnimatedStagger({
   start,
   end,
   exitOpacity,
+  revealIfInView,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -113,6 +131,7 @@ export function AnimatedStagger({
   start?: string;
   end?: string;
   exitOpacity?: number;
+  revealIfInView?: boolean;
 }) {
   return (
     <AnimatedSection
@@ -122,6 +141,7 @@ export function AnimatedStagger({
       start={start}
       end={end}
       exitOpacity={exitOpacity}
+      revealIfInView={revealIfInView}
     >
       {children}
     </AnimatedSection>

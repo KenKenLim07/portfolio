@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowDown } from "lucide-react";
+import { useRef } from "react";
+import { useGSAP } from "@gsap/react";
+import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
+import { useHeroScrollReveal } from "@/hooks/useHeroScrollReveal";
+import { gsap, initGsap } from "@/lib/gsap";
 import {
   ENABLE_HERO_BRAIN,
   HERO_AVAILABILITY,
@@ -12,8 +16,7 @@ import {
 import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
-import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
-import { tailRevealScroll } from "@/lib/gsap";
+import { HeroRevealItem } from "@/components/ui/HeroRevealItem";
 import { cn } from "@/lib/utils";
 
 function HeroCtas({
@@ -28,7 +31,8 @@ function HeroCtas({
   const stacked = variant === "stack";
 
   return (
-    <AnimatedItem
+    <HeroRevealItem
+      group="tail"
       className={cn(
         "overflow-visible",
         HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-sky-400 bg-sky-400/5 p-1",
@@ -78,7 +82,7 @@ function HeroCtas({
           Get in touch
         </Link>
       </div>
-    </AnimatedItem>
+    </HeroRevealItem>
   );
 }
 
@@ -89,11 +93,12 @@ function HeroCopy({
   introClassName?: string;
   compact?: boolean;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useGsapReducedMotion();
 
   return (
     <>
-      <AnimatedItem
+      <HeroRevealItem
+        group="copy"
         className={cn(
           "flex flex-wrap items-center gap-2 sm:gap-3",
           compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8",
@@ -110,29 +115,28 @@ function HeroCopy({
         </span>
         <span className="hidden h-px w-8 bg-border sm:block" />
         <HeroRotatingText />
-      </AnimatedItem>
+      </HeroRevealItem>
 
       <div
         className="font-display font-semibold tracking-tight"
         role="heading"
         aria-level={1}
       >
-        <AnimatedItem className="block">
+        <HeroRevealItem group="copy" className="block">
           <span className="hero-mega text-foreground">Full-Stack</span>
-        </AnimatedItem>
-        <AnimatedItem className="block">
+        </HeroRevealItem>
+        <HeroRevealItem group="copy" className="block">
           <span className="hero-mega hero-mega-muted">&amp; AI Systems</span>
-        </AnimatedItem>
-        <AnimatedItem className="block">
+        </HeroRevealItem>
+        <HeroRevealItem group="copy" className="block">
           <span className="hero-mega text-foreground">Engineer</span>
-        </AnimatedItem>
+        </HeroRevealItem>
       </div>
 
-      <AnimatedItem
+      <HeroRevealItem
+        group="copy"
         className={cn(
-          compact
-            ? "mt-3"
-            : "mt-5 sm:mt-6 lg:mt-10",
+          compact ? "mt-3" : "mt-5 sm:mt-6 lg:mt-10",
           introClassName,
         )}
       >
@@ -150,65 +154,51 @@ function HeroCopy({
           </span>
           . {SITE.description}
         </p>
-      </AnimatedItem>
+      </HeroRevealItem>
     </>
   );
 }
 
 function HeroScrollCue({ className }: { className?: string }) {
-  const prefersReducedMotion = useReducedMotion();
+  const iconRef = useRef<HTMLSpanElement>(null);
+  const prefersReducedMotion = useGsapReducedMotion();
+
+  useGSAP(
+    () => {
+      initGsap();
+      const el = iconRef.current;
+      if (!el || prefersReducedMotion) return;
+
+      gsap.to(el, {
+        y: 5,
+        duration: 1.1,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+      });
+    },
+    { scope: iconRef, dependencies: [prefersReducedMotion] },
+  );
 
   return (
-    <AnimatedItem
+    <HeroRevealItem
+      group="cue"
       className={cn("pointer-events-none flex items-center justify-center", className)}
     >
-      <motion.div
-        animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        aria-hidden
-      >
-        <svg
-          viewBox="0 0 12 8"
-          className="h-3 w-3 text-muted"
-          fill="currentColor"
-        >
+      <span ref={iconRef} className="inline-flex" aria-hidden>
+        <svg viewBox="0 0 12 8" className="h-3 w-3 text-muted" fill="currentColor">
           <path d="M6 8 0 0h12L6 8z" />
         </svg>
-      </motion.div>
-    </AnimatedItem>
-  );
-}
-
-function HeroTail({
-  children,
-  className,
-  scrollCueClassName,
-  showScrollCue = true,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  scrollCueClassName?: string;
-  showScrollCue?: boolean;
-}) {
-  const prefersReducedMotion = useReducedMotion();
-
-  return (
-    <AnimatedSection className={cn("relative", className)} variant="tail" delay={0.18}>
-      {children}
-      {!prefersReducedMotion && showScrollCue && (
-        <HeroScrollCue
-          className={cn(
-            "absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2",
-            scrollCueClassName,
-          )}
-        />
-      )}
-    </AnimatedSection>
+      </span>
+    </HeroRevealItem>
   );
 }
 
 export function HeroSection() {
-  const prefersReducedMotion = useReducedMotion();
+  const heroContentRef = useRef<HTMLDivElement>(null);
+  const prefersReducedMotion = useGsapReducedMotion();
+
+  useHeroScrollReveal(heroContentRef);
 
   if (ENABLE_HERO_BRAIN) {
     return (
@@ -234,78 +224,72 @@ export function HeroSection() {
     >
       <div className="hero-section-glow pointer-events-none absolute inset-0" />
 
-      <div
-        className={cn(
-          "relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
-          HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
-        )}
-      >
-        <AnimatedSection
+      <div ref={heroContentRef}>
+        <div
+          data-hero-panel="mobile"
           className={cn(
-            "shrink-0",
-            HERO_LAYOUT_DEBUG &&
-              "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
-          )}
-          start={tailRevealScroll.start}
-          delay={0.05}
-        >
-          <HeroCopy />
-        </AnimatedSection>
-
-        <HeroTail
-          className={cn(
-            "mt-auto flex w-full flex-col gap-6 pt-8 pb-12 sm:gap-7 sm:pt-9 sm:pb-14",
-            HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
+            "relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
+            HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
           )}
         >
-          <HeroCtas variant="stack" large />
-          <HeroMetrics variant="row" />
-        </HeroTail>
-      </div>
-
-      <div
-        className={cn(
-          "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
-          HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
-        )}
-      >
-        <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
-          <AnimatedSection
+          <div
             className={cn(
-              "col-span-7 xl:col-span-7",
+              "shrink-0",
               HERO_LAYOUT_DEBUG &&
                 "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
             )}
-            start={tailRevealScroll.start}
-            delay={0.05}
           >
-            <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
-          </AnimatedSection>
+            <HeroCopy />
+          </div>
 
-          <HeroTail
+          <div
             className={cn(
-              "col-span-5 xl:col-span-5",
-              HERO_LAYOUT_DEBUG &&
-                "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
+              "relative mt-auto flex w-full flex-col gap-6 pt-8 pb-12 sm:gap-7 sm:pt-9 sm:pb-14",
+              HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
             )}
-            showScrollCue={false}
           >
-            <div className="flex w-full flex-col gap-5">
+            <HeroCtas variant="stack" large />
+            <HeroMetrics variant="row" />
+            {!prefersReducedMotion && (
+              <HeroScrollCue className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2" />
+            )}
+          </div>
+        </div>
+
+        <div
+          data-hero-panel="desktop"
+          className={cn(
+            "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
+            HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
+          )}
+        >
+          <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
+            <div
+              className={cn(
+                "col-span-7 xl:col-span-7",
+                HERO_LAYOUT_DEBUG &&
+                  "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
+              )}
+            >
+              <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
+            </div>
+
+            <div
+              className={cn(
+                "col-span-5 flex w-full flex-col gap-5 xl:col-span-5",
+                HERO_LAYOUT_DEBUG &&
+                  "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
+              )}
+            >
               <HeroCtas variant="stack" className="w-full" />
               <HeroMetrics variant="column" className="w-full" />
             </div>
-          </HeroTail>
-        </div>
+          </div>
 
-        {!prefersReducedMotion && (
-          <AnimatedSection
-            className="pointer-events-none absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10 flex justify-center"
-            variant="tail"
-            delay={0.28}
-          >
-            <HeroScrollCue />
-          </AnimatedSection>
-        )}
+          {!prefersReducedMotion && (
+            <HeroScrollCue className="absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10" />
+          )}
+        </div>
       </div>
     </section>
   );

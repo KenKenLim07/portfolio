@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
-import { useReducedMotion } from "framer-motion";
+import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ export function ScrollBurgerIcon({
   const bottomRef = useRef<SVGLineElement>(null);
   const lastYRef = useRef(0);
   const resetTimerRef = useRef<number | null>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useGsapReducedMotion();
 
   useGSAP(
     (_, contextSafe) => {

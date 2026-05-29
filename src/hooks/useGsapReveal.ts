@@ -2,7 +2,7 @@
 
 import { type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
-import { useReducedMotion } from "framer-motion";
+import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { createDirectionalScrollReveal, gsap, initGsap } from "@/lib/gsap";
 
 export type GsapRevealOptions = {
@@ -12,17 +12,15 @@ export type GsapRevealOptions = {
   start?: string;
   end?: string;
   exitOpacity?: number;
+  revealIfInView?: boolean;
   triggerRef?: RefObject<HTMLElement | null>;
 };
 
-/**
- * Direction-aware scroll reveal for a single element (e.g. project cards).
- */
 export function useGsapReveal(
   targetRef: RefObject<HTMLElement | null>,
   options: GsapRevealOptions = {},
 ) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useGsapReducedMotion();
 
   useGSAP(
     () => {
@@ -40,6 +38,7 @@ export function useGsapReveal(
           start: options.start,
           end: options.end,
           exitOpacity: options.exitOpacity,
+          revealIfInView: options.revealIfInView,
         });
       }, el);
 
@@ -54,6 +53,7 @@ export function useGsapReveal(
         options.start,
         options.end,
         options.exitOpacity,
+        options.revealIfInView,
         options.triggerRef,
         prefersReducedMotion,
       ],

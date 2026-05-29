@@ -4,6 +4,7 @@
 
 /* Coffee cream light (default) */
 :root {
+  color-scheme: light;
   --background: #d9cdb8;
   --foreground: #1a1410;
   --muted: #4f463c;
@@ -37,6 +38,7 @@
 
 /* Warm dark */
 .dark {
+  color-scheme: dark;
   --background: #121110;
   --foreground: #f5f0e8;
   --muted: #a39e96;
@@ -99,6 +101,13 @@ html {
   .gsap-reveal {
     opacity: 0;
     transform: translate3d(0, 3.5rem, 0);
+    will-change: transform, opacity;
+  }
+
+  /* Hero: avoid blank flash while JS hydrates (matches heroScrollReveal.y ≈ 96px) */
+  #home .gsap-reveal {
+    opacity: 1;
+    transform: none;
     will-change: transform, opacity;
   }
 }
