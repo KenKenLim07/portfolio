@@ -3,7 +3,7 @@
 import { PROCESS_STEPS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedStagger } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function ProcessSection() {
   return (
@@ -15,16 +15,17 @@ export function ProcessSection() {
         align="center"
       />
 
-      <AnimatedStagger className="relative" variant="tail">
-        <div
-          className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
-          aria-hidden
-        />
+      <AnimatedSection className="relative" variant="tail">
+        <AnimatedItem>
+          <div
+            className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
+            aria-hidden
+          />
 
-        <div className="grid gap-6 md:gap-8">
-          {PROCESS_STEPS.map((step, index) => (
-            <AnimatedItem key={step.title}>
+          <div className="grid gap-6 md:gap-8">
+            {PROCESS_STEPS.map((step, index) => (
               <div
+                key={step.title}
                 className={`relative flex flex-col gap-4 md:flex-row md:items-center md:gap-10 ${
                   index % 2 === 1 ? "lg:flex-row-reverse" : ""
                 }`}
@@ -51,10 +52,10 @@ export function ProcessSection() {
                 </div>
                 <div className="hidden md:block md:w-1/2" aria-hidden />
               </div>
-            </AnimatedItem>
-          ))}
-        </div>
-      </AnimatedStagger>
+            ))}
+          </div>
+        </AnimatedItem>
+      </AnimatedSection>
     </Section>
   );
 }

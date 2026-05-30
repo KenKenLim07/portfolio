@@ -236,16 +236,11 @@ export function createDirectionalScrollReveal(
 
     gsap.killTweensOf(targets);
 
-    if (options.entranceOnly && inViewOnMount && !hasEntered) {
-      gsap.fromTo(
-        targets,
-        { opacity: 0, y, force3D: true, immediateRender: true },
-        { opacity: 1, y: 0, force3D: true, ...enter },
-      );
-    } else {
-      gsap.set(targets, { opacity: 0, y, force3D: true });
-      gsap.to(targets, { opacity: 1, y: 0, force3D: true, ...enter });
-    }
+    gsap.fromTo(
+      targets,
+      { opacity: 0, y, force3D: true, immediateRender: true },
+      { opacity: 1, y: 0, force3D: true, ...enter },
+    );
 
     hasEntered = true;
   };
@@ -256,11 +251,26 @@ export function createDirectionalScrollReveal(
     gsap.to(targets, { opacity: exitOpacity, y: -y, force3D: true, ...exit });
   };
 
-  /** Scroll up into band — drop from above */
+  /** Scroll up into band — slide down from above (scroll up the page, content enters from top) */
   const playEnterBack = () => {
+    const firstTarget = gsap.utils.toArray(targets)[0] as Element | undefined;
+    const opacity =
+      firstTarget instanceof Element
+        ? Number(gsap.getProperty(firstTarget, "opacity"))
+        : 0;
+    const currentY =
+      firstTarget instanceof Element
+        ? Number(gsap.getProperty(firstTarget, "y"))
+        : 0;
+
+    if (opacity >= 0.99 && Math.abs(currentY) < 2 && hasEntered) return;
+
     gsap.killTweensOf(targets);
-    gsap.set(targets, { opacity: 0, y: -y, force3D: true });
-    gsap.to(targets, { opacity: 1, y: 0, force3D: true, ...enter });
+    gsap.fromTo(
+      targets,
+      { opacity: 0, y: -y, force3D: true, immediateRender: true },
+      { opacity: 1, y: 0, force3D: true, ...enter },
+    );
     hasEntered = true;
   };
 
@@ -275,14 +285,22 @@ export function createDirectionalScrollReveal(
     gsap.to(targets, { opacity: exitOpacity, y, force3D: true, ...exit });
   };
 
+  const markBound = () => {
+    gsap.utils.toArray(targets).forEach((t) => {
+      if (t instanceof Element) t.classList.add("gsap-bound");
+    });
+  };
+
   if (!options.entranceOnly) {
     gsap.set(targets, { opacity: 0, y, force3D: true });
+    markBound();
   }
 
   if (inViewOnMount) {
     playEnter(true);
   } else if (!options.entranceOnly) {
     gsap.set(targets, { opacity: 0, y, force3D: true });
+    markBound();
   }
 
   /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */

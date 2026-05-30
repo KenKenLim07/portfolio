@@ -4,7 +4,7 @@ import { TECH_STACK } from "@/lib/constants";
 import { TechBrandIcon } from "@/components/TechBrandIcon";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedStagger } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 
 const groups = [
   { key: "frontend" as const, label: "Frontend" },
@@ -21,10 +21,14 @@ export function TechStackSection() {
         description="Tools I use to build fast interfaces, reliable backends, and intelligent data products."
       />
 
-      <AnimatedStagger className="grid gap-6 md:grid-cols-3" variant="tail">
-        {groups.map((group) => (
-          <AnimatedItem key={group.key}>
-            <div className="radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border">
+      <AnimatedSection variant="tail">
+        <AnimatedItem>
+          <div className="grid gap-6 md:grid-cols-3">
+            {groups.map((group) => (
+              <div
+                key={group.key}
+                className="radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border"
+              >
               <div className="mb-5 flex items-center gap-3">
                 <span
                   className="h-px w-14 bg-[color-mix(in_srgb,var(--accent-from)_42%,transparent)]"
@@ -45,10 +49,11 @@ export function TechStackSection() {
                   </div>
                 ))}
               </div>
-            </div>
-          </AnimatedItem>
-        ))}
-      </AnimatedStagger>
+              </div>
+            ))}
+          </div>
+        </AnimatedItem>
+      </AnimatedSection>
     </Section>
   );
 }

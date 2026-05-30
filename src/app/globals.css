@@ -102,6 +102,11 @@ html {
     opacity: 0;
     transform: translate3d(0, 3.5rem, 0);
     will-change: transform, opacity;
+    visibility: hidden;
+  }
+
+  .gsap-reveal.gsap-bound {
+    visibility: visible;
   }
 
   /* Hero: avoid blank flash while JS hydrates (matches heroScrollReveal.y ≈ 96px) */
@@ -109,6 +114,7 @@ html {
     opacity: 1;
     transform: none;
     will-change: transform, opacity;
+    visibility: visible;
   }
 }
 
