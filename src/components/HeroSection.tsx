@@ -206,7 +206,6 @@ export function HeroSection() {
         id="home"
         className="relative min-h-[100dvh] overflow-x-hidden pt-24 pb-16 md:min-h-[105vh] md:pt-32 md:pb-28"
       >
-        <div className="pointer-events-none absolute inset-0 grid-pattern opacity-10" />
         <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-6 md:px-8 lg:px-12">
           <HeroVisual />
         </div>
@@ -222,8 +221,6 @@ export function HeroSection() {
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div className="hero-section-glow pointer-events-none absolute inset-0" />
-
       <div ref={heroContentRef}>
         <div
           data-hero-panel="mobile"

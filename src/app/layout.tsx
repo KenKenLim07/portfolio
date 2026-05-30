@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
 import { GsapProvider } from "@/components/GsapProvider";
+import { SiteBackground } from "@/components/SiteBackground";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
@@ -77,8 +78,9 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full overflow-x-hidden bg-background font-sans text-foreground antialiased transition-colors duration-300">
+      <body className="min-h-full overflow-x-hidden bg-transparent font-sans text-foreground antialiased transition-colors duration-300">
         <ThemeProvider>
+          <SiteBackground />
           <GsapProvider>{children}</GsapProvider>
         </ThemeProvider>
       </body>
