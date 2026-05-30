@@ -82,7 +82,8 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
 }
 
 /**
- * Hero: mount entrance + scrubbed exit on `#home` (same logic as `bindSectionScrollScrub`).
+ * Hero: mount entrance + scrubbed exit on `#home` for copy, tail, and cue.
+ * Scrub reverses when scrolling up from below — full hero animates back in.
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,

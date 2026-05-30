@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 
@@ -71,7 +72,9 @@ export function ProjectsSection() {
           No projects yet.
         </p>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
+        <AnimatedSection variant="tail">
+          <AnimatedItem>
+            <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
               <div
                 className="space-y-8 lg:space-y-0"
                 onMouseLeave={() => setShowPreview(false)}
@@ -191,7 +194,9 @@ export function ProjectsSection() {
                   <div className="h-[12px]" aria-hidden />
                 )}
               </div>
-        </div>
+            </div>
+          </AnimatedItem>
+        </AnimatedSection>
       )}
     </Section>
   );

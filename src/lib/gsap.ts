@@ -20,13 +20,36 @@ export const revealDefaults = {
   duration: 0.75,
   stagger: 0.08,
   ease: "power3.out" as const,
-  start: "clamp(top 85%)",
+  start: "clamp(top 90%)",
 };
 
 /** Hero / above-the-fold blocks — wider band for tail exit only */
 export const tailRevealScroll = {
   start: "clamp(top bottom-=4%)",
   end: "clamp(bottom 30%)",
+} as const;
+
+/**
+ * Tail block pinned to a parent `<section id="…">` trigger.
+ * Exit runs while the section (and card) are still largely on screen.
+ */
+export const sectionTailRevealScroll = {
+  start: "clamp(top bottom-=8%)",
+  end: "clamp(bottom 52%)",
+} as const;
+
+/** Small tail block without a section trigger — earlier exit on the block itself */
+export const tailBlockRevealScroll = {
+  start: "clamp(top bottom-=8%)",
+  end: "clamp(bottom 78%)",
+} as const;
+
+/** Stronger motion for tail enter/exit (sections below hero) */
+export const tailMotion = {
+  y: 64,
+  duration: 0.85,
+  stagger: 0.09,
+  exitOpacity: 0.15,
 } as const;
 
 /**
@@ -40,213 +63,55 @@ export const heroTailExitScroll = {
 
 /**
  * Unified hero scroll exit — scrubbed to scroll distance (not a one-shot tween).
- * Wider band + larger travel than section defaults.
+ *
+ * Scroll band (maps scrub 0 → 1):
+ *   start: hero top at viewport top     → fully visible
+ *   end:   hero bottom near viewport top → fully exited
+ *
+ * Tune `end` to widen/narrow how much scroll drives the exit:
+ *   - `bottom top+=20%` = longer band (exit starts earlier as you scroll)
+ *   - `bottom top`       = longest band (exit completes when hero is almost gone)
+ *
+ * Tune `scrub` for how tightly motion follows the wheel (higher = smoother/laggier).
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
-  end: "clamp(bottom top+=18%)",
-  scrub: 1.4,
+  end: "clamp(bottom 22%)",
+  scrub: 1.25,
   y: 96,
   duration: 0.95,
   stagger: 0.11,
-  /** Parallel scrub lanes: copy → tail → cue (0 = fully synced) */
-  exitGroupOffset: 0.03,
   exitOpacity: 0.04,
   ease: "power2.inOut" as const,
 } as const;
 
-export type ScrollScrubConfig = {
-  start: string;
-  end: string;
-  scrub: number;
-  y: number;
-  stagger: number;
-  exitOpacity: number;
-  ease?: string;
-  /** Scroll progress (0–1) before lines start entering — content stays hidden */
-  enterDelay?: number;
-  /** Scroll progress (0–1) where the last line finishes entering */
-  enterAt?: number;
-  /** Scroll progress (0–1) where exit begins */
-  exitAt?: number;
-  /** Vertical travel on tail exit (defaults to `y`) */
-  exitY?: number;
-  /** Stagger between tail lines on exit (defaults to `stagger`; hero uses ~0.11) */
-  exitStagger?: number;
-};
-
-/**
- * Below-fold sections — fast enter, hero-style “suck up” exit on scroll down.
- * Tune speed: widen/narrow `enterAt - enterDelay` (in) and `1 - exitAt` (out).
- */
-export const sectionScrollReveal: ScrollScrubConfig = {
-  start: "clamp(top bottom)",
-  end: "clamp(bottom top)",
-  scrub: 0.95,
-  y: 128,
-  stagger: 0.16,
-  /** Last tail lines exit in sync */
-  exitStagger: 0,
-  exitOpacity: heroScrollReveal.exitOpacity,
-  enterDelay: 0.16,
-  enterAt: 0.38,
-  /** Earlier exit = more scroll band for the “suck up” */
-  exitAt: 0.42,
-  exitY: heroScrollReveal.y,
-  ease: heroScrollReveal.ease,
-};
-
-/** Bottom share of section lines that exit together on scroll down */
-export const sectionTailFraction = 0.35;
-
-/** Minimum lines in the tail group (e.g. last paragraph + card) */
-export const sectionTailMinCount = 2;
-
-export function queryRevealItems(root: Element): HTMLElement[] {
-  return Array.from(root.querySelectorAll<HTMLElement>("[data-gsap-reveal]"));
-}
-
-/** Tail lines get scroll-down exit; prefers `[data-gsap-reveal-tail-zone]` then explicit tail marks */
-export function queryRevealTailItems(section: Element): HTMLElement[] {
-  const zone = section.querySelector("[data-gsap-reveal-tail-zone]");
-  if (zone) {
-    return Array.from(zone.querySelectorAll<HTMLElement>("[data-gsap-reveal]"));
-  }
-
-  const explicit = Array.from(
-    section.querySelectorAll<HTMLElement>("[data-gsap-reveal-tail]"),
-  );
-  if (explicit.length) return explicit;
-
-  const all = queryRevealItems(section);
-  if (all.length <= 1) return all;
-
-  const tailCount = Math.max(
-    sectionTailMinCount,
-    Math.min(all.length - 1, Math.ceil(all.length * sectionTailFraction)),
-  );
-  return all.slice(-tailCount);
-}
-
-/**
- * Enter: all lines. Exit: bottom ~30% only — head holds still so it reads as
- * “suck up” not whole-section scroll. Section clip hides tail sliding under head.
- */
-export function bindSectionScrollScrub(
-  section: Element,
-  items: HTMLElement[],
-  config: ScrollScrubConfig = sectionScrollReveal,
-) {
-  if (!items.length) return null;
-
-  const tailItems = queryRevealTailItems(section);
-  const { y, exitOpacity, scrub, start, end, stagger } = config;
-  const exitStagger = config.exitStagger ?? stagger;
-  const exitY = config.exitY ?? y;
-  const enterDelay = config.enterDelay ?? 0;
-  const enterAt = config.enterAt ?? 0.42;
-  const exitAt = config.exitAt ?? 0.48;
-  const hold = Math.max(0, exitAt - enterAt);
-  const exitSpan = Math.max(0, 1 - exitAt);
-  const enterWindow = Math.max(0.08, enterAt - enterDelay);
-
-  const staggerEach =
-    items.length > 1
-      ? Math.min(stagger, (enterWindow * 0.85) / (items.length - 1))
-      : 0;
-
-  gsap.set(items, { opacity: 0, y, force3D: true });
-
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: section,
-      start,
-      end,
-      scrub,
-      invalidateOnRefresh: true,
-    },
-  });
-
-  items.forEach((item, index) => {
-    const enterStart = enterDelay + index * staggerEach;
-    const enterDuration = Math.max(0.08, enterAt - enterStart);
-
-    tl.fromTo(
-      item,
-      { opacity: 0, y, force3D: true },
-      {
-        opacity: 1,
-        y: 0,
-        ease: "none",
-        duration: enterDuration,
-        force3D: true,
-      },
-      enterStart,
-    );
-
-    tl.to(
-      item,
-      { opacity: 1, y: 0, ease: "none", duration: hold },
-      enterAt,
-    );
-  });
-
-  if (tailItems.length) {
-    tl.to(
-      tailItems,
-      {
-        opacity: exitOpacity,
-        y: -exitY,
-        stagger: exitStagger,
-        ease: "none",
-        duration: exitSpan,
-        force3D: true,
-      },
-      exitAt,
-    );
-  }
-
-  return tl;
-}
-
-function groupHeroExitItems(items: HTMLElement[]): HTMLElement[][] {
-  const copy = items.filter((el) => el.dataset.heroGroup === "copy");
-  const tail = items.filter((el) => el.dataset.heroGroup === "tail");
-  const cue = items.filter((el) => el.dataset.heroGroup === "cue");
-  const groups = [copy, tail, cue].filter((group) => group.length > 0);
-  return groups.length ? groups : [items];
-}
-
-/** Hero: mount entrance handled separately; scrub exits copy + tail + cue on `#home` */
+/** Hero: mount entrance separate; scrub exit reverses on scroll up into `#home` */
 export function bindHeroExitScrub(section: Element, items: HTMLElement[]) {
   if (!items.length) return null;
 
   const config = heroScrollReveal;
-  const visible = { opacity: 1, y: 0, force3D: true };
-  const exit = {
-    opacity: config.exitOpacity,
-    y: -config.y,
-    ease: "none" as const,
-    force3D: true,
-  };
-  const groups = groupHeroExitItems(items);
-  const offset = config.exitGroupOffset ?? 0;
 
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: section,
-      start: config.start,
-      end: config.end,
-      scrub: config.scrub,
-      invalidateOnRefresh: true,
-    },
-  });
-
-  groups.forEach((group, index) => {
-    tl.fromTo(group, visible, exit, index * offset);
-  });
-
-  return tl;
+  return gsap
+    .timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: config.start,
+        end: config.end,
+        scrub: config.scrub,
+        invalidateOnRefresh: true,
+      },
+    })
+    .fromTo(
+      items,
+      { opacity: 1, y: 0, force3D: true },
+      {
+        opacity: config.exitOpacity,
+        y: -config.y,
+        stagger: config.stagger,
+        ease: "none",
+        force3D: true,
+      },
+    );
 }
 
 export type DirectionalRevealOptions = {
@@ -290,6 +155,35 @@ function resolveScrollTrigger(
     return document.querySelector(scrollTrigger) ?? scope;
   }
   return scrollTrigger;
+}
+
+/** Prefer section `#id` as scroll band for tail blocks (avoids “tip only” exit on small wrappers). */
+export function resolveTailScrollBand(
+  scope: Element,
+  options: { scrollTrigger?: string; start?: string; end?: string } = {},
+) {
+  if (options.scrollTrigger) {
+    return {
+      scrollTrigger: options.scrollTrigger,
+      start: options.start ?? sectionTailRevealScroll.start,
+      end: options.end ?? sectionTailRevealScroll.end,
+    };
+  }
+
+  const section = scope.closest("section[id]");
+  if (section?.id) {
+    return {
+      scrollTrigger: `#${section.id}`,
+      start: options.start ?? sectionTailRevealScroll.start,
+      end: options.end ?? sectionTailRevealScroll.end,
+    };
+  }
+
+  return {
+    scrollTrigger: undefined,
+    start: options.start ?? tailBlockRevealScroll.start,
+    end: options.end ?? tailBlockRevealScroll.end,
+  };
 }
 
 export function createDirectionalScrollReveal(
