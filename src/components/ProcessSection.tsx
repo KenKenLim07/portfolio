@@ -3,7 +3,7 @@
 import { PROCESS_STEPS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailZone } from "@/components/ui/AnimatedSection";
 
 export function ProcessSection() {
   return (
@@ -21,12 +21,9 @@ export function ProcessSection() {
           aria-hidden
         />
 
-        <div className="grid gap-6 md:gap-8">
-          {PROCESS_STEPS.map((step, index) => {
-            const Line =
-              index === PROCESS_STEPS.length - 1 ? AnimatedTailItem : AnimatedItem;
-            return (
-            <Line key={step.title}>
+        <AnimatedTailZone className="grid gap-6 md:gap-8">
+          {PROCESS_STEPS.map((step, index) => (
+            <AnimatedItem key={step.title}>
               <div
                 className={`relative flex flex-col gap-4 md:flex-row md:items-center md:gap-10 ${
                   index % 2 === 1 ? "lg:flex-row-reverse" : ""
@@ -54,10 +51,9 @@ export function ProcessSection() {
                 </div>
                 <div className="hidden md:block md:w-1/2" aria-hidden />
               </div>
-            </Line>
-            );
-          })}
-        </div>
+            </AnimatedItem>
+          ))}
+        </AnimatedTailZone>
       </div>
     </Section>
   );

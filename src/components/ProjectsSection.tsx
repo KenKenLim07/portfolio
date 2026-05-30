@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailZone } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 
@@ -60,7 +60,7 @@ export function ProjectsSection() {
   );
 
   return (
-    <Section id="projects" className="border-t border-border">
+    <Section id="projects" className="border-t border-border" clipOnScroll={false}>
       <SectionHeading
         label=""
         title="Selected Projects"
@@ -72,7 +72,7 @@ export function ProjectsSection() {
           No projects yet.
         </p>
       ) : (
-        <div className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
+        <AnimatedTailZone className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-start">
           <div
             className="space-y-8 lg:space-y-0"
             onMouseLeave={() => setShowPreview(false)}
@@ -81,11 +81,9 @@ export function ProjectsSection() {
                   const isActive = project.id === active?.id;
                   const stackPreview = project.stack.slice(0, 3);
                   const overflow = project.stack.length - stackPreview.length;
-                  const Line =
-                    index === projects.length - 1 ? AnimatedTailItem : AnimatedItem;
 
               return (
-                <Line key={project.id}>
+                <AnimatedItem key={project.id}>
                   <button
                     type="button"
                       className={cn(
@@ -146,12 +144,12 @@ export function ProjectsSection() {
                         </div>
                       </div>
                   </button>
-                </Line>
+                </AnimatedItem>
               );
             })}
           </div>
 
-          <AnimatedTailItem className="sticky top-28 hidden lg:block">
+          <AnimatedItem className="sticky top-28 hidden lg:block">
             <div>
                 {showPreview && active && activeIndex >= 0 ? (
                   <div className="radius-panel-lg overflow-hidden bg-surface">
@@ -195,8 +193,8 @@ export function ProjectsSection() {
               <div className="h-[12px]" aria-hidden />
             )}
             </div>
-          </AnimatedTailItem>
-        </div>
+          </AnimatedItem>
+        </AnimatedTailZone>
       )}
     </Section>
   );

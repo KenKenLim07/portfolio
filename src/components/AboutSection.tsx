@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { ABOUT, ABOUT_HIGHLIGHTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailZone } from "@/components/ui/AnimatedSection";
 
 export function AboutSection() {
   return (
@@ -15,7 +15,7 @@ export function AboutSection() {
         </blockquote>
       </AnimatedItem>
 
-      <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+      <AnimatedTailZone className="grid gap-12 lg:grid-cols-2 lg:gap-16">
         <div>
           {ABOUT.paragraphs.map((paragraph, index) => (
             <AnimatedItem key={index}>
@@ -28,7 +28,7 @@ export function AboutSection() {
           ))}
         </div>
 
-        <AnimatedTailItem>
+        <AnimatedItem>
           <div className="glass radius-panel p-6 md:p-8">
             <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
               Core Focus
@@ -42,8 +42,8 @@ export function AboutSection() {
               ))}
             </ul>
           </div>
-        </AnimatedTailItem>
-      </div>
+        </AnimatedItem>
+      </AnimatedTailZone>
     </Section>
   );
 }

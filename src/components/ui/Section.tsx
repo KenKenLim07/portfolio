@@ -11,6 +11,8 @@ type SectionProps = {
   containerClassName?: string;
   /** Scrubbed enter/exit for all `[data-gsap-reveal]` inside (default: true) */
   animated?: boolean;
+  /** Clip exit motion so tail slide does not paint over the section above */
+  clipOnScroll?: boolean;
 };
 
 export function Section({
@@ -19,6 +21,7 @@ export function Section({
   className,
   containerClassName,
   animated = true,
+  clipOnScroll = true,
 }: SectionProps) {
   const ref = useRef<HTMLElement>(null);
   useSectionScrollReveal(ref, { enabled: animated });
@@ -28,7 +31,11 @@ export function Section({
       ref={ref}
       id={id}
       data-section-scroll={animated ? "" : undefined}
-      className={cn("relative scroll-mt-28 py-24 md:py-32", className)}
+      className={cn(
+        "relative scroll-mt-28 py-24 md:py-32",
+        animated && clipOnScroll && "overflow-hidden",
+        className,
+      )}
     >
       <div
         className={cn(

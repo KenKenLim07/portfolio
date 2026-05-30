@@ -49,6 +49,21 @@ export function AnimatedTailItem({
   );
 }
 
+/** Wrap bottom content — all nested AnimatedItems participate in tail exit */
+export function AnimatedTailZone({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div data-gsap-reveal-tail-zone className={className}>
+      {children}
+    </div>
+  );
+}
+
 /** @deprecated Use a plain `div` + `AnimatedItem` children; section hook handles stagger. */
 export function AnimatedStagger({
   children,
