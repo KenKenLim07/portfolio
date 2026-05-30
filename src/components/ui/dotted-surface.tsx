@@ -20,7 +20,12 @@ const DOT = {
 const CAMERA_BASE = { x: 0, y: 355, z: 1220 } as const;
 
 /** Max grid lift at page bottom — keeps dots in frame (scroll indicator). */
-const INDICATOR_MAX_LIFT = 148;
+const INDICATOR_MAX_LIFT = 198;
+
+/** Camera dolly: progress-based depth + instant gesture zoom in/out. */
+const DOLLY_FROM_PROGRESS = 68;
+const DOLLY_GESTURE_IN = 118;
+const DOLLY_GESTURE_OUT = 135;
 
 /** Wave motion: idle baseline vs boost while scrolling. */
 const WAVE_IDLE_AMP = 32;
@@ -157,6 +162,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let count = 0;
     let animationId = 0;
     let velocityKick = 0;
+    let gestureDolly = 0;
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
@@ -204,19 +210,41 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         kickBlend,
       );
       points.position.y = indicatorLift + velocityKick;
-      const zTarget = active * p * (goingUp ? 22 : 55);
-      points.position.z = lerp(points.position.z, zTarget, 0.08);
+
+      const velBoost = Math.min(Math.abs(scroll.velocity) * 0.48, 58);
+      const zGesture = goingUp
+        ? -active * (48 + velBoost)
+        : active * (52 + velBoost);
+      const zTarget = p * 38 + zGesture;
+      const depthFollow = goingUp || goingDown ? 0.18 : 0.09;
+      points.position.z = lerp(points.position.z, zTarget, depthFollow);
+
       points.rotation.z = lerp(
         points.rotation.z,
         Math.max(-0.05, Math.min(0.05, scroll.velocity * 0.00014 * active)),
         goingUp ? 0.12 : 0.08,
       );
 
-      const cameraLift = liftT * 24 + active * p * 38;
-      const cameraDolly = active * p * 95;
+      const cameraLift = liftT * 32 + (goingUp ? -1 : 1) * active * p * 34;
+
+      let targetGesture = 0;
+      if (goingUp) {
+        targetGesture = -active * (DOLLY_GESTURE_OUT + velBoost);
+      } else if (goingDown) {
+        targetGesture = active * (DOLLY_GESTURE_IN + velBoost);
+      }
+      const gestureFollow = goingUp || goingDown ? 0.2 : 0.1;
+      gestureDolly = lerp(gestureDolly, targetGesture, gestureFollow);
+
+      const progressDolly = p * DOLLY_FROM_PROGRESS;
       camera.position.y = CAMERA_BASE.y + cameraLift;
-      camera.position.z = CAMERA_BASE.z - cameraDolly;
-      camera.rotation.x = lerp(camera.rotation.x, -active * p * 0.06, 0.08);
+      camera.position.z = CAMERA_BASE.z - progressDolly - gestureDolly;
+
+      const tiltTarget = goingUp
+        ? active * 0.05
+        : -active * (p * 0.065 + 0.02);
+      const tiltFollow = goingUp || goingDown ? 0.15 : 0.09;
+      camera.rotation.x = lerp(camera.rotation.x, tiltTarget, tiltFollow);
 
       if (!reducedMotion) {
         const positionAttribute = geometry.attributes.position;
