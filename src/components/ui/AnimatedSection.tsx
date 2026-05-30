@@ -4,14 +4,12 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
-  closingSectionsExitScroll,
   createDirectionalScrollReveal,
   gsap,
-  heroTailExitScroll,
   initGsap,
+  resolveTailScrollBand,
   revealDefaults,
-  sectionExitScroll,
-  tailRevealScroll,
+  tailMotion,
 } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
 
@@ -27,13 +25,6 @@ type AnimatedSectionProps = {
   revealIfInView?: boolean;
   /** Pin scroll band to this element (e.g. `#home`) instead of the section root. */
   scrollTrigger?: string;
-  /**
-   * Exit band on a wider trigger (full section or `#closing-sections`).
-   * Enter still fires per block. Defaults to closest `<section>`.
-   */
-  exitScrollTrigger?: string;
-  /** Process + Contact: shared exit, zero stagger */
-  closingGroup?: boolean;
 };
 
 export function AnimatedSection({
@@ -46,23 +37,9 @@ export function AnimatedSection({
   exitOpacity,
   revealIfInView = false,
   scrollTrigger,
-  exitScrollTrigger,
-  closingGroup = false,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useGsapReducedMotion();
-  const resolvedStart =
-    start ?? (variant === "tail" ? tailRevealScroll.start : revealDefaults.start);
-  const exitPreset = closingGroup ? closingSectionsExitScroll : sectionExitScroll;
-  const resolvedEnd =
-    end ??
-    (variant === "tail"
-      ? revealIfInView
-        ? heroTailExitScroll.end
-        : tailRevealScroll.end
-      : undefined);
-  const resolvedExitOpacity =
-    exitOpacity ?? (variant === "tail" ? exitPreset.exitOpacity : exitPreset.exitOpacity);
 
   useGSAP(
     () => {
@@ -74,6 +51,19 @@ export function AnimatedSection({
         const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
         if (!items.length) return;
 
+        const tailBand =
+          variant === "tail" && !revealIfInView
+            ? resolveTailScrollBand(root, { scrollTrigger, start, end })
+            : null;
+
+        const resolvedStart =
+          start ?? (tailBand ? tailBand.start : revealDefaults.start);
+        const resolvedEnd = tailBand ? tailBand.end : end;
+        const resolvedScrollTrigger =
+          scrollTrigger ?? tailBand?.scrollTrigger;
+        const resolvedExitOpacity =
+          exitOpacity ?? (variant === "tail" ? tailMotion.exitOpacity : 0);
+
         createDirectionalScrollReveal(root, items, {
           delay,
           start: resolvedStart,
@@ -81,14 +71,14 @@ export function AnimatedSection({
           exitOpacity: resolvedExitOpacity,
           revealIfInView,
           entranceOnly: revealIfInView,
-          scrollTrigger,
-          exitScrollTrigger: exitScrollTrigger ?? "parent-section",
-          exitStart: exitPreset.start,
-          exitEnd: closingGroup ? closingSectionsExitScroll.end : resolvedEnd ?? exitPreset.end,
-          exitY: exitPreset.y,
-          exitDuration: exitPreset.exitDuration,
-          exitStagger: exitPreset.exitStagger,
-          splitExitTrigger: !revealIfInView,
+          scrollTrigger: resolvedScrollTrigger,
+          ...(variant === "tail" && !revealIfInView
+            ? {
+                y: tailMotion.y,
+                duration: tailMotion.duration,
+                stagger: tailMotion.stagger,
+              }
+            : {}),
         });
       }, root);
 
@@ -98,13 +88,12 @@ export function AnimatedSection({
       scope: ref,
       dependencies: [
         delay,
-        resolvedStart,
-        resolvedEnd,
-        resolvedExitOpacity,
-        revealIfInView,
+        start,
+        end,
+        exitOpacity,
         scrollTrigger,
-        exitScrollTrigger,
-        closingGroup,
+        revealIfInView,
+        variant,
         prefersReducedMotion,
       ],
       revertOnUpdate: true,
@@ -145,8 +134,6 @@ export function AnimatedStagger({
   end,
   exitOpacity,
   revealIfInView,
-  exitScrollTrigger,
-  closingGroup,
 }: {
   children: React.ReactNode;
   className?: string;
@@ -156,8 +143,6 @@ export function AnimatedStagger({
   end?: string;
   exitOpacity?: number;
   revealIfInView?: boolean;
-  exitScrollTrigger?: string;
-  closingGroup?: boolean;
 }) {
   return (
     <AnimatedSection
@@ -168,8 +153,6 @@ export function AnimatedStagger({
       end={end}
       exitOpacity={exitOpacity}
       revealIfInView={revealIfInView}
-      exitScrollTrigger={exitScrollTrigger}
-      closingGroup={closingGroup}
     >
       {children}
     </AnimatedSection>

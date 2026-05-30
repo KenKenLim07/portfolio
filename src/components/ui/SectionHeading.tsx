@@ -9,8 +9,6 @@ type SectionHeadingProps = {
   className?: string;
   /** Tajmirul-style uppercase mega title */
   variant?: "default" | "mega";
-  exitScrollTrigger?: string;
-  closingGroup?: boolean;
 };
 
 export function SectionHeading({
@@ -20,8 +18,6 @@ export function SectionHeading({
   align = "left",
   className,
   variant = "mega",
-  exitScrollTrigger,
-  closingGroup,
 }: SectionHeadingProps) {
   return (
     <AnimatedSection
@@ -30,8 +26,6 @@ export function SectionHeading({
         align === "center" && "mx-auto max-w-3xl text-center",
         className,
       )}
-      exitScrollTrigger={exitScrollTrigger}
-      closingGroup={closingGroup}
     >
       {label && (
         <AnimatedItem>

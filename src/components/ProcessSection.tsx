@@ -13,16 +13,9 @@ export function ProcessSection() {
         title="How I Work"
         description="A minimal, repeatable process that keeps strategy, design, and engineering aligned."
         align="center"
-        exitScrollTrigger="#closing-sections"
-        closingGroup
       />
 
-      <AnimatedStagger
-        className="relative"
-        variant="tail"
-        exitScrollTrigger="#closing-sections"
-        closingGroup
-      >
+      <AnimatedStagger className="relative" variant="tail">
         <div
           className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
           aria-hidden

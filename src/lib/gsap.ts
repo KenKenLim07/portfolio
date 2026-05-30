@@ -14,43 +14,42 @@ export function initGsap() {
   registered = true;
 }
 
-/** Scroll reveal defaults — enter only; exit uses {@link sectionExitScroll} */
+/** Scroll reveal defaults */
 export const revealDefaults = {
   y: 56,
   duration: 0.75,
   stagger: 0.08,
   ease: "power3.out" as const,
-  start: "clamp(top 85%)",
+  start: "clamp(top 90%)",
 };
-
-/**
- * Wider scroll band for section exit (enter stays on each block wrapper).
- * Trigger should be the full `<section>` or a shared group wrapper — not a small inner div.
- */
-export const sectionExitScroll = {
-  start: "clamp(top bottom-=8%)",
-  end: "clamp(bottom top+=22%)",
-  y: 72,
-  exitOpacity: 0.1,
-  exitDuration: 0.85,
-  exitStagger: 0.035,
-  ease: "power3.out" as const,
-} as const;
-
-/** Process + Contact exit together — same band, zero stagger (“sucked” at top) */
-export const closingSectionsExitScroll = {
-  start: sectionExitScroll.start,
-  end: "clamp(bottom top+=26%)",
-  y: 80,
-  exitOpacity: 0.08,
-  exitDuration: 0.9,
-  exitStagger: 0,
-} as const;
 
 /** Hero / above-the-fold blocks — wider band for tail exit only */
 export const tailRevealScroll = {
   start: "clamp(top bottom-=4%)",
-  end: sectionExitScroll.end,
+  end: "clamp(bottom 30%)",
+} as const;
+
+/**
+ * Tail block pinned to a parent `<section id="…">` trigger.
+ * Exit runs while the section (and card) are still largely on screen.
+ */
+export const sectionTailRevealScroll = {
+  start: "clamp(top bottom-=8%)",
+  end: "clamp(bottom 52%)",
+} as const;
+
+/** Small tail block without a section trigger — earlier exit on the block itself */
+export const tailBlockRevealScroll = {
+  start: "clamp(top bottom-=8%)",
+  end: "clamp(bottom 78%)",
+} as const;
+
+/** Stronger motion for tail enter/exit (sections below hero) */
+export const tailMotion = {
+  y: 64,
+  duration: 0.85,
+  stagger: 0.09,
+  exitOpacity: 0.15,
 } as const;
 
 /**
@@ -107,18 +106,6 @@ export type DirectionalRevealOptions = {
   entranceOnly?: boolean;
   /** ScrollTrigger element (e.g. `#home`). Scope still holds animated targets. */
   scrollTrigger?: Element | string;
-  /**
-   * Exit band trigger — full section or group (e.g. `#closing-sections`).
-   * Enter still uses `scope`. Defaults to closest `<section>`.
-   */
-  exitScrollTrigger?: Element | string | "parent-section";
-  exitStart?: string;
-  exitEnd?: string;
-  exitY?: number;
-  exitDuration?: number;
-  exitStagger?: number;
-  /** When false, enter + exit share one trigger (legacy). */
-  splitExitTrigger?: boolean;
 };
 
 function isTriggerInViewport(trigger: Element) {
@@ -144,23 +131,50 @@ function resolveScrollTrigger(
   return scrollTrigger;
 }
 
+/** Prefer section `#id` as scroll band for tail blocks (avoids “tip only” exit on small wrappers). */
+export function resolveTailScrollBand(
+  scope: Element,
+  options: { scrollTrigger?: string; start?: string; end?: string } = {},
+) {
+  if (options.scrollTrigger) {
+    return {
+      scrollTrigger: options.scrollTrigger,
+      start: options.start ?? sectionTailRevealScroll.start,
+      end: options.end ?? sectionTailRevealScroll.end,
+    };
+  }
+
+  const section = scope.closest("section[id]");
+  if (section?.id) {
+    return {
+      scrollTrigger: `#${section.id}`,
+      start: options.start ?? sectionTailRevealScroll.start,
+      end: options.end ?? sectionTailRevealScroll.end,
+    };
+  }
+
+  return {
+    scrollTrigger: undefined,
+    start: options.start ?? tailBlockRevealScroll.start,
+    end: options.end ?? tailBlockRevealScroll.end,
+  };
+}
+
 export function createDirectionalScrollReveal(
   scope: Element,
   targets: gsap.TweenTarget,
   options: DirectionalRevealOptions = {},
-): ScrollTrigger[] {
-  const enterTrigger = resolveScrollTrigger(scope, options.scrollTrigger);
+): ScrollTrigger {
+  const trigger = resolveScrollTrigger(scope, options.scrollTrigger);
   const y = options.y ?? revealDefaults.y;
   const duration = options.duration ?? revealDefaults.duration;
   const stagger = options.stagger ?? revealDefaults.stagger;
   const ease = options.ease ?? revealDefaults.ease;
-  const enterStart = options.start ?? revealDefaults.start;
+  const start = options.start ?? revealDefaults.start;
+  const end = options.end;
+  const exitOpacity = options.exitOpacity ?? 0;
   const delay = options.delay ?? 0;
-  const exitOpacity = options.exitOpacity ?? sectionExitScroll.exitOpacity;
-  const exitY = options.exitY ?? sectionExitScroll.y;
-  const exitDuration = options.exitDuration ?? sectionExitScroll.exitDuration;
-  const exitStagger = options.exitStagger ?? sectionExitScroll.exitStagger;
-  const exitEase = sectionExitScroll.ease;
+  const exitDuration = duration * 0.65;
 
   const enter = {
     duration,
@@ -171,8 +185,8 @@ export function createDirectionalScrollReveal(
   };
   const exit = {
     duration: exitDuration,
-    ease: exitEase,
-    stagger: exitStagger,
+    ease,
+    stagger: stagger * 0.6,
     overwrite: "auto" as const,
   };
 
@@ -181,7 +195,7 @@ export function createDirectionalScrollReveal(
   const inViewOnMount =
     options.revealIfInView &&
     typeof window !== "undefined" &&
-    isTriggerInViewport(enterTrigger);
+    isTriggerInViewport(trigger);
 
   const playEnter = (force = false) => {
     if (options.entranceOnly && hasEntered && !force) return;
@@ -210,31 +224,21 @@ export function createDirectionalScrollReveal(
     hasEntered = true;
   };
 
+  /** Scroll down past end — exit upward (63b26d2 tail trick) */
   const playExitUp = () => {
     gsap.killTweensOf(targets);
-    gsap.to(targets, {
-      opacity: exitOpacity,
-      y: -exitY,
-      force3D: true,
-      ...exit,
-    });
+    gsap.to(targets, { opacity: exitOpacity, y: -y, force3D: true, ...exit });
   };
 
+  /** Scroll up into band — drop from above */
   const playEnterBack = () => {
     gsap.killTweensOf(targets);
-    gsap.set(targets, { opacity: 0, y: -exitY, force3D: true });
-    gsap.to(targets, {
-      opacity: 1,
-      y: 0,
-      force3D: true,
-      duration: exitDuration,
-      ease: exitEase,
-      stagger: exitStagger,
-      overwrite: "auto",
-    });
+    gsap.set(targets, { opacity: 0, y: -y, force3D: true });
+    gsap.to(targets, { opacity: 1, y: 0, force3D: true, ...enter });
     hasEntered = true;
   };
 
+  /** Scroll up past start — exit downward */
   const playExitDown = () => {
     gsap.killTweensOf(targets);
     if (typeof window !== "undefined" && window.scrollY <= 4) {
@@ -242,12 +246,7 @@ export function createDirectionalScrollReveal(
       hasEntered = true;
       return;
     }
-    gsap.to(targets, {
-      opacity: exitOpacity,
-      y: exitY,
-      force3D: true,
-      ...exit,
-    });
+    gsap.to(targets, { opacity: exitOpacity, y, force3D: true, ...exit });
   };
 
   if (!options.entranceOnly) {
@@ -260,68 +259,25 @@ export function createDirectionalScrollReveal(
     gsap.set(targets, { opacity: 0, y, force3D: true });
   }
 
-  const heroCopyEntranceOnly = options.entranceOnly && !options.end && !options.exitEnd;
+  /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */
+  const heroCopyEntranceOnly = options.entranceOnly && !end;
 
-  const resolveExitTrigger = (): Element => {
-    if (options.exitScrollTrigger === "parent-section") {
-      return scope.closest("section") ?? scope;
-    }
-    if (options.exitScrollTrigger) {
-      return resolveScrollTrigger(scope, options.exitScrollTrigger);
-    }
-    return scope.closest("section") ?? scope;
-  };
-
-  const useSplitExit =
-    options.splitExitTrigger !== false &&
-    !heroCopyEntranceOnly &&
-    !options.entranceOnly;
-
-  const triggers: ScrollTrigger[] = [];
-
-  if (useSplitExit) {
-    const exitTriggerEl = resolveExitTrigger();
-    const exitStart = options.exitStart ?? sectionExitScroll.start;
-    const exitEnd = options.exitEnd ?? options.end ?? sectionExitScroll.end;
-
-    triggers.push(
-      ScrollTrigger.create({
-        trigger: enterTrigger,
-        start: enterStart,
-        invalidateOnRefresh: true,
-        onEnter: () => playEnter(),
-        onLeaveBack: playExitDown,
-      }),
-      ScrollTrigger.create({
-        trigger: exitTriggerEl,
-        start: exitStart,
-        end: exitEnd,
-        invalidateOnRefresh: true,
-        onLeave: playExitUp,
-        onEnterBack: playEnterBack,
-      }),
-    );
-  } else {
-    const singleEnd = options.end ?? options.exitEnd;
-    triggers.push(
-      ScrollTrigger.create({
-        trigger: enterTrigger,
-        start: enterStart,
-        end: singleEnd,
-        invalidateOnRefresh: true,
-        onEnter: options.entranceOnly ? undefined : () => playEnter(),
-        onLeave: heroCopyEntranceOnly ? undefined : playExitUp,
-        onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
-        onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
-      }),
-    );
-  }
+  const st = ScrollTrigger.create({
+    trigger,
+    start,
+    end,
+    invalidateOnRefresh: true,
+    onEnter: options.entranceOnly ? undefined : () => playEnter(),
+    onLeave: heroCopyEntranceOnly ? undefined : playExitUp,
+    onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
+    onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
+  });
 
   if (inViewOnMount) {
     requestAnimationFrame(() => ScrollTrigger.refresh());
   }
 
-  return triggers;
+  return st;
 }
 
 export { gsap, ScrollTrigger, useGSAP };
