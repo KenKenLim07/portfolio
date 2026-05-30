@@ -70,24 +70,30 @@ export type ScrollScrubConfig = {
   exitAt?: number;
   /** Stagger between lines on exit (defaults to `stagger`; hero uses ~0.11) */
   exitStagger?: number;
+  /**
+   * After hero: skip scrubbed slide-in; snap visible then scrub exit only (tail “suck up”).
+   * Set false to restore enter + hold + exit on one timeline.
+   */
+  exitOnly?: boolean;
 };
 
 /**
- * Below-fold sections — fast enter, hero-style “suck up” exit on scroll down.
- * Tune speed: widen/narrow `enterAt - enterDelay` (in) and `1 - exitAt` (out).
+ * Below-fold sections — exit-only scrub (portfolio tail trick).
+ * Tune exit strength: lower `exitAt` = more scroll % dedicated to slide-up (`1 - exitAt`).
  */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
   end: "clamp(bottom top)",
-  scrub: 0.95,
-  y: 128,
-  stagger: 0.16,
+  scrub: heroScrollReveal.scrub,
+  y: heroScrollReveal.y,
+  stagger: heroScrollReveal.stagger,
   exitStagger: heroScrollReveal.stagger,
   exitOpacity: heroScrollReveal.exitOpacity,
-  enterDelay: 0.16,
-  enterAt: 0.42,
-  /** Earlier exit + longer span ≈ hero tail getting pulled up */
-  exitAt: 0.52,
+  exitOnly: true,
+  enterDelay: 0,
+  enterAt: 0,
+  /** ~80% of section scroll = exit (hero-style suck up) */
+  exitAt: 0.2,
   ease: heroScrollReveal.ease,
 };
 
@@ -96,8 +102,8 @@ export function queryRevealItems(root: Element): HTMLElement[] {
 }
 
 /**
- * Scrubbed enter / hold / exit — one timeline slot per `[data-gsap-reveal]` line
- * (staggered like hero mount + hero exit), not one block for the whole section.
+ * Section scroll reveal. Default `exitOnly`: no scrubbed enter — content snaps in,
+ * most scroll distance is exit (like hero tail). Set `exitOnly: false` for enter+exit.
  */
 export function bindSectionScrollScrub(
   section: Element,
@@ -108,17 +114,9 @@ export function bindSectionScrollScrub(
 
   const { y, exitOpacity, scrub, start, end, stagger } = config;
   const exitStagger = config.exitStagger ?? stagger;
-  const enterDelay = config.enterDelay ?? 0;
-  const enterAt = config.enterAt ?? 0.42;
-  const exitAt = config.exitAt ?? 0.52;
-  const hold = Math.max(0, exitAt - enterAt);
+  const exitOnly = config.exitOnly !== false;
+  const exitAt = config.exitAt ?? 0.2;
   const exitSpan = Math.max(0, 1 - exitAt);
-  const enterWindow = Math.max(0.08, enterAt - enterDelay);
-
-  const staggerEach =
-    items.length > 1
-      ? Math.min(stagger, (enterWindow * 0.85) / (items.length - 1))
-      : 0;
 
   gsap.set(items, { opacity: 0, y, force3D: true });
 
@@ -131,6 +129,41 @@ export function bindSectionScrollScrub(
       invalidateOnRefresh: true,
     },
   });
+
+  if (exitOnly) {
+    tl.to(
+      items,
+      { opacity: 1, y: 0, ease: "none", duration: 0.01, force3D: true },
+      0,
+    );
+    tl.to(
+      items,
+      { opacity: 1, y: 0, ease: "none", duration: exitAt },
+      0,
+    );
+    tl.to(
+      items,
+      {
+        opacity: exitOpacity,
+        y: -y,
+        stagger: exitStagger,
+        ease: "none",
+        duration: exitSpan,
+        force3D: true,
+      },
+      exitAt,
+    );
+    return tl;
+  }
+
+  const enterDelay = config.enterDelay ?? 0;
+  const enterAt = config.enterAt ?? 0.42;
+  const hold = Math.max(0, exitAt - enterAt);
+  const enterWindow = Math.max(0.08, enterAt - enterDelay);
+  const staggerEach =
+    items.length > 1
+      ? Math.min(stagger, (enterWindow * 0.85) / (items.length - 1))
+      : 0;
 
   items.forEach((item, index) => {
     const enterStart = enterDelay + index * staggerEach;
@@ -156,7 +189,6 @@ export function bindSectionScrollScrub(
     );
   });
 
-  // Hero-style: one exit tween + stagger (not per-line delayed starts that never finish)
   tl.to(
     items,
     {
