@@ -14,19 +14,49 @@ const FOG = {
 
 /** RGB 0–1 for THREE.Float32BufferAttribute (vertex colors). */
 const DOT = {
-  light: [0.38, 0.38, 0.46] as const,
+  light: [0.2, 0.22, 0.34] as const,
   dark: [0.72, 0.74, 0.82] as const,
+};
+
+const CAMERA_BASE = { x: 0, y: 355, z: 1220 } as const;
+
+type ScrollState = {
+  current: number;
+  target: number;
+  velocity: number;
 };
 
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<{
-    geometry: THREE.BufferGeometry;
-    material: THREE.PointsMaterial;
-    renderer: THREE.WebGLRenderer;
-    animationId: number;
-  } | null>(null);
+  const scrollRef = useRef<ScrollState>({
+    current: 0,
+    target: 0,
+    velocity: 0,
+  });
+  const lastScrollYRef = useRef(0);
+
+  useEffect(() => {
+    const readScroll = () => {
+      const max = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
+      const next = Math.min(1, Math.max(0, window.scrollY / max));
+      scrollRef.current.velocity = window.scrollY - lastScrollYRef.current;
+      lastScrollYRef.current = window.scrollY;
+      scrollRef.current.target = next;
+    };
+
+    readScroll();
+    window.addEventListener("scroll", readScroll, { passive: true });
+    window.addEventListener("resize", readScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", readScroll);
+      window.removeEventListener("resize", readScroll);
+    };
+  }, []);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -50,7 +80,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       1,
       10000,
     );
-    camera.position.set(0, 355, 1220);
+    camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -86,10 +116,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     );
 
     const material = new THREE.PointsMaterial({
-      size: 8,
+      size: isDark ? 8 : 10,
       vertexColors: true,
       transparent: true,
-      opacity: isDark ? 0.75 : 0.72,
+      opacity: isDark ? 0.75 : 0.92,
       sizeAttenuation: true,
     });
 
@@ -98,27 +128,43 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     let count = 0;
     let animationId = 0;
+    let tiltZ = 0;
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
 
+      const scroll = scrollRef.current;
+      scroll.current += (scroll.target - scroll.current) * 0.07;
+      const p = scroll.current;
+
+      camera.position.y = CAMERA_BASE.y + p * 55;
+      camera.position.z = CAMERA_BASE.z - p * 220;
+      camera.rotation.x = -p * 0.14;
+
+      const velocityTilt = Math.max(-0.08, Math.min(0.08, scroll.velocity * 0.00035));
+      tiltZ += (velocityTilt - tiltZ) * 0.12;
+      points.rotation.z = tiltZ;
+      points.position.z = p * 120 - scroll.velocity * 0.15;
+
       if (!reducedMotion) {
         const positionAttribute = geometry.attributes.position;
         const positionArray = positionAttribute.array as Float32Array;
+        const waveAmp = 50 + p * 35;
+        const scrollPhase = p * 4.5;
 
         let i = 0;
         for (let ix = 0; ix < AMOUNTX; ix++) {
           for (let iy = 0; iy < AMOUNTY; iy++) {
             const index = i * 3;
             positionArray[index + 1] =
-              Math.sin((ix + count) * 0.3) * 50 +
-              Math.sin((iy + count) * 0.5) * 50;
+              Math.sin((ix + count + scrollPhase) * 0.3) * waveAmp +
+              Math.sin((iy + count + scrollPhase * 0.7) * 0.5) * waveAmp;
             i++;
           }
         }
 
         positionAttribute.needsUpdate = true;
-        count += 0.1;
+        count += 0.1 + p * 0.04;
       }
 
       renderer.render(scene, camera);
@@ -133,8 +179,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     window.addEventListener("resize", handleResize);
     animate();
 
-    sceneRef.current = { geometry, material, renderer, animationId };
-
     return () => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
@@ -146,8 +190,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       if (renderer.domElement.parentElement === container) {
         container.removeChild(renderer.domElement);
       }
-
-      sceneRef.current = null;
     };
   }, [theme]);
 
