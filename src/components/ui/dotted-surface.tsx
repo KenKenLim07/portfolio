@@ -12,7 +12,6 @@ const FOG = {
   dark: 0x09090b,
 } as const;
 
-/** RGB 0–1 for THREE.Float32BufferAttribute (vertex colors). */
 const DOT = {
   light: [0.2, 0.22, 0.34] as const,
   dark: [0.72, 0.74, 0.82] as const,
@@ -20,17 +19,30 @@ const DOT = {
 
 const CAMERA_BASE = { x: 0, y: 355, z: 1220 } as const;
 
-/** Scroll-linked state (updated on scroll, smoothed in rAF). */
+/** Max grid lift at page bottom — keeps dots in frame (scroll indicator). */
+const INDICATOR_MAX_LIFT = 148;
+
+/** Wave motion: idle baseline vs boost while scrolling. */
+const WAVE_IDLE_AMP = 32;
+const WAVE_SCROLL_AMP = 68;
+const WAVE_IDLE_SPEED = 0.048;
+const WAVE_SCROLL_SPEED = 0.14;
+
 type ScrollState = {
   progress: { current: number; target: number };
-  scrollY: { current: number; target: number };
   velocity: number;
-  /** 1 while user is scrolling, decays to 0 when idle. */
   activity: number;
+  direction: -1 | 0 | 1;
 };
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
+}
+
+/** Ease-out: more lift through the middle of the page, full lift at bottom. */
+function indicatorProgress(scrollProgress: number) {
+  const p = Math.min(1, Math.max(0, scrollProgress));
+  return p * (2 - p);
 }
 
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
@@ -38,9 +50,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<ScrollState>({
     progress: { current: 0, target: 0 },
-    scrollY: { current: 0, target: 0 },
     velocity: 0,
     activity: 0,
+    direction: 0,
   });
   const lastScrollYRef = useRef(0);
 
@@ -56,11 +68,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
       const scroll = scrollRef.current;
       scroll.progress.target = Math.min(1, Math.max(0, y / max));
-      scroll.scrollY.target = y;
       scroll.velocity = velocity;
 
-      if (Math.abs(velocity) > 0.5) {
-        scroll.activity = 1;
+      if (Math.abs(velocity) > 3) {
+        scroll.activity = Math.min(1, scroll.activity + 0.28);
       }
     };
 
@@ -145,7 +156,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const clock = new THREE.Clock();
     let count = 0;
     let animationId = 0;
-    let tiltZ = 0;
     let velocityKick = 0;
 
     const animate = () => {
@@ -154,64 +164,68 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
       const scroll = scrollRef.current;
 
+      const goingUp =
+        scroll.progress.target < scroll.progress.current - 0.0005 ||
+        scroll.direction === -1;
+      const goingDown =
+        scroll.progress.target > scroll.progress.current + 0.0005 ||
+        scroll.direction === 1;
+
+      const progressFollow = goingUp ? 0.14 : goingDown ? 0.095 : 0.085;
       scroll.progress.current = lerp(
         scroll.progress.current,
         scroll.progress.target,
-        0.09,
-      );
-      scroll.scrollY.current = lerp(
-        scroll.scrollY.current,
-        scroll.scrollY.target,
-        0.11,
+        progressFollow,
       );
 
-      const activityDecay = reducedMotion ? 2.8 : 1.6;
-      scroll.activity = Math.max(0, scroll.activity - activityDecay * dt);
+      scroll.activity = Math.max(0, scroll.activity - 0.75 * dt);
 
       const active = scroll.activity;
       const p = scroll.progress.current;
-      const y = scroll.scrollY.current;
+      const targetP = scroll.progress.target;
 
-      /* Scroll indicator: grid rises as page scrolls down, returns when scrolling up. */
-      const indicatorLift = y * 0.55;
-      velocityKick = lerp(velocityKick, scroll.velocity * 2.2, 0.18);
-      points.position.y = indicatorLift + velocityKick * active;
-      points.position.z = lerp(points.position.z, active * p * 160, 0.1);
+      /* Scroll down: eased lift. Scroll up: track target faster so the grid drops back clearly. */
+      const liftP = goingUp ? lerp(p, targetP, 0.45) : p;
+      const liftT = goingUp
+        ? Math.min(1, Math.max(0, liftP))
+        : indicatorProgress(p);
+      const indicatorLift = liftT * INDICATOR_MAX_LIFT;
 
-      const velocityTilt = Math.max(
-        -0.14,
-        Math.min(0.14, scroll.velocity * 0.00055 * active),
+      const kickScale = scroll.velocity < 0 ? 0.68 : 0.55;
+      const kickCap = scroll.velocity < 0 ? 28 : 22;
+      const kickTarget = Math.max(
+        -kickCap,
+        Math.min(kickCap, scroll.velocity * kickScale),
       );
-      tiltZ = lerp(tiltZ, velocityTilt, 0.14);
-      points.rotation.z = tiltZ;
+      const kickBlend = goingUp ? 0.14 : 0.1;
+      velocityKick = lerp(
+        velocityKick,
+        kickTarget * Math.max(active, goingUp ? 0.35 : 0),
+        kickBlend,
+      );
+      points.position.y = indicatorLift + velocityKick;
+      const zTarget = active * p * (goingUp ? 22 : 55);
+      points.position.z = lerp(points.position.z, zTarget, 0.08);
+      points.rotation.z = lerp(
+        points.rotation.z,
+        Math.max(-0.05, Math.min(0.05, scroll.velocity * 0.00014 * active)),
+        goingUp ? 0.12 : 0.08,
+      );
 
-      const cameraLift = active * (p * 90 + Math.min(y * 0.04, 120));
-      const cameraDolly = active * (p * 320 + Math.min(Math.abs(scroll.velocity) * 0.35, 80));
+      const cameraLift = liftT * 24 + active * p * 38;
+      const cameraDolly = active * p * 95;
       camera.position.y = CAMERA_BASE.y + cameraLift;
       camera.position.z = CAMERA_BASE.z - cameraDolly;
-      camera.rotation.x = lerp(
-        camera.rotation.x,
-        -active * (p * 0.2 + Math.min(Math.abs(scroll.velocity) * 0.00008, 0.06)),
-        0.1,
-      );
+      camera.rotation.x = lerp(camera.rotation.x, -active * p * 0.06, 0.08);
 
       if (!reducedMotion) {
         const positionAttribute = geometry.attributes.position;
         const positionArray = positionAttribute.array as Float32Array;
 
-        const idleAmp = 8;
-        const scrollAmp =
-          95 +
-          active * 45 +
-          Math.min(Math.abs(scroll.velocity) * 0.22, 55);
-        const waveAmp = lerp(idleAmp, scrollAmp, active);
-
-        const idleSpeed = 0.012;
-        const scrollSpeed =
-          0.32 + active * 0.15 + Math.min(Math.abs(scroll.velocity) * 0.002, 0.12);
-        const countSpeed = lerp(idleSpeed, scrollSpeed, active);
-
-        const scrollPhase = p * 6 * active;
+        const waveAmp = lerp(WAVE_IDLE_AMP, WAVE_SCROLL_AMP, active);
+        const countSpeed = lerp(WAVE_IDLE_SPEED, WAVE_SCROLL_SPEED, active);
+        const scrollDir = scroll.direction === -1 ? -1 : 1;
+        const scrollPhase = p * 3.4 * active * scrollDir;
 
         let i = 0;
         for (let ix = 0; ix < AMOUNTX; ix++) {
