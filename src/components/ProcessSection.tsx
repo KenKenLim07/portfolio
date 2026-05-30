@@ -3,7 +3,7 @@
 import { PROCESS_STEPS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedTailZone } from "@/components/ui/AnimatedSection";
+import { AnimatedItem } from "@/components/ui/AnimatedSection";
 
 export function ProcessSection() {
   return (
@@ -21,7 +21,7 @@ export function ProcessSection() {
           aria-hidden
         />
 
-        <AnimatedTailZone className="grid gap-6 md:gap-8">
+        <div className="grid gap-6 md:gap-8">
           {PROCESS_STEPS.map((step, index) => (
             <AnimatedItem key={step.title}>
               <div
@@ -53,7 +53,7 @@ export function ProcessSection() {
               </div>
             </AnimatedItem>
           ))}
-        </AnimatedTailZone>
+        </div>
       </div>
     </Section>
   );

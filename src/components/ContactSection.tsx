@@ -4,7 +4,7 @@ import { GitHubIcon, LinkedInIcon } from "@/components/icons/BrandIcons";
 import { SITE, SOCIAL_LINKS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
-import { AnimatedItem, AnimatedTailZone } from "@/components/ui/AnimatedSection";
+import { AnimatedItem } from "@/components/ui/AnimatedSection";
 import { ContactForm } from "@/components/ContactForm";
 
 type ContactIcon = LucideIcon | typeof GitHubIcon;
@@ -52,7 +52,7 @@ export function ContactSection() {
         <div className="pointer-events-none absolute inset-0 glow-orb opacity-80" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--accent-from)]/20 via-transparent to-[var(--accent-to)]/15" />
 
-        <AnimatedTailZone className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
+        <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
           <div>
             <AnimatedItem>
               <h2 className="section-mega max-w-xl text-foreground">
@@ -99,7 +99,7 @@ export function ContactSection() {
               <ContactForm />
             </div>
           </AnimatedItem>
-        </AnimatedTailZone>
+        </div>
       </div>
     </Section>
   );

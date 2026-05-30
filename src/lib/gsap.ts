@@ -68,12 +68,10 @@ export type ScrollScrubConfig = {
   enterAt?: number;
   /** Scroll progress (0–1) where exit begins */
   exitAt?: number;
-  /** Vertical travel on tail exit (defaults to `y`; head never translates on exit) */
+  /** Vertical travel on tail exit (defaults to `y`) */
   exitY?: number;
-  /** Stagger between lines on exit (defaults to `stagger`; hero uses ~0.11) */
+  /** Stagger between tail lines on exit (defaults to `stagger`; hero uses ~0.11) */
   exitStagger?: number;
-  /** Fraction of exit band where head fades before tail slides (prevents overlap) */
-  headExitLead?: number;
 };
 
 /**
@@ -90,15 +88,14 @@ export const sectionScrollReveal: ScrollScrubConfig = {
   exitOpacity: heroScrollReveal.exitOpacity,
   enterDelay: 0.16,
   enterAt: 0.38,
-  /** Tail-only exit — starts earlier so bottom gets ~50% of scroll band */
+  /** Tail-only staggered exit — head stays put (no exit tween) */
   exitAt: 0.5,
   exitY: heroScrollReveal.y,
-  headExitLead: 0.22,
   ease: heroScrollReveal.ease,
 };
 
-/** Default share of section lines treated as tail when no zone is marked */
-export const sectionTailFraction = 0.45;
+/** Bottom share of section lines that get exit stagger (head still lifts, synced) */
+export const sectionTailFraction = 0.3;
 
 export function queryRevealItems(root: Element): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>("[data-gsap-reveal]"));
@@ -119,16 +116,16 @@ export function queryRevealTailItems(section: Element): HTMLElement[] {
   const all = queryRevealItems(section);
   if (all.length <= 1) return all;
 
-  const tailCount = Math.min(
-    all.length - 1,
-    Math.max(2, Math.ceil(all.length * sectionTailFraction)),
+  const tailCount = Math.max(
+    1,
+    Math.min(all.length - 1, Math.ceil(all.length * sectionTailFraction)),
   );
   return all.slice(-tailCount);
 }
 
 /**
- * Enter: all lines (short window). Exit on scroll down: tail lines only — full “suck up” band.
- * Animating every line on exit steals scroll budget from the bottom.
+ * Enter: all lines. Exit: bottom ~30% only — head holds still so it reads as
+ * “suck up” not whole-section scroll. Section clip hides tail sliding under head.
  */
 export function bindSectionScrollScrub(
   section: Element,
@@ -138,21 +135,15 @@ export function bindSectionScrollScrub(
   if (!items.length) return null;
 
   const tailItems = queryRevealTailItems(section);
-  const tailSet = new Set(tailItems);
-  const headItems = items.filter((item) => !tailSet.has(item));
   const { y, exitOpacity, scrub, start, end, stagger } = config;
   const exitStagger = config.exitStagger ?? stagger;
   const exitY = config.exitY ?? y;
   const enterDelay = config.enterDelay ?? 0;
   const enterAt = config.enterAt ?? 0.42;
   const exitAt = config.exitAt ?? 0.48;
-  const headExitLead = config.headExitLead ?? 0.2;
   const hold = Math.max(0, exitAt - enterAt);
   const exitSpan = Math.max(0, 1 - exitAt);
   const enterWindow = Math.max(0.08, enterAt - enterDelay);
-  const tailExitDelay = exitSpan * headExitLead;
-  const headFadeSpan = Math.max(0.06, exitSpan * 0.5);
-  const tailExitSpan = Math.max(0.08, exitSpan - tailExitDelay);
 
   const staggerEach =
     items.length > 1
@@ -195,18 +186,6 @@ export function bindSectionScrollScrub(
     );
   });
 
-  if (headItems.length) {
-    tl.to(
-      headItems,
-      {
-        opacity: exitOpacity,
-        ease: "none",
-        duration: headFadeSpan,
-      },
-      exitAt,
-    );
-  }
-
   if (tailItems.length) {
     tl.to(
       tailItems,
@@ -215,10 +194,10 @@ export function bindSectionScrollScrub(
         y: -exitY,
         stagger: exitStagger,
         ease: "none",
-        duration: tailExitSpan,
+        duration: exitSpan,
         force3D: true,
       },
-      exitAt + tailExitDelay,
+      exitAt,
     );
   }
 
