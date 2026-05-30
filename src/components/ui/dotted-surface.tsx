@@ -24,7 +24,7 @@ const INDICATOR_MAX_LIFT = 198;
 
 /** Camera dolly: progress-based depth + instant gesture zoom in/out. */
 const DOLLY_FROM_PROGRESS = 68;
-const DOLLY_GESTURE_IN = 118;
+const DOLLY_GESTURE_IN = 148;
 const DOLLY_GESTURE_OUT = 135;
 
 /** Wave motion: idle baseline vs boost while scrolling. */
@@ -212,9 +212,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       points.position.y = indicatorLift + velocityKick;
 
       const velBoost = Math.min(Math.abs(scroll.velocity) * 0.48, 58);
+      const velBoostIn = Math.min(Math.abs(scroll.velocity) * 0.58, 68);
       const zGesture = goingUp
         ? -active * (48 + velBoost)
-        : active * (52 + velBoost);
+        : active * (62 + velBoostIn);
       const zTarget = p * 38 + zGesture;
       const depthFollow = goingUp || goingDown ? 0.18 : 0.09;
       points.position.z = lerp(points.position.z, zTarget, depthFollow);
@@ -231,9 +232,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       if (goingUp) {
         targetGesture = -active * (DOLLY_GESTURE_OUT + velBoost);
       } else if (goingDown) {
-        targetGesture = active * (DOLLY_GESTURE_IN + velBoost);
+        targetGesture = active * (DOLLY_GESTURE_IN + velBoostIn);
       }
-      const gestureFollow = goingUp || goingDown ? 0.2 : 0.1;
+      const gestureFollow = goingUp ? 0.2 : goingDown ? 0.23 : 0.1;
       gestureDolly = lerp(gestureDolly, targetGesture, gestureFollow);
 
       const progressDolly = p * DOLLY_FROM_PROGRESS;
@@ -242,7 +243,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
       const tiltTarget = goingUp
         ? active * 0.05
-        : -active * (p * 0.065 + 0.02);
+        : -active * (p * 0.08 + 0.035);
       const tiltFollow = goingUp || goingDown ? 0.15 : 0.09;
       camera.rotation.x = lerp(camera.rotation.x, tiltTarget, tiltFollow);
 
