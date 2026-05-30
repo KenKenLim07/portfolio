@@ -24,8 +24,9 @@ const INDICATOR_MAX_LIFT = 198;
 
 /** Camera dolly: progress-based depth + instant gesture zoom in/out. */
 const DOLLY_FROM_PROGRESS = 68;
-const DOLLY_GESTURE_IN = 148;
-const DOLLY_GESTURE_OUT = 135;
+const DOLLY_GESTURE_IN = 158;
+const DOLLY_GESTURE_OUT = 142;
+const CAMERA_BASE_FOV = 60;
 
 /** Wave motion: idle baseline vs boost while scrolling. */
 const WAVE_IDLE_AMP = 32;
@@ -74,6 +75,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       const scroll = scrollRef.current;
       scroll.progress.target = Math.min(1, Math.max(0, y / max));
       scroll.velocity = velocity;
+      if (velocity > 2) scroll.direction = 1;
+      else if (velocity < -2) scroll.direction = -1;
 
       if (Math.abs(velocity) > 3) {
         scroll.activity = Math.min(1, scroll.activity + 0.28);
@@ -163,6 +166,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let animationId = 0;
     let velocityKick = 0;
     let gestureDolly = 0;
+    let gestureFov = CAMERA_BASE_FOV;
+    let gestureScale = 1;
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
@@ -197,55 +202,78 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         : indicatorProgress(p);
       const indicatorLift = liftT * INDICATOR_MAX_LIFT;
 
-      const kickScale = scroll.velocity < 0 ? 0.68 : 0.55;
-      const kickCap = scroll.velocity < 0 ? 28 : 22;
+      const velBoost = Math.min(Math.abs(scroll.velocity) * 0.55, 72);
+      const kickCap = 28;
       const kickTarget = Math.max(
         -kickCap,
-        Math.min(kickCap, scroll.velocity * kickScale),
+        Math.min(kickCap, scroll.velocity * 0.62),
       );
-      const kickBlend = goingUp ? 0.14 : 0.1;
+      const kickMin = goingUp || goingDown ? 0.4 : 0;
+      const kickBlend = goingUp || goingDown ? 0.16 : 0.1;
       velocityKick = lerp(
         velocityKick,
-        kickTarget * Math.max(active, goingUp ? 0.35 : 0),
+        kickTarget * Math.max(active, kickMin),
         kickBlend,
       );
       points.position.y = indicatorLift + velocityKick;
 
-      const velBoost = Math.min(Math.abs(scroll.velocity) * 0.48, 58);
-      const velBoostIn = Math.min(Math.abs(scroll.velocity) * 0.58, 68);
       const zGesture = goingUp
-        ? -active * (48 + velBoost)
-        : active * (62 + velBoostIn);
-      const zTarget = p * 38 + zGesture;
-      const depthFollow = goingUp || goingDown ? 0.18 : 0.09;
+        ? -active * (58 + velBoost)
+        : goingDown
+          ? active * (72 + velBoost)
+          : 0;
+      const progressZ = p * 38 * (1 - active * 0.72);
+      const zTarget = progressZ + zGesture;
+      const depthFollow = goingUp || goingDown ? 0.22 : 0.09;
       points.position.z = lerp(points.position.z, zTarget, depthFollow);
 
       points.rotation.z = lerp(
         points.rotation.z,
-        Math.max(-0.05, Math.min(0.05, scroll.velocity * 0.00014 * active)),
-        goingUp ? 0.12 : 0.08,
+        Math.max(-0.06, Math.min(0.06, scroll.velocity * 0.00016 * active)),
+        goingUp || goingDown ? 0.14 : 0.08,
       );
 
-      const cameraLift = liftT * 32 + (goingUp ? -1 : 1) * active * p * 34;
+      const cameraLift =
+        liftT * 32 +
+        (goingUp ? -1 : 1) * active * (goingDown ? 48 : 38);
 
       let targetGesture = 0;
       if (goingUp) {
         targetGesture = -active * (DOLLY_GESTURE_OUT + velBoost);
       } else if (goingDown) {
-        targetGesture = active * (DOLLY_GESTURE_IN + velBoostIn);
+        targetGesture = active * (DOLLY_GESTURE_IN + velBoost);
       }
-      const gestureFollow = goingUp ? 0.2 : goingDown ? 0.23 : 0.1;
+      const gestureFollow = goingUp || goingDown ? 0.27 : 0.1;
       gestureDolly = lerp(gestureDolly, targetGesture, gestureFollow);
 
-      const progressDolly = p * DOLLY_FROM_PROGRESS;
+      const progressDolly = p * DOLLY_FROM_PROGRESS * (1 - active * 0.78);
       camera.position.y = CAMERA_BASE.y + cameraLift;
       camera.position.z = CAMERA_BASE.z - progressDolly - gestureDolly;
 
       const tiltTarget = goingUp
-        ? active * 0.05
-        : -active * (p * 0.08 + 0.035);
-      const tiltFollow = goingUp || goingDown ? 0.15 : 0.09;
+        ? active * 0.085
+        : goingDown
+          ? -active * 0.085
+          : 0;
+      const tiltFollow = goingUp || goingDown ? 0.18 : 0.09;
       camera.rotation.x = lerp(camera.rotation.x, tiltTarget, tiltFollow);
+
+      const targetFov = goingUp
+        ? CAMERA_BASE_FOV + active * 8
+        : goingDown
+          ? CAMERA_BASE_FOV - active * 7
+          : CAMERA_BASE_FOV;
+      gestureFov = lerp(gestureFov, targetFov, gestureFollow);
+      camera.fov = gestureFov;
+      camera.updateProjectionMatrix();
+
+      const targetScale = goingUp
+        ? 1 - active * 0.06
+        : goingDown
+          ? 1 + active * 0.09
+          : 1;
+      gestureScale = lerp(gestureScale, targetScale, gestureFollow);
+      points.scale.set(gestureScale, gestureScale, gestureScale);
 
       if (!reducedMotion) {
         const positionAttribute = geometry.attributes.position;
@@ -271,8 +299,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         count += countSpeed;
       } else {
         points.position.y = indicatorLift;
+        points.scale.set(1, 1, 1);
         camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
         camera.rotation.x = 0;
+        camera.fov = CAMERA_BASE_FOV;
+        camera.updateProjectionMatrix();
       }
 
       renderer.render(scene, camera);
