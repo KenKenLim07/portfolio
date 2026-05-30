@@ -75,26 +75,29 @@ export type ScrollScrubConfig = {
 };
 
 /**
- * Below-fold sections — fast enter, hero-style “suck up” exit on scroll down.
- * Tune speed: widen/narrow `enterAt - enterDelay` (in) and `1 - exitAt` (out).
+ * Below-fold sections — enter while coming in; tail exit only once the section
+ * reaches the top of the viewport (not mid-screen).
+ *
+ * Scroll band: section top @ viewport bottom → section top @ viewport top.
+ * exitAt ~0.84 keeps the suck in the last ~16% of that band.
  */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
-  end: "clamp(bottom top)",
+  end: "clamp(top top)",
   scrub: 0.95,
   y: 128,
   stagger: 0.16,
   exitStagger: heroScrollReveal.stagger,
   exitOpacity: heroScrollReveal.exitOpacity,
-  enterDelay: 0.16,
-  enterAt: 0.38,
-  /** Tail-only staggered exit — head stays put (no exit tween) */
-  exitAt: 0.5,
+  enterDelay: 0.1,
+  enterAt: 0.28,
+  /** Tail suck — only after section has scrolled up to the top edge */
+  exitAt: 0.84,
   exitY: heroScrollReveal.y,
   ease: heroScrollReveal.ease,
 };
 
-/** Bottom share of section lines that get exit stagger (head still lifts, synced) */
+/** Bottom share of section lines that get exit stagger (head stays static) */
 export const sectionTailFraction = 0.3;
 
 export function queryRevealItems(root: Element): HTMLElement[] {
