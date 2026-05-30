@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 
@@ -81,9 +81,11 @@ export function ProjectsSection() {
                   const isActive = project.id === active?.id;
                   const stackPreview = project.stack.slice(0, 3);
                   const overflow = project.stack.length - stackPreview.length;
+                  const Line =
+                    index === projects.length - 1 ? AnimatedTailItem : AnimatedItem;
 
               return (
-                <AnimatedItem key={project.id}>
+                <Line key={project.id}>
                   <button
                     type="button"
                       className={cn(
@@ -144,12 +146,12 @@ export function ProjectsSection() {
                         </div>
                       </div>
                   </button>
-                </AnimatedItem>
+                </Line>
               );
             })}
           </div>
 
-          <AnimatedItem className="sticky top-28 hidden lg:block">
+          <AnimatedTailItem className="sticky top-28 hidden lg:block">
             <div>
                 {showPreview && active && activeIndex >= 0 ? (
                   <div className="radius-panel-lg overflow-hidden bg-surface">
@@ -193,7 +195,7 @@ export function ProjectsSection() {
               <div className="h-[12px]" aria-hidden />
             )}
             </div>
-          </AnimatedItem>
+          </AnimatedTailItem>
         </div>
       )}
     </Section>

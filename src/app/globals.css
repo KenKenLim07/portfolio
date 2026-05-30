@@ -100,8 +100,8 @@ html {
 @media (prefers-reduced-motion: no-preference) {
   .gsap-reveal {
     opacity: 0;
-    /* ~96px — matches heroScrollReveal.y / section exit travel */
-    transform: translate3d(0, 6rem, 0);
+    /* ~128px — matches sectionScrollReveal.y */
+    transform: translate3d(0, 8rem, 0);
     will-change: transform, opacity;
   }
 

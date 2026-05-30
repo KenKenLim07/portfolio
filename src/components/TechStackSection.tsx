@@ -4,7 +4,7 @@ import { TECH_STACK } from "@/lib/constants";
 import { TechBrandIcon } from "@/components/TechBrandIcon";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
 
 const groups = [
   { key: "frontend" as const, label: "Frontend" },
@@ -22,8 +22,11 @@ export function TechStackSection() {
       />
 
       <div className="grid gap-6 md:grid-cols-3">
-        {groups.map((group) => (
-          <AnimatedItem key={group.key}>
+        {groups.map((group, index) => {
+          const Line =
+            index === groups.length - 1 ? AnimatedTailItem : AnimatedItem;
+          return (
+          <Line key={group.key}>
             <div className="radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border">
               <div className="mb-5 flex items-center gap-3">
                 <span
@@ -46,8 +49,9 @@ export function TechStackSection() {
                 ))}
               </div>
             </div>
-          </AnimatedItem>
-        ))}
+          </Line>
+          );
+        })}
       </div>
     </Section>
   );

@@ -30,6 +30,25 @@ export function AnimatedItem({
   );
 }
 
+/** Bottom block — gets scroll-down “suck up” exit; head/copy use AnimatedItem only */
+export function AnimatedTailItem({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      data-gsap-reveal
+      data-gsap-reveal-tail
+      className={cn("gsap-reveal", className)}
+    >
+      {children}
+    </div>
+  );
+}
+
 /** @deprecated Use a plain `div` + `AnimatedItem` children; section hook handles stagger. */
 export function AnimatedStagger({
   children,

@@ -2,7 +2,7 @@ import { Check } from "lucide-react";
 import { ABOUT, ABOUT_HIGHLIGHTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
 
 export function AboutSection() {
   return (
@@ -28,7 +28,7 @@ export function AboutSection() {
           ))}
         </div>
 
-        <AnimatedItem>
+        <AnimatedTailItem>
           <div className="glass radius-panel p-6 md:p-8">
             <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
               Core Focus
@@ -42,7 +42,7 @@ export function AboutSection() {
               ))}
             </ul>
           </div>
-        </AnimatedItem>
+        </AnimatedTailItem>
       </div>
     </Section>
   );

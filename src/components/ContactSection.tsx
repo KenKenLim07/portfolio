@@ -4,7 +4,7 @@ import { GitHubIcon, LinkedInIcon } from "@/components/icons/BrandIcons";
 import { SITE, SOCIAL_LINKS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
-import { AnimatedItem } from "@/components/ui/AnimatedSection";
+import { AnimatedItem, AnimatedTailItem } from "@/components/ui/AnimatedSection";
 import { ContactForm } from "@/components/ContactForm";
 
 type ContactIcon = LucideIcon | typeof GitHubIcon;
@@ -87,7 +87,7 @@ export function ContactSection() {
             </AnimatedItem>
           </div>
 
-          <AnimatedItem>
+          <AnimatedTailItem>
             <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
               <h3 className="font-display mb-1 text-lg font-semibold text-foreground">
                 Send a message
@@ -98,7 +98,7 @@ export function ContactSection() {
               </p>
               <ContactForm />
             </div>
-          </AnimatedItem>
+          </AnimatedTailItem>
         </div>
       </div>
     </Section>
