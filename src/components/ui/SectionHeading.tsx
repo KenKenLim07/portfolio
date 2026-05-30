@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { AnimatedItem } from "./AnimatedSection";
+import { AnimatedItem, AnimatedSection } from "./AnimatedSection";
 
 type SectionHeadingProps = {
   label: string;
@@ -9,6 +9,8 @@ type SectionHeadingProps = {
   className?: string;
   /** Tajmirul-style uppercase mega title */
   variant?: "default" | "mega";
+  exitScrollTrigger?: string;
+  closingGroup?: boolean;
 };
 
 export function SectionHeading({
@@ -18,14 +20,18 @@ export function SectionHeading({
   align = "left",
   className,
   variant = "mega",
+  exitScrollTrigger,
+  closingGroup,
 }: SectionHeadingProps) {
   return (
-    <div
+    <AnimatedSection
       className={cn(
         "mb-14 md:mb-20",
         align === "center" && "mx-auto max-w-3xl text-center",
         className,
       )}
+      exitScrollTrigger={exitScrollTrigger}
+      closingGroup={closingGroup}
     >
       {label && (
         <AnimatedItem>
@@ -57,6 +63,6 @@ export function SectionHeading({
           </p>
         </AnimatedItem>
       )}
-    </div>
+    </AnimatedSection>
   );
 }

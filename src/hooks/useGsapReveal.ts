@@ -3,25 +3,19 @@
 import { type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
-import {
-  bindSectionScrollScrub,
-  gsap,
-  initGsap,
-  queryRevealItems,
-  ScrollTrigger,
-  sectionScrollReveal,
-} from "@/lib/gsap";
+import { createDirectionalScrollReveal, gsap, initGsap } from "@/lib/gsap";
 
 export type GsapRevealOptions = {
+  delay?: number;
   y?: number;
-  stagger?: number;
+  duration?: number;
+  start?: string;
+  end?: string;
   exitOpacity?: number;
+  revealIfInView?: boolean;
+  triggerRef?: RefObject<HTMLElement | null>;
 };
 
-/**
- * Attaches scrubbed section-style reveal to the nearest `<section>` ancestor.
- * Prefer `Section` + `AnimatedItem` on the home page.
- */
 export function useGsapReveal(
   targetRef: RefObject<HTMLElement | null>,
   options: GsapRevealOptions = {},
@@ -30,40 +24,37 @@ export function useGsapReveal(
 
   useGSAP(
     () => {
+      initGsap();
       const el = targetRef.current;
       if (!el || prefersReducedMotion) return;
 
-      const section = el.closest("section");
-      if (!section) return;
-
-      initGsap();
-
-      const items = queryRevealItems(section);
-      if (!items.length) return;
-
-      const config = {
-        ...sectionScrollReveal,
-        ...(options.y !== undefined ? { y: options.y } : {}),
-        ...(options.stagger !== undefined ? { stagger: options.stagger } : {}),
-        ...(options.exitOpacity !== undefined
-          ? { exitOpacity: options.exitOpacity }
-          : {}),
-      };
+      const triggerEl = options.triggerRef?.current ?? el;
 
       const ctx = gsap.context(() => {
-        bindSectionScrollScrub(section, items, config);
-      }, section);
-
-      requestAnimationFrame(() => ScrollTrigger.refresh());
+        createDirectionalScrollReveal(triggerEl, el, {
+          delay: options.delay,
+          y: options.y,
+          duration: options.duration,
+          start: options.start,
+          end: options.end,
+          exitOpacity: options.exitOpacity,
+          revealIfInView: options.revealIfInView,
+        });
+      }, el);
 
       return () => ctx.revert();
     },
     {
       scope: targetRef,
       dependencies: [
+        options.delay,
         options.y,
-        options.stagger,
+        options.duration,
+        options.start,
+        options.end,
         options.exitOpacity,
+        options.revealIfInView,
+        options.triggerRef,
         prefersReducedMotion,
       ],
       revertOnUpdate: true,

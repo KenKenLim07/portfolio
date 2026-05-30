@@ -18,8 +18,10 @@ export default function Home() {
         <AboutSection />
         <ProjectsSection />
         <TechStackSection />
-        <ProcessSection />
-        <ContactSection />
+        <div id="closing-sections">
+          <ProcessSection />
+          <ContactSection />
+        </div>
       </main>
       <Footer />
     </>

@@ -4,7 +4,6 @@ import { useSyncExternalStore, type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
-  bindHeroExitScrub,
   gsap,
   heroScrollReveal,
   initGsap,
@@ -81,8 +80,44 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
   return tl;
 }
 
+function bindHeroScrollScrub(home: HTMLElement, root: HTMLElement) {
+  const copy = getRevealItems(root, "copy");
+  const tail = getRevealItems(root, "tail");
+  const cue = getRevealItems(root, "cue");
+  const groups = [copy, tail, cue].filter((items) => items.length > 0);
+
+  const visible = { opacity: 1, y: 0, force3D: true };
+  const exit = {
+    opacity: heroScrollReveal.exitOpacity,
+    y: -heroScrollReveal.y,
+    ease: "none" as const,
+    force3D: true,
+  };
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: home,
+      start: heroScrollReveal.start,
+      end: heroScrollReveal.end,
+      scrub: heroScrollReveal.scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  // Parallel per group — avoids scrub stagger squeezing motion into the last items only
+  groups.forEach((items, index) => {
+    tl.fromTo(
+      items,
+      visible,
+      exit,
+      index * heroScrollReveal.exitGroupOffset,
+    );
+  });
+}
+
 /**
- * Hero: mount entrance + scrubbed exit on `#home` for copy, tail, and cue.
+ * One scrubbed ScrollTrigger on `#home` — copy, tail, and cue move together
+ * over a long scroll band (reverses cleanly on fast scroll up).
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -103,13 +138,11 @@ export function useHeroScrollReveal(
 
         const mount = isHomeInView(home) ? playMountEntrance(root) : null;
 
-        const bindExit = () => bindHeroExitScrub(home, all);
-
         if (!mount) {
           gsap.set(all, { opacity: 0, y: heroScrollReveal.y, force3D: true });
-          bindExit();
+          bindHeroScrollScrub(home, root);
         } else {
-          mount.eventCallback("onComplete", bindExit);
+          mount.eventCallback("onComplete", () => bindHeroScrollScrub(home, root));
         }
       }, root);
 
