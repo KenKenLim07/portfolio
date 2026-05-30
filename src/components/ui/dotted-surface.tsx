@@ -20,19 +20,27 @@ const DOT = {
 
 const CAMERA_BASE = { x: 0, y: 355, z: 1220 } as const;
 
+/** Scroll-linked state (updated on scroll, smoothed in rAF). */
 type ScrollState = {
-  current: number;
-  target: number;
+  progress: { current: number; target: number };
+  scrollY: { current: number; target: number };
   velocity: number;
+  /** 1 while user is scrolling, decays to 0 when idle. */
+  activity: number;
 };
+
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t;
+}
 
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<ScrollState>({
-    current: 0,
-    target: 0,
+    progress: { current: 0, target: 0 },
+    scrollY: { current: 0, target: 0 },
     velocity: 0,
+    activity: 0,
   });
   const lastScrollYRef = useRef(0);
 
@@ -42,10 +50,18 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         1,
         document.documentElement.scrollHeight - window.innerHeight,
       );
-      const next = Math.min(1, Math.max(0, window.scrollY / max));
-      scrollRef.current.velocity = window.scrollY - lastScrollYRef.current;
-      lastScrollYRef.current = window.scrollY;
-      scrollRef.current.target = next;
+      const y = window.scrollY;
+      const velocity = y - lastScrollYRef.current;
+      lastScrollYRef.current = y;
+
+      const scroll = scrollRef.current;
+      scroll.progress.target = Math.min(1, Math.max(0, y / max));
+      scroll.scrollY.target = y;
+      scroll.velocity = velocity;
+
+      if (Math.abs(velocity) > 0.5) {
+        scroll.activity = 1;
+      }
     };
 
     readScroll();
@@ -126,31 +142,76 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const points = new THREE.Points(geometry, material);
     scene.add(points);
 
+    const clock = new THREE.Clock();
     let count = 0;
     let animationId = 0;
     let tiltZ = 0;
+    let velocityKick = 0;
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
 
       const scroll = scrollRef.current;
-      scroll.current += (scroll.target - scroll.current) * 0.07;
-      const p = scroll.current;
 
-      camera.position.y = CAMERA_BASE.y + p * 55;
-      camera.position.z = CAMERA_BASE.z - p * 220;
-      camera.rotation.x = -p * 0.14;
+      scroll.progress.current = lerp(
+        scroll.progress.current,
+        scroll.progress.target,
+        0.09,
+      );
+      scroll.scrollY.current = lerp(
+        scroll.scrollY.current,
+        scroll.scrollY.target,
+        0.11,
+      );
 
-      const velocityTilt = Math.max(-0.08, Math.min(0.08, scroll.velocity * 0.00035));
-      tiltZ += (velocityTilt - tiltZ) * 0.12;
+      const activityDecay = reducedMotion ? 2.8 : 1.6;
+      scroll.activity = Math.max(0, scroll.activity - activityDecay * dt);
+
+      const active = scroll.activity;
+      const p = scroll.progress.current;
+      const y = scroll.scrollY.current;
+
+      /* Scroll indicator: grid rises as page scrolls down, returns when scrolling up. */
+      const indicatorLift = y * 0.55;
+      velocityKick = lerp(velocityKick, scroll.velocity * 2.2, 0.18);
+      points.position.y = indicatorLift + velocityKick * active;
+      points.position.z = lerp(points.position.z, active * p * 160, 0.1);
+
+      const velocityTilt = Math.max(
+        -0.14,
+        Math.min(0.14, scroll.velocity * 0.00055 * active),
+      );
+      tiltZ = lerp(tiltZ, velocityTilt, 0.14);
       points.rotation.z = tiltZ;
-      points.position.z = p * 120 - scroll.velocity * 0.15;
+
+      const cameraLift = active * (p * 90 + Math.min(y * 0.04, 120));
+      const cameraDolly = active * (p * 320 + Math.min(Math.abs(scroll.velocity) * 0.35, 80));
+      camera.position.y = CAMERA_BASE.y + cameraLift;
+      camera.position.z = CAMERA_BASE.z - cameraDolly;
+      camera.rotation.x = lerp(
+        camera.rotation.x,
+        -active * (p * 0.2 + Math.min(Math.abs(scroll.velocity) * 0.00008, 0.06)),
+        0.1,
+      );
 
       if (!reducedMotion) {
         const positionAttribute = geometry.attributes.position;
         const positionArray = positionAttribute.array as Float32Array;
-        const waveAmp = 50 + p * 35;
-        const scrollPhase = p * 4.5;
+
+        const idleAmp = 8;
+        const scrollAmp =
+          95 +
+          active * 45 +
+          Math.min(Math.abs(scroll.velocity) * 0.22, 55);
+        const waveAmp = lerp(idleAmp, scrollAmp, active);
+
+        const idleSpeed = 0.012;
+        const scrollSpeed =
+          0.32 + active * 0.15 + Math.min(Math.abs(scroll.velocity) * 0.002, 0.12);
+        const countSpeed = lerp(idleSpeed, scrollSpeed, active);
+
+        const scrollPhase = p * 6 * active;
 
         let i = 0;
         for (let ix = 0; ix < AMOUNTX; ix++) {
@@ -164,7 +225,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         }
 
         positionAttribute.needsUpdate = true;
-        count += 0.1 + p * 0.04;
+        count += countSpeed;
+      } else {
+        points.position.y = indicatorLift;
+        camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
+        camera.rotation.x = 0;
       }
 
       renderer.render(scene, camera);
