@@ -66,8 +66,10 @@ export type ScrollScrubConfig = {
   enterDelay?: number;
   /** Scroll progress (0–1) where the last line finishes entering */
   enterAt?: number;
-  /** Scroll progress (0–1) where exit begins */
+  /** Scroll progress (0–1) where exit begins (full-timeline mode only) */
   exitAt?: number;
+  /** When exit-only scrub starts — section top crosses this line (hero-style tail band) */
+  exitStart?: string;
   /** Stagger between lines on exit (defaults to `stagger`; hero uses ~0.11) */
   exitStagger?: number;
   /**
@@ -79,10 +81,11 @@ export type ScrollScrubConfig = {
 
 /**
  * Below-fold sections — exit-only scrub (portfolio tail trick).
- * Tune exit strength: lower `exitAt` = more scroll % dedicated to slide-up (`1 - exitAt`).
+ * Enter: instant on section enter (not scrubbed). Exit: hero-style suck-up band only.
  */
 export const sectionScrollReveal: ScrollScrubConfig = {
   start: "clamp(top bottom)",
+  exitStart: "clamp(top 32%)",
   end: "clamp(bottom top)",
   scrub: heroScrollReveal.scrub,
   y: heroScrollReveal.y,
@@ -90,10 +93,6 @@ export const sectionScrollReveal: ScrollScrubConfig = {
   exitStagger: heroScrollReveal.stagger,
   exitOpacity: heroScrollReveal.exitOpacity,
   exitOnly: true,
-  enterDelay: 0,
-  enterAt: 0,
-  /** ~80% of section scroll = exit (hero-style suck up) */
-  exitAt: 0.2,
   ease: heroScrollReveal.ease,
 };
 
@@ -102,8 +101,7 @@ export function queryRevealItems(root: Element): HTMLElement[] {
 }
 
 /**
- * Section scroll reveal. Default `exitOnly`: no scrubbed enter — content snaps in,
- * most scroll distance is exit (like hero tail). Set `exitOnly: false` for enter+exit.
+ * Section scroll reveal. Default `exitOnly`: instant show on enter, scrub exit only (tail).
  */
 export function bindSectionScrollScrub(
   section: Element,
@@ -115,10 +113,52 @@ export function bindSectionScrollScrub(
   const { y, exitOpacity, scrub, start, end, stagger } = config;
   const exitStagger = config.exitStagger ?? stagger;
   const exitOnly = config.exitOnly !== false;
-  const exitAt = config.exitAt ?? 0.2;
-  const exitSpan = Math.max(0, 1 - exitAt);
 
   gsap.set(items, { opacity: 0, y, force3D: true });
+
+  const show = () => gsap.set(items, { opacity: 1, y: 0, force3D: true });
+  const hide = () => gsap.set(items, { opacity: 0, y, force3D: true });
+
+  if (exitOnly) {
+    const exitStart = config.exitStart ?? "clamp(top 32%)";
+
+    ScrollTrigger.create({
+      trigger: section,
+      start,
+      onEnter: show,
+      onLeaveBack: hide,
+    });
+
+    if (typeof window !== "undefined") {
+      const rect = section.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        show();
+      }
+    }
+
+    return gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: exitStart,
+        end,
+        scrub,
+        invalidateOnRefresh: true,
+      },
+    }).fromTo(
+      items,
+      { opacity: 1, y: 0, force3D: true },
+      {
+        opacity: exitOpacity,
+        y: -y,
+        stagger: exitStagger,
+        ease: "none",
+        force3D: true,
+      },
+    );
+  }
+
+  const exitAt = config.exitAt ?? 0.2;
+  const exitSpan = Math.max(0, 1 - exitAt);
 
   const tl = gsap.timeline({
     scrollTrigger: {
@@ -129,32 +169,6 @@ export function bindSectionScrollScrub(
       invalidateOnRefresh: true,
     },
   });
-
-  if (exitOnly) {
-    tl.to(
-      items,
-      { opacity: 1, y: 0, ease: "none", duration: 0.01, force3D: true },
-      0,
-    );
-    tl.to(
-      items,
-      { opacity: 1, y: 0, ease: "none", duration: exitAt },
-      0,
-    );
-    tl.to(
-      items,
-      {
-        opacity: exitOpacity,
-        y: -y,
-        stagger: exitStagger,
-        ease: "none",
-        duration: exitSpan,
-        force3D: true,
-      },
-      exitAt,
-    );
-    return tl;
-  }
 
   const enterDelay = config.enterDelay ?? 0;
   const enterAt = config.enterAt ?? 0.42;
