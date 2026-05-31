@@ -50,6 +50,8 @@ export const tailMotion = {
   duration: 0.85,
   stagger: 0.09,
   exitOpacity: 0.15,
+  /** Exit tweens use ~95% of enter duration (default blocks use 65%). */
+  exitDurationFactor: 0.95,
 } as const;
 
 /**
@@ -144,8 +146,10 @@ export type DirectionalRevealOptions = {
   entranceOnly?: boolean;
   /** ScrollTrigger element (e.g. `#home`). Scope still holds animated targets. */
   scrollTrigger?: Element | string;
-  /** Skip onLeave when scrolling past (e.g. last section). Enables enter fallback + leave-back reset. */
+  /** Skip onLeave when scrolling past (e.g. last section). Leave-back exit still runs. */
   disableExit?: boolean;
+  /** Multiplier for exit duration vs enter (tail blocks default 0.95). */
+  exitDurationFactor?: number;
 };
 
 /** One shared scrollEnd listener for last-section enter fallbacks. */
@@ -238,7 +242,8 @@ export function createDirectionalScrollReveal(
   const end = options.end;
   const exitOpacity = options.exitOpacity ?? 0;
   const delay = options.delay ?? 0;
-  const exitDuration = duration * 0.65;
+  const exitDurationFactor = options.exitDurationFactor ?? 0.65;
+  const exitDuration = duration * exitDurationFactor;
 
   const enter = {
     duration,
@@ -250,7 +255,7 @@ export function createDirectionalScrollReveal(
   const exit = {
     duration: exitDuration,
     ease,
-    stagger: stagger * 0.6,
+    stagger: stagger * (exitDurationFactor >= 0.9 ? 0.85 : 0.6),
     overwrite: "auto" as const,
   };
 
@@ -345,13 +350,6 @@ export function createDirectionalScrollReveal(
   const heroCopyEntranceOnly = options.entranceOnly && !end;
   const skipForwardExit = heroCopyEntranceOnly || options.disableExit;
 
-  /** Last section: skip forward exit, but reset hidden state when leaving upward so enter replays. */
-  const playLeaveBackReset = () => {
-    hasEntered = false;
-    gsap.killTweensOf(targets);
-    gsap.set(targets, { opacity: 0, y, force3D: true });
-  };
-
   const tryEnterIfActive = () => {
     if (!options.entranceOnly && st.isActive && !hasEntered) {
       playEnter(true);
@@ -368,11 +366,7 @@ export function createDirectionalScrollReveal(
     onEnter: options.entranceOnly ? undefined : () => playEnter(),
     onLeave: skipForwardExit ? undefined : playExitUp,
     onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
-    onLeaveBack: heroCopyEntranceOnly
-      ? undefined
-      : options.disableExit
-        ? playLeaveBackReset
-        : playExitDown,
+    onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
     onRefresh: options.disableExit
       ? (self) => {
           if (!options.entranceOnly && self.isActive && !hasEntered) {

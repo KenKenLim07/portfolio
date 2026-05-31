@@ -86,6 +86,9 @@ export function AnimatedSection({
         const resolvedExitOpacity =
           exitOpacity ?? (variant === "tail" ? tailMotion.exitOpacity : 0);
 
+        const useTailExit =
+          isLast || (variant === "tail" && !revealIfInView);
+
         createDirectionalScrollReveal(root, items, {
           delay,
           start: resolvedStart,
@@ -95,6 +98,9 @@ export function AnimatedSection({
           entranceOnly: revealIfInView,
           disableExit: isLast || !exit,
           scrollTrigger: resolvedScrollTrigger,
+          exitDurationFactor: useTailExit
+            ? tailMotion.exitDurationFactor
+            : undefined,
           y:
             motionY ??
             (isLast
