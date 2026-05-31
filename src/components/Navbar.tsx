@@ -81,8 +81,8 @@ export function Navbar() {
         className={cn(
           "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2.5 transition-colors duration-200 lg:hidden",
           mobileOpen
-            ? "mobile-menu-chrome hover:text-[var(--menu-fg)]"
-            : "text-muted hover:text-foreground",
+            ? "text-[var(--menu-fg)] hover:text-[var(--menu-muted)]"
+            : "text-foreground hover:text-muted",
         )}
         aria-expanded={mobileOpen}
         aria-controls="mobile-nav"
@@ -123,14 +123,14 @@ export function Navbar() {
           className="mobile-menu-panel absolute right-0 top-0 z-10 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden border-l sm:w-[min(88vw,20rem)]"
         >
           <div className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20">
-            <ThemeToggle className="mobile-menu-chrome hover:text-[var(--menu-muted)]" />
+            <ThemeToggle className="mobile-menu-chrome text-[var(--menu-fg)] hover:text-[var(--menu-muted)]" />
           </div>
           <ul className="flex flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(6.5rem,env(safe-area-inset-top))]">
             {NAV_LINKS.map((link) => (
               <li key={link.href} data-menu-link>
                 <Link
                   href={link.href}
-                  className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight transition-colors duration-300 sm:py-4 sm:text-[2rem]"
+                  className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-[var(--menu-fg)] transition-colors duration-300 hover:text-[var(--menu-muted)] sm:py-4 sm:text-[2rem]"
                   onClick={closeMenu}
                 >
                   {link.label}

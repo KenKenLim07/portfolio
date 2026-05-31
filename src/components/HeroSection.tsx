@@ -17,6 +17,7 @@ import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
 import { HeroRevealItem } from "@/components/ui/HeroRevealItem";
+import { scrollToSection } from "@/lib/scroll-to-section";
 import { cn } from "@/lib/utils";
 
 function HeroCtas({
@@ -41,6 +42,7 @@ function HeroCtas({
     >
       <div
         className={cn(
+          "relative z-10 pointer-events-auto",
           stacked
             ? large
               ? "flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-3"
@@ -51,6 +53,10 @@ function HeroCtas({
       >
         <Link
           href="#projects"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection("projects");
+          }}
           className={cn(
             "radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:opacity-90",
             stacked
@@ -70,6 +76,10 @@ function HeroCtas({
         </Link>
         <Link
           href="#contact"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection("contact");
+          }}
           className={cn(
             "radius-control inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]",
             stacked
@@ -104,12 +114,12 @@ function HeroCopy({
           compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8",
         )}
       >
-        <span className="radius-chip inline-flex items-center gap-2 border border-[rgba(122,98,73,0.35)] bg-[rgba(122,98,73,0.12)] px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-foreground sm:px-3.5 sm:py-2 sm:text-xs">
+        <span className="radius-chip inline-flex items-center gap-2 border border-accent-from/35 bg-accent-from/12 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-foreground sm:px-3.5 sm:py-2 sm:text-xs">
           <span className="relative flex h-1.5 w-1.5">
             {!prefersReducedMotion && (
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[rgba(122,98,73,0.5)]" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
             )}
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[rgba(122,98,73,0.95)]" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
           </span>
           {HERO_AVAILABILITY}
         </span>

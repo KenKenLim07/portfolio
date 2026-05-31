@@ -11,8 +11,17 @@ export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 export function initGsap() {
   if (typeof window === "undefined" || registered) return;
   gsap.registerPlugin(ScrollTrigger, useGSAP);
+  ScrollTrigger.config({ limitCallbacks: true });
   registered = true;
 }
+
+/** Quick fade when reloading mid-page (skip full rise-in). */
+export const reloadRevealFade = {
+  duration: 0.38,
+  ease: "power2.out" as const,
+  y: 14,
+  staggerScale: 0.45,
+} as const;
 
 /** Scroll reveal defaults */
 export const revealDefaults = {
@@ -140,6 +149,19 @@ function isTriggerInViewport(trigger: Element) {
 }
 
 /**
+ * Reload with scroll restored (e.g. refresh mid-page): skip entrance tweens
+ * for bands already on screen — avoids flash + double animate.
+ */
+function shouldSkipEntranceOnLoad(
+  trigger: Element,
+  options: DirectionalRevealOptions,
+) {
+  if (options.entranceOnly || typeof window === "undefined") return false;
+  if (window.scrollY < 24) return false;
+  return isTriggerInViewport(trigger);
+}
+
+/**
  * Direction-aware scroll reveal:
  * - Scroll down into view → rise from below (y+ → 0)
  * - Scroll down past → exit upward (0 → y-)
@@ -223,6 +245,34 @@ export function createDirectionalScrollReveal(
     typeof window !== "undefined" &&
     isTriggerInViewport(trigger);
 
+  const skipEntranceOnLoad = shouldSkipEntranceOnLoad(trigger, options);
+
+  const snapVisible = (withFade = false) => {
+    markBound();
+    hasEntered = true;
+    if (withFade) {
+      gsap.fromTo(
+        targets,
+        {
+          opacity: 0,
+          y: reloadRevealFade.y,
+          force3D: true,
+          immediateRender: true,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: reloadRevealFade.duration,
+          ease: reloadRevealFade.ease,
+          stagger: stagger * reloadRevealFade.staggerScale,
+          force3D: true,
+        },
+      );
+      return;
+    }
+    gsap.set(targets, { opacity: 1, y: 0, force3D: true });
+  };
+
   const playEnter = (force = false) => {
     if (options.entranceOnly && hasEntered && !force) return;
 
@@ -292,15 +342,16 @@ export function createDirectionalScrollReveal(
   };
 
   if (!options.entranceOnly) {
-    gsap.set(targets, { opacity: 0, y, force3D: true });
-    markBound();
+    if (skipEntranceOnLoad) {
+      snapVisible(true);
+    } else {
+      gsap.set(targets, { opacity: 0, y, force3D: true });
+      markBound();
+    }
   }
 
-  if (inViewOnMount) {
+  if (inViewOnMount && !skipEntranceOnLoad) {
     playEnter(true);
-  } else if (!options.entranceOnly) {
-    gsap.set(targets, { opacity: 0, y, force3D: true });
-    markBound();
   }
 
   /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */
@@ -311,13 +362,22 @@ export function createDirectionalScrollReveal(
     start,
     end,
     invalidateOnRefresh: true,
-    onEnter: options.entranceOnly ? undefined : () => playEnter(),
+    onEnter: options.entranceOnly
+      ? undefined
+      : () => {
+          if (skipEntranceOnLoad && hasEntered) return;
+          playEnter();
+        },
     onLeave: heroCopyEntranceOnly ? undefined : playExitUp,
-    onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
+    onEnterBack: heroCopyEntranceOnly ? undefined : playEnterBack,
     onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
   });
 
-  if (inViewOnMount) {
+  if (!options.entranceOnly && st.isActive && !hasEntered) {
+    snapVisible(skipEntranceOnLoad);
+  }
+
+  if (inViewOnMount || skipEntranceOnLoad) {
     requestAnimationFrame(() => ScrollTrigger.refresh());
   }
 
