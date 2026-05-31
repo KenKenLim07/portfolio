@@ -44,18 +44,24 @@ export const tailBlockRevealScroll = {
   end: "clamp(bottom 78%)",
 } as const;
 
-/** Tail exit band with earlier enter (sections near page bottom, e.g. contact). */
-export const sectionTailEarlyEnterScroll = {
-  start: "clamp(top 88%)",
-  end: sectionTailRevealScroll.end,
-} as const;
-
 /** Stronger motion for tail enter/exit (sections below hero) */
 export const tailMotion = {
   y: 64,
   duration: 0.85,
   stagger: 0.09,
   exitOpacity: 0.15,
+} as const;
+
+/**
+ * Last section on the page: content-scoped trigger, tail motion, no forward exit.
+ * Requires `end` — without it ScrollTrigger collapses to a zero-width toggle.
+ */
+export const lastSectionReveal = {
+  start: "clamp(top 88%)",
+  end: "clamp(bottom 62%)",
+  y: tailMotion.y,
+  duration: tailMotion.duration,
+  stagger: tailMotion.stagger,
 } as const;
 
 /**
@@ -138,9 +144,33 @@ export type DirectionalRevealOptions = {
   entranceOnly?: boolean;
   /** ScrollTrigger element (e.g. `#home`). Scope still holds animated targets. */
   scrollTrigger?: Element | string;
-  /** Skip onLeave / onLeaveBack (e.g. last section on page). */
+  /** Skip onLeave when scrolling past (e.g. last section). Enables enter fallback + leave-back reset. */
   disableExit?: boolean;
 };
+
+/** One shared scrollEnd listener for last-section enter fallbacks. */
+type EnterFallback = () => void;
+const enterFallbacks = new Set<EnterFallback>();
+let scrollEndBound = false;
+
+function runEnterFallbacks() {
+  for (const fn of enterFallbacks) fn();
+}
+
+function registerEnterFallback(fn: EnterFallback): () => void {
+  enterFallbacks.add(fn);
+  if (!scrollEndBound && typeof window !== "undefined") {
+    ScrollTrigger.addEventListener("scrollEnd", runEnterFallbacks);
+    scrollEndBound = true;
+  }
+  return () => {
+    enterFallbacks.delete(fn);
+    if (enterFallbacks.size === 0 && scrollEndBound) {
+      ScrollTrigger.removeEventListener("scrollEnd", runEnterFallbacks);
+      scrollEndBound = false;
+    }
+  };
+}
 
 function isTriggerInViewport(trigger: Element) {
   const rect = trigger.getBoundingClientRect();
@@ -313,7 +343,22 @@ export function createDirectionalScrollReveal(
 
   /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */
   const heroCopyEntranceOnly = options.entranceOnly && !end;
-  const skipExit = heroCopyEntranceOnly || options.disableExit;
+  const skipForwardExit = heroCopyEntranceOnly || options.disableExit;
+
+  /** Last section: skip forward exit, but reset hidden state when leaving upward so enter replays. */
+  const playLeaveBackReset = () => {
+    hasEntered = false;
+    gsap.killTweensOf(targets);
+    gsap.set(targets, { opacity: 0, y, force3D: true });
+  };
+
+  const tryEnterIfActive = () => {
+    if (!options.entranceOnly && st.isActive && !hasEntered) {
+      playEnter(true);
+    }
+  };
+
+  let unregisterFallback: (() => void) | undefined;
 
   const st = ScrollTrigger.create({
     trigger,
@@ -321,21 +366,33 @@ export function createDirectionalScrollReveal(
     end,
     invalidateOnRefresh: true,
     onEnter: options.entranceOnly ? undefined : () => playEnter(),
-    onLeave: skipExit ? undefined : playExitUp,
+    onLeave: skipForwardExit ? undefined : playExitUp,
     onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
-    onLeaveBack: skipExit ? undefined : playExitDown,
+    onLeaveBack: heroCopyEntranceOnly
+      ? undefined
+      : options.disableExit
+        ? playLeaveBackReset
+        : playExitDown,
+    onRefresh: options.disableExit
+      ? (self) => {
+          if (!options.entranceOnly && self.isActive && !hasEntered) {
+            playEnter(true);
+          }
+        }
+      : undefined,
+    onKill: () => {
+      unregisterFallback?.();
+    },
   });
 
-  if (inViewOnMount) {
-    requestAnimationFrame(() => ScrollTrigger.refresh());
-  } else if (!heroCopyEntranceOnly && !options.entranceOnly) {
-    /* Last section / refresh mid-page: trigger may already be active before onEnter fires. */
+  if (options.disableExit && !options.entranceOnly) {
+    unregisterFallback = registerEnterFallback(tryEnterIfActive);
     requestAnimationFrame(() => {
       ScrollTrigger.refresh();
-      if (st.isActive && !hasEntered) {
-        playEnter(true);
-      }
+      tryEnterIfActive();
     });
+  } else if (inViewOnMount) {
+    requestAnimationFrame(() => ScrollTrigger.refresh());
   }
 
   return st;

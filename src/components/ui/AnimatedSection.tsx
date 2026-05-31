@@ -7,6 +7,7 @@ import {
   createDirectionalScrollReveal,
   gsap,
   initGsap,
+  lastSectionReveal,
   resolveTailScrollBand,
   revealDefaults,
   tailMotion,
@@ -17,7 +18,7 @@ type AnimatedSectionProps = {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  variant?: "default" | "tail";
+  variant?: "default" | "tail" | "last";
   start?: string;
   end?: string;
   exitOpacity?: number;
@@ -25,8 +26,12 @@ type AnimatedSectionProps = {
   revealIfInView?: boolean;
   /** Pin scroll band to this element (e.g. `#home`) instead of the section root. */
   scrollTrigger?: string;
-  /** Scroll exit (onLeave). Off for last sections like contact. */
+  /** Scroll exit (onLeave). Ignored when variant is `last`. */
   exit?: boolean;
+  /** Optional motion overrides. */
+  y?: number;
+  duration?: number;
+  stagger?: number;
 };
 
 export function AnimatedSection({
@@ -40,6 +45,9 @@ export function AnimatedSection({
   revealIfInView = false,
   scrollTrigger,
   exit = true,
+  y: motionY,
+  duration: motionDuration,
+  stagger: motionStagger,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useGsapReducedMotion();
@@ -54,14 +62,25 @@ export function AnimatedSection({
         const items = root.querySelectorAll<HTMLElement>("[data-gsap-reveal]");
         if (!items.length) return;
 
+        const isLast = variant === "last";
+
         const tailBand =
           variant === "tail" && !revealIfInView
             ? resolveTailScrollBand(root, { scrollTrigger, start, end })
             : null;
 
         const resolvedStart =
-          start ?? (tailBand ? tailBand.start : revealDefaults.start);
-        const resolvedEnd = tailBand ? tailBand.end : end;
+          start ??
+          (isLast
+            ? lastSectionReveal.start
+            : tailBand
+              ? tailBand.start
+              : revealDefaults.start);
+        const resolvedEnd = isLast
+          ? (end ?? lastSectionReveal.end)
+          : tailBand
+            ? tailBand.end
+            : end;
         const resolvedScrollTrigger =
           scrollTrigger ?? tailBand?.scrollTrigger;
         const resolvedExitOpacity =
@@ -74,15 +93,29 @@ export function AnimatedSection({
           exitOpacity: resolvedExitOpacity,
           revealIfInView,
           entranceOnly: revealIfInView,
-          disableExit: !exit,
+          disableExit: isLast || !exit,
           scrollTrigger: resolvedScrollTrigger,
-          ...(variant === "tail" && !revealIfInView
-            ? {
-                y: tailMotion.y,
-                duration: tailMotion.duration,
-                stagger: tailMotion.stagger,
-              }
-            : {}),
+          y:
+            motionY ??
+            (isLast
+              ? lastSectionReveal.y
+              : variant === "tail" && !revealIfInView
+                ? tailMotion.y
+                : undefined),
+          duration:
+            motionDuration ??
+            (isLast
+              ? lastSectionReveal.duration
+              : variant === "tail" && !revealIfInView
+                ? tailMotion.duration
+                : undefined),
+          stagger:
+            motionStagger ??
+            (isLast
+              ? lastSectionReveal.stagger
+              : variant === "tail" && !revealIfInView
+                ? tailMotion.stagger
+                : undefined),
         });
       }, root);
 
@@ -99,6 +132,9 @@ export function AnimatedSection({
         revealIfInView,
         variant,
         exit,
+        motionY,
+        motionDuration,
+        motionStagger,
         prefersReducedMotion,
       ],
       revertOnUpdate: true,
@@ -143,7 +179,7 @@ export function AnimatedStagger({
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  variant?: "default" | "tail";
+  variant?: "default" | "tail" | "last";
   start?: string;
   end?: string;
   exitOpacity?: number;

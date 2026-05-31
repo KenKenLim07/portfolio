@@ -5,7 +5,6 @@ import { SITE, SOCIAL_LINKS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
-import { sectionTailEarlyEnterScroll } from "@/lib/gsap";
 import { ContactForm } from "@/components/ContactForm";
 
 type ContactIcon = LucideIcon | typeof GitHubIcon;
@@ -54,11 +53,7 @@ export function ContactSection() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--accent-from)]/20 via-transparent to-[var(--accent-to)]/15" />
 
         <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
-          <AnimatedSection
-            variant="tail"
-            start={sectionTailEarlyEnterScroll.start}
-            exit={false}
-          >
+          <AnimatedSection variant="last">
             <AnimatedItem>
               <h2 className="section-mega max-w-xl text-foreground">
                 Get in Touch
@@ -92,12 +87,7 @@ export function ContactSection() {
             </AnimatedItem>
           </AnimatedSection>
 
-          <AnimatedSection
-            delay={0.1}
-            variant="tail"
-            start={sectionTailEarlyEnterScroll.start}
-            exit={false}
-          >
+          <AnimatedSection variant="last" delay={0.1}>
             <AnimatedItem>
               <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
                 <h3 className="font-display mb-1 text-lg font-semibold text-foreground">
