@@ -25,6 +25,8 @@ type AnimatedSectionProps = {
   revealIfInView?: boolean;
   /** Pin scroll band to this element (e.g. `#home`) instead of the section root. */
   scrollTrigger?: string;
+  /** Scroll exit (onLeave). Off for last sections like contact. */
+  exit?: boolean;
 };
 
 export function AnimatedSection({
@@ -37,6 +39,7 @@ export function AnimatedSection({
   exitOpacity,
   revealIfInView = false,
   scrollTrigger,
+  exit = true,
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useGsapReducedMotion();
@@ -71,6 +74,7 @@ export function AnimatedSection({
           exitOpacity: resolvedExitOpacity,
           revealIfInView,
           entranceOnly: revealIfInView,
+          disableExit: !exit,
           scrollTrigger: resolvedScrollTrigger,
           ...(variant === "tail" && !revealIfInView
             ? {
@@ -94,6 +98,7 @@ export function AnimatedSection({
         scrollTrigger,
         revealIfInView,
         variant,
+        exit,
         prefersReducedMotion,
       ],
       revertOnUpdate: true,

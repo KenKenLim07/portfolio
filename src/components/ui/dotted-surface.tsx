@@ -165,16 +165,19 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const points = new THREE.Points(geometry, material);
     scene.add(points);
 
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
+
     let count = 0;
     let animationId = 0;
     let velocityKick = 0;
     let smoothedActivity = 0;
     let smoothedVelocity = 0;
 
-    const animate = () => {
+    const animate = (timestamp: number) => {
       animationId = requestAnimationFrame(animate);
-      const dt = Math.min(clock.getDelta(), 0.05);
+      timer.update(timestamp);
+      const dt = Math.min(timer.getDelta(), 0.05);
 
       const scroll = scrollRef.current;
 
@@ -341,7 +344,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     };
 
     window.addEventListener("resize", handleResize);
-    animate();
+    requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener("resize", handleResize);

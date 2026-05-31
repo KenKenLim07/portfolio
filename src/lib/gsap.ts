@@ -44,6 +44,12 @@ export const tailBlockRevealScroll = {
   end: "clamp(bottom 78%)",
 } as const;
 
+/** Tail exit band with earlier enter (sections near page bottom, e.g. contact). */
+export const sectionTailEarlyEnterScroll = {
+  start: "clamp(top 88%)",
+  end: sectionTailRevealScroll.end,
+} as const;
+
 /** Stronger motion for tail enter/exit (sections below hero) */
 export const tailMotion = {
   y: 64,
@@ -132,6 +138,8 @@ export type DirectionalRevealOptions = {
   entranceOnly?: boolean;
   /** ScrollTrigger element (e.g. `#home`). Scope still holds animated targets. */
   scrollTrigger?: Element | string;
+  /** Skip onLeave / onLeaveBack (e.g. last section on page). */
+  disableExit?: boolean;
 };
 
 function isTriggerInViewport(trigger: Element) {
@@ -305,6 +313,7 @@ export function createDirectionalScrollReveal(
 
   /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */
   const heroCopyEntranceOnly = options.entranceOnly && !end;
+  const skipExit = heroCopyEntranceOnly || options.disableExit;
 
   const st = ScrollTrigger.create({
     trigger,
@@ -312,13 +321,21 @@ export function createDirectionalScrollReveal(
     end,
     invalidateOnRefresh: true,
     onEnter: options.entranceOnly ? undefined : () => playEnter(),
-    onLeave: heroCopyEntranceOnly ? undefined : playExitUp,
+    onLeave: skipExit ? undefined : playExitUp,
     onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
-    onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
+    onLeaveBack: skipExit ? undefined : playExitDown,
   });
 
   if (inViewOnMount) {
     requestAnimationFrame(() => ScrollTrigger.refresh());
+  } else if (!heroCopyEntranceOnly && !options.entranceOnly) {
+    /* Last section / refresh mid-page: trigger may already be active before onEnter fires. */
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+      if (st.isActive && !hasEntered) {
+        playEnter(true);
+      }
+    });
   }
 
   return st;
