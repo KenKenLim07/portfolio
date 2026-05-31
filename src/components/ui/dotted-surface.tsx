@@ -37,12 +37,17 @@ const WAVE_SCROLL_SPEED = 0.14;
 type ScrollState = {
   progress: { current: number; target: number };
   velocity: number;
-  activity: number;
-  direction: -1 | 0 | 1;
+  lastScrollAt: number;
+  scrollDir: -1 | 0 | 1;
 };
 
 function lerp(a: number, b: number, t: number) {
   return a + (b - a) * t;
+}
+
+/** Frame-rate independent exponential smoothing. */
+function expSmooth(current: number, target: number, lambda: number, dt: number) {
+  return lerp(current, target, 1 - Math.exp(-lambda * dt));
 }
 
 /** Ease-out: more lift through the middle of the page, full lift at bottom. */
@@ -57,8 +62,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const scrollRef = useRef<ScrollState>({
     progress: { current: 0, target: 0 },
     velocity: 0,
-    activity: 0,
-    direction: 0,
+    lastScrollAt: 0,
+    scrollDir: 0,
   });
   const lastScrollYRef = useRef(0);
 
@@ -75,11 +80,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       const scroll = scrollRef.current;
       scroll.progress.target = Math.min(1, Math.max(0, y / max));
       scroll.velocity = velocity;
-      if (velocity > 2) scroll.direction = 1;
-      else if (velocity < -2) scroll.direction = -1;
 
-      if (Math.abs(velocity) > 3) {
-        scroll.activity = Math.min(1, scroll.activity + 0.28);
+      if (Math.abs(velocity) > 2) {
+        scroll.scrollDir = velocity > 0 ? 1 : -1;
+        scroll.lastScrollAt = performance.now();
       }
     };
 
@@ -165,9 +169,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let count = 0;
     let animationId = 0;
     let velocityKick = 0;
-    let gestureDolly = 0;
-    let gestureFov = CAMERA_BASE_FOV;
-    let gestureScale = 1;
+    let smoothedActivity = 0;
+    let smoothedVelocity = 0;
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
@@ -176,11 +179,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       const scroll = scrollRef.current;
 
       const goingUp =
-        scroll.progress.target < scroll.progress.current - 0.0005 ||
-        scroll.direction === -1;
+        scroll.progress.target < scroll.progress.current - 0.0005;
       const goingDown =
-        scroll.progress.target > scroll.progress.current + 0.0005 ||
-        scroll.direction === 1;
+        scroll.progress.target > scroll.progress.current + 0.0005;
 
       const progressFollow = goingUp ? 0.14 : goingDown ? 0.095 : 0.085;
       scroll.progress.current = lerp(
@@ -189,91 +190,115 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         progressFollow,
       );
 
-      scroll.activity = Math.max(0, scroll.activity - 0.75 * dt);
+      const scrollAge = performance.now() - scroll.lastScrollAt;
+      const activityTarget =
+        scrollAge < 140 ? 1 : Math.exp(-(scrollAge - 140) * 0.007);
+      smoothedActivity = expSmooth(
+        smoothedActivity,
+        activityTarget,
+        16,
+        dt,
+      );
+      smoothedVelocity = expSmooth(
+        smoothedVelocity,
+        scroll.velocity,
+        10,
+        dt,
+      );
+      scroll.velocity *= Math.exp(-10 * dt);
 
-      const active = scroll.activity;
+      const active = smoothedActivity;
       const p = scroll.progress.current;
       const targetP = scroll.progress.target;
+      const dir = scroll.scrollDir;
 
-      /* Scroll down: eased lift. Scroll up: track target faster so the grid drops back clearly. */
+      if (dir !== 0 && active < 0.02) {
+        scroll.scrollDir = 0;
+      }
+
       const liftP = goingUp ? lerp(p, targetP, 0.45) : p;
       const liftT = goingUp
         ? Math.min(1, Math.max(0, liftP))
         : indicatorProgress(p);
       const indicatorLift = liftT * INDICATOR_MAX_LIFT;
 
-      const velBoost = Math.min(Math.abs(scroll.velocity) * 0.55, 72);
+      const velBoost = Math.min(Math.abs(smoothedVelocity) * 0.55, 72);
       const kickCap = 28;
       const kickTarget = Math.max(
         -kickCap,
-        Math.min(kickCap, scroll.velocity * 0.62),
+        Math.min(kickCap, smoothedVelocity * 0.62),
       );
-      const kickMin = goingUp || goingDown ? 0.4 : 0;
-      const kickBlend = goingUp || goingDown ? 0.16 : 0.1;
-      velocityKick = lerp(
+      velocityKick = expSmooth(
         velocityKick,
-        kickTarget * Math.max(active, kickMin),
-        kickBlend,
+        kickTarget * active,
+        12,
+        dt,
       );
       points.position.y = indicatorLift + velocityKick;
 
-      const zGesture = goingUp
-        ? -active * (58 + velBoost)
-        : goingDown
-          ? active * (72 + velBoost)
-          : 0;
-      const progressZ = p * 38 * (1 - active * 0.72);
-      const zTarget = progressZ + zGesture;
-      const depthFollow = goingUp || goingDown ? 0.22 : 0.09;
-      points.position.z = lerp(points.position.z, zTarget, depthFollow);
+      /*
+       * Gesture zoom — one driver (active × dir), progress depth stays stable.
+       * No cross-fade between progress/gesture (that caused the hiccup).
+       */
+      const zoomIn = dir === 1;
+      const zoomOut = dir === -1;
+      const gestureDolly =
+        zoomIn
+          ? active * (DOLLY_GESTURE_IN + velBoost)
+          : zoomOut
+            ? active * (DOLLY_GESTURE_OUT + velBoost)
+            : 0;
+      const gestureDollySigned = zoomOut ? -gestureDolly : gestureDolly;
 
-      points.rotation.z = lerp(
+      const progressZ = p * 38;
+      const zGesture =
+        zoomIn
+          ? active * (72 + velBoost)
+          : zoomOut
+            ? -active * (58 + velBoost)
+            : 0;
+      const targetZ = progressZ + zGesture;
+      points.position.z = expSmooth(points.position.z, targetZ, 18, dt);
+
+      points.rotation.z = expSmooth(
         points.rotation.z,
-        Math.max(-0.06, Math.min(0.06, scroll.velocity * 0.00016 * active)),
-        goingUp || goingDown ? 0.14 : 0.08,
+        Math.max(-0.06, Math.min(0.06, smoothedVelocity * 0.00016 * active)),
+        12,
+        dt,
       );
 
       const cameraLift =
-        liftT * 32 +
-        (goingUp ? -1 : 1) * active * (goingDown ? 48 : 38);
+        liftT * 32 + (zoomOut ? -1 : 1) * active * (zoomIn ? 48 : 38);
 
-      let targetGesture = 0;
-      if (goingUp) {
-        targetGesture = -active * (DOLLY_GESTURE_OUT + velBoost);
-      } else if (goingDown) {
-        targetGesture = active * (DOLLY_GESTURE_IN + velBoost);
-      }
-      const gestureFollow = goingUp || goingDown ? 0.27 : 0.1;
-      gestureDolly = lerp(gestureDolly, targetGesture, gestureFollow);
-
-      const progressDolly = p * DOLLY_FROM_PROGRESS * (1 - active * 0.78);
+      const progressDolly = p * DOLLY_FROM_PROGRESS;
+      const targetCamZ =
+        CAMERA_BASE.z - progressDolly - gestureDollySigned;
       camera.position.y = CAMERA_BASE.y + cameraLift;
-      camera.position.z = CAMERA_BASE.z - progressDolly - gestureDolly;
+      camera.position.z = expSmooth(camera.position.z, targetCamZ, 20, dt);
 
-      const tiltTarget = goingUp
-        ? active * 0.085
-        : goingDown
-          ? -active * 0.085
-          : 0;
-      const tiltFollow = goingUp || goingDown ? 0.18 : 0.09;
-      camera.rotation.x = lerp(camera.rotation.x, tiltTarget, tiltFollow);
+      const tiltTarget =
+        zoomOut ? active * 0.085 : zoomIn ? -active * 0.085 : 0;
+      camera.rotation.x = expSmooth(camera.rotation.x, tiltTarget, 14, dt);
 
-      const targetFov = goingUp
-        ? CAMERA_BASE_FOV + active * 8
-        : goingDown
-          ? CAMERA_BASE_FOV - active * 7
-          : CAMERA_BASE_FOV;
-      gestureFov = lerp(gestureFov, targetFov, gestureFollow);
-      camera.fov = gestureFov;
-      camera.updateProjectionMatrix();
+      const targetFov =
+        zoomOut
+          ? CAMERA_BASE_FOV + active * 8
+          : zoomIn
+            ? CAMERA_BASE_FOV - active * 7
+            : CAMERA_BASE_FOV;
+      camera.fov = expSmooth(camera.fov, targetFov, 14, dt);
+      if (Math.abs(camera.fov - targetFov) > 0.02) {
+        camera.updateProjectionMatrix();
+      }
 
-      const targetScale = goingUp
-        ? 1 - active * 0.06
-        : goingDown
-          ? 1 + active * 0.09
-          : 1;
-      gestureScale = lerp(gestureScale, targetScale, gestureFollow);
-      points.scale.set(gestureScale, gestureScale, gestureScale);
+      const targetScale =
+        zoomOut
+          ? 1 - active * 0.06
+          : zoomIn
+            ? 1 + active * 0.09
+            : 1;
+      const scale = expSmooth(points.scale.x, targetScale, 14, dt);
+      points.scale.set(scale, scale, scale);
 
       if (!reducedMotion) {
         const positionAttribute = geometry.attributes.position;
@@ -281,7 +306,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
         const waveAmp = lerp(WAVE_IDLE_AMP, WAVE_SCROLL_AMP, active);
         const countSpeed = lerp(WAVE_IDLE_SPEED, WAVE_SCROLL_SPEED, active);
-        const scrollDir = scroll.direction === -1 ? -1 : 1;
+        const scrollDir = dir === -1 ? -1 : 1;
         const scrollPhase = p * 3.4 * active * scrollDir;
 
         let i = 0;
