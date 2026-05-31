@@ -165,16 +165,18 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const points = new THREE.Points(geometry, material);
     scene.add(points);
 
-    const clock = new THREE.Clock();
     let count = 0;
     let animationId = 0;
     let velocityKick = 0;
     let smoothedActivity = 0;
     let smoothedVelocity = 0;
+    let lastFrame = performance.now();
 
     const animate = () => {
       animationId = requestAnimationFrame(animate);
-      const dt = Math.min(clock.getDelta(), 0.05);
+      const now = performance.now();
+      const dt = Math.min((now - lastFrame) / 1000, 0.05);
+      lastFrame = now;
 
       const scroll = scrollRef.current;
 

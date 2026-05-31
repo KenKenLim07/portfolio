@@ -155,7 +155,7 @@ function HeroCopy({
             "max-w-xl leading-relaxed text-muted",
             compact
               ? "line-clamp-3 text-sm"
-              : "max-w-[36ch] text-[1.0625rem] leading-relaxed sm:max-w-xl sm:text-lg lg:max-w-xl lg:text-lg",
+              : "max-w-[36ch] text-[1.0625rem] leading-relaxed sm:max-w-xl sm:text-lg",
           )}
         >
           Hi! I&apos;m{" "}
@@ -231,7 +231,7 @@ export function HeroSection() {
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div ref={heroContentRef}>
+      <div ref={heroContentRef} className="lg:h-full lg:min-h-0">
         <div
           data-hero-panel="mobile"
           className={cn(
@@ -266,30 +266,30 @@ export function HeroSection() {
         <div
           data-hero-panel="desktop"
           className={cn(
-            "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
+            "relative mx-auto box-border hidden h-full max-h-full w-full max-w-7xl flex-col justify-center px-8 pb-14 pt-[max(5.5rem,calc(4.25rem+env(safe-area-inset-top,0px)))] lg:flex lg:px-12 lg:pb-16",
             HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
           )}
         >
-          <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
+          <div className="grid grid-cols-12 items-center gap-8 xl:gap-12">
             <div
               className={cn(
-                "col-span-7 xl:col-span-7",
+                "col-span-12 lg:col-span-8 xl:col-span-8",
                 HERO_LAYOUT_DEBUG &&
                   "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
               )}
             >
-              <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
+              <HeroCopy introClassName="lg:max-w-2xl lg:text-xl lg:leading-relaxed xl:max-w-3xl" />
             </div>
 
             <div
               className={cn(
-                "col-span-5 flex w-full flex-col gap-5 xl:col-span-5",
+                "col-span-12 flex w-full max-w-sm flex-col gap-4 lg:col-span-4 lg:max-w-none lg:justify-self-end xl:col-span-4",
                 HERO_LAYOUT_DEBUG &&
                   "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
               )}
             >
               <HeroCtas variant="stack" className="w-full" />
-              <HeroMetrics variant="column" className="w-full" />
+              <HeroMetrics variant="column" className="w-full lg:opacity-90" />
             </div>
           </div>
 

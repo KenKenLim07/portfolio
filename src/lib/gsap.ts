@@ -3,6 +3,27 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 let registered = false;
+let programmaticScrollUntil = 0;
+
+/** Suppress full rise-in while smooth-scrolling via in-page links (hero CTAs, etc.). */
+export function markProgrammaticScroll(durationMs = 900) {
+  if (typeof window === "undefined") return;
+  programmaticScrollUntil = performance.now() + durationMs;
+}
+
+function isProgrammaticScroll() {
+  return (
+    typeof window !== "undefined" && performance.now() < programmaticScrollUntil
+  );
+}
+
+function targetsAreSettled(targets: gsap.TweenTarget) {
+  const first = gsap.utils.toArray(targets)[0] as Element | undefined;
+  if (!(first instanceof Element)) return false;
+  const opacity = Number(gsap.getProperty(first, "opacity"));
+  const y = Number(gsap.getProperty(first, "y"));
+  return opacity >= 0.92 && Math.abs(y) < 4;
+}
 
 /** Shared media query for accessibility-aware GSAP setup. */
 export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -357,19 +378,41 @@ export function createDirectionalScrollReveal(
   /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */
   const heroCopyEntranceOnly = options.entranceOnly && !end;
 
+  const handleEnter = () => {
+    if (skipEntranceOnLoad && hasEntered) return;
+    if (isProgrammaticScroll()) {
+      if (hasEntered && targetsAreSettled(targets)) return;
+      if (targetsAreSettled(targets)) {
+        hasEntered = true;
+        return;
+      }
+      snapVisible(true);
+      return;
+    }
+    playEnter();
+  };
+
+  const handleEnterBack = () => {
+    if (isProgrammaticScroll()) {
+      if (hasEntered && targetsAreSettled(targets)) return;
+      if (targetsAreSettled(targets)) {
+        hasEntered = true;
+        return;
+      }
+      snapVisible(true);
+      return;
+    }
+    playEnterBack();
+  };
+
   const st = ScrollTrigger.create({
     trigger,
     start,
     end,
     invalidateOnRefresh: true,
-    onEnter: options.entranceOnly
-      ? undefined
-      : () => {
-          if (skipEntranceOnLoad && hasEntered) return;
-          playEnter();
-        },
+    onEnter: options.entranceOnly ? undefined : handleEnter,
     onLeave: heroCopyEntranceOnly ? undefined : playExitUp,
-    onEnterBack: heroCopyEntranceOnly ? undefined : playEnterBack,
+    onEnterBack: heroCopyEntranceOnly ? undefined : handleEnterBack,
     onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
   });
 
