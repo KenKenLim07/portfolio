@@ -19,18 +19,8 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       }, 150);
     };
 
-    const markReady = () => {
-      document.documentElement.classList.add("gsap-ready");
-    };
-
     window.addEventListener("resize", refresh, { passive: true });
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-        markReady();
-      });
-    });
+    const t = window.setTimeout(refresh, 150);
 
     if (document.fonts?.ready) {
       document.fonts.ready.then(refresh);
@@ -38,8 +28,8 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       window.removeEventListener("resize", refresh);
+      window.clearTimeout(t);
       if (refreshTimer) window.clearTimeout(refreshTimer);
-      document.documentElement.classList.remove("gsap-ready");
     };
   }, []);
 

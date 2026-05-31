@@ -3,27 +3,6 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 let registered = false;
-let programmaticScrollUntil = 0;
-
-/** Suppress full rise-in while smooth-scrolling via in-page links (hero CTAs, etc.). */
-export function markProgrammaticScroll(durationMs = 900) {
-  if (typeof window === "undefined") return;
-  programmaticScrollUntil = performance.now() + durationMs;
-}
-
-function isProgrammaticScroll() {
-  return (
-    typeof window !== "undefined" && performance.now() < programmaticScrollUntil
-  );
-}
-
-function targetsAreSettled(targets: gsap.TweenTarget) {
-  const first = gsap.utils.toArray(targets)[0] as Element | undefined;
-  if (!(first instanceof Element)) return false;
-  const opacity = Number(gsap.getProperty(first, "opacity"));
-  const y = Number(gsap.getProperty(first, "y"));
-  return opacity >= 0.92 && Math.abs(y) < 4;
-}
 
 /** Shared media query for accessibility-aware GSAP setup. */
 export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -32,17 +11,8 @@ export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 export function initGsap() {
   if (typeof window === "undefined" || registered) return;
   gsap.registerPlugin(ScrollTrigger, useGSAP);
-  ScrollTrigger.config({ limitCallbacks: true });
   registered = true;
 }
-
-/** Quick fade when reloading mid-page (skip full rise-in). */
-export const reloadRevealFade = {
-  duration: 0.38,
-  ease: "power2.out" as const,
-  y: 14,
-  staggerScale: 0.45,
-} as const;
 
 /** Scroll reveal defaults */
 export const revealDefaults = {
@@ -170,19 +140,6 @@ function isTriggerInViewport(trigger: Element) {
 }
 
 /**
- * Reload with scroll restored (e.g. refresh mid-page): skip entrance tweens
- * for bands already on screen — avoids flash + double animate.
- */
-function shouldSkipEntranceOnLoad(
-  trigger: Element,
-  options: DirectionalRevealOptions,
-) {
-  if (options.entranceOnly || typeof window === "undefined") return false;
-  if (window.scrollY < 24) return false;
-  return isTriggerInViewport(trigger);
-}
-
-/**
  * Direction-aware scroll reveal:
  * - Scroll down into view → rise from below (y+ → 0)
  * - Scroll down past → exit upward (0 → y-)
@@ -266,34 +223,6 @@ export function createDirectionalScrollReveal(
     typeof window !== "undefined" &&
     isTriggerInViewport(trigger);
 
-  const skipEntranceOnLoad = shouldSkipEntranceOnLoad(trigger, options);
-
-  const snapVisible = (withFade = false) => {
-    markBound();
-    hasEntered = true;
-    if (withFade) {
-      gsap.fromTo(
-        targets,
-        {
-          opacity: 0,
-          y: reloadRevealFade.y,
-          force3D: true,
-          immediateRender: true,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: reloadRevealFade.duration,
-          ease: reloadRevealFade.ease,
-          stagger: stagger * reloadRevealFade.staggerScale,
-          force3D: true,
-        },
-      );
-      return;
-    }
-    gsap.set(targets, { opacity: 1, y: 0, force3D: true });
-  };
-
   const playEnter = (force = false) => {
     if (options.entranceOnly && hasEntered && !force) return;
 
@@ -363,64 +292,32 @@ export function createDirectionalScrollReveal(
   };
 
   if (!options.entranceOnly) {
-    if (skipEntranceOnLoad) {
-      snapVisible(true);
-    } else {
-      gsap.set(targets, { opacity: 0, y, force3D: true });
-      markBound();
-    }
+    gsap.set(targets, { opacity: 0, y, force3D: true });
+    markBound();
   }
 
-  if (inViewOnMount && !skipEntranceOnLoad) {
+  if (inViewOnMount) {
     playEnter(true);
+  } else if (!options.entranceOnly) {
+    gsap.set(targets, { opacity: 0, y, force3D: true });
+    markBound();
   }
 
   /** Hero copy: entrance on load only — no scroll band. Tail + below-fold keep full directional scroll. */
   const heroCopyEntranceOnly = options.entranceOnly && !end;
-
-  const handleEnter = () => {
-    if (skipEntranceOnLoad && hasEntered) return;
-    if (isProgrammaticScroll()) {
-      if (hasEntered && targetsAreSettled(targets)) return;
-      if (targetsAreSettled(targets)) {
-        hasEntered = true;
-        return;
-      }
-      snapVisible(true);
-      return;
-    }
-    playEnter();
-  };
-
-  const handleEnterBack = () => {
-    if (isProgrammaticScroll()) {
-      if (hasEntered && targetsAreSettled(targets)) return;
-      if (targetsAreSettled(targets)) {
-        hasEntered = true;
-        return;
-      }
-      snapVisible(true);
-      return;
-    }
-    playEnterBack();
-  };
 
   const st = ScrollTrigger.create({
     trigger,
     start,
     end,
     invalidateOnRefresh: true,
-    onEnter: options.entranceOnly ? undefined : handleEnter,
+    onEnter: options.entranceOnly ? undefined : () => playEnter(),
     onLeave: heroCopyEntranceOnly ? undefined : playExitUp,
-    onEnterBack: heroCopyEntranceOnly ? undefined : handleEnterBack,
+    onEnterBack: heroCopyEntranceOnly ? undefined : () => playEnterBack(),
     onLeaveBack: heroCopyEntranceOnly ? undefined : playExitDown,
   });
 
-  if (!options.entranceOnly && st.isActive && !hasEntered) {
-    snapVisible(skipEntranceOnLoad);
-  }
-
-  if (inViewOnMount || skipEntranceOnLoad) {
+  if (inViewOnMount) {
     requestAnimationFrame(() => ScrollTrigger.refresh());
   }
 
