@@ -60,7 +60,7 @@ export function HeroMetrics({
                 compact
                   ? "text-base sm:text-lg"
                   : stacked
-                    ? "text-lg lg:text-xl"
+                    ? "text-base lg:text-lg"
                     : "text-base sm:text-lg lg:text-2xl xl:text-3xl",
               )}
             >

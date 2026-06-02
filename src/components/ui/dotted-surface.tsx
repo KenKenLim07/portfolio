@@ -13,7 +13,8 @@ const FOG = {
 } as const;
 
 const DOT = {
-  light: [0.2, 0.22, 0.34] as const,
+  /* ~zinc-600 + indigo tint — visible on #f4f4f5 without overpowering content */
+  light: [0.36, 0.38, 0.52] as const,
   dark: [0.72, 0.74, 0.82] as const,
 };
 
@@ -155,10 +156,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     );
 
     const material = new THREE.PointsMaterial({
-      size: isDark ? 8 : 10,
+      size: isDark ? 8 : 9,
       vertexColors: true,
       transparent: true,
-      opacity: isDark ? 0.75 : 0.92,
+      opacity: isDark ? 0.75 : 0.88,
       sizeAttenuation: true,
     });
 

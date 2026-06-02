@@ -217,11 +217,12 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative overflow-x-hidden lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
+        "relative overflow-x-hidden",
+        "lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div ref={heroContentRef}>
+      <div ref={heroContentRef} className="lg:h-full lg:min-h-0">
         <div
           data-hero-panel="mobile"
           className={cn(
@@ -256,24 +257,26 @@ export function HeroSection() {
         <div
           data-hero-panel="desktop"
           className={cn(
-            "relative mx-auto hidden h-full max-h-full w-full max-w-7xl flex-col justify-center box-border px-8 pb-14 pt-16 lg:flex lg:px-12",
+            "relative mx-auto hidden h-full min-h-0 w-full max-w-7xl flex-col justify-center box-border px-8 pb-16 lg:flex lg:px-12",
+            /* h-16 nav + 2.5rem breathing room — centers in the band below the bar */
+            "lg:pt-[calc(4rem+2.5rem)]",
             HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
           )}
         >
-          <div className="grid grid-cols-12 items-center gap-6 xl:gap-8">
+          <div className="grid grid-cols-12 items-center gap-8 xl:gap-10">
             <div
               className={cn(
-                "col-span-7 xl:col-span-7",
+                "col-span-12 lg:col-span-8",
                 HERO_LAYOUT_DEBUG &&
                   "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
               )}
             >
-              <HeroCopy introClassName="lg:mt-4 lg:max-w-lg lg:text-base" />
+              <HeroCopy introClassName="lg:mt-6 lg:max-w-xl" />
             </div>
 
             <div
               className={cn(
-                "col-span-5 flex w-full flex-col gap-5 xl:col-span-5",
+                "col-span-12 flex w-full flex-col gap-5 lg:col-span-4",
                 HERO_LAYOUT_DEBUG &&
                   "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
               )}
