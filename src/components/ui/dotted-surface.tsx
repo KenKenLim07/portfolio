@@ -129,6 +129,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(scene.fog.color, 0);
+    /* pointer-events is not inherited — canvas must opt out or it blocks the page */
+    renderer.domElement.style.pointerEvents = "none";
 
     container.appendChild(renderer.domElement);
 

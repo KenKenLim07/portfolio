@@ -80,22 +80,18 @@ export const heroTailExitScroll = {
  *
  * Scroll band (maps scrub 0 → 1):
  *   start: hero top at viewport top     → fully visible
- *   end:   hero bottom near viewport top → fully exited
+ *   end:   hero bottom mid-viewport      → vacuumed up (matches tail section feel)
  *
- * Tune `end` to widen/narrow how much scroll drives the exit:
- *   - `bottom top+=20%` = longer band (exit starts earlier as you scroll)
- *   - `bottom top`       = longest band (exit completes when hero is almost gone)
- *
- * Tune `scrub` for how tightly motion follows the wheel (higher = smoother/laggier).
+ * `exitOpacity` + earlier `end` = visible “suck” while hero is still on screen.
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
-  end: "clamp(bottom 22%)",
-  scrub: 1.25,
+  end: "clamp(bottom 55%)",
+  scrub: 1,
   y: 96,
   duration: 0.95,
   stagger: 0.11,
-  exitOpacity: 0.04,
+  exitOpacity: tailMotion.exitOpacity,
   ease: "power2.inOut" as const,
 } as const;
 
@@ -104,6 +100,15 @@ export function bindHeroExitScrub(section: Element, items: HTMLElement[]) {
   if (!items.length) return null;
 
   const config = heroScrollReveal;
+
+  items.forEach((el) => {
+    el.style.pointerEvents = "auto";
+    if (el.hasAttribute("data-hero-cta-panel")) {
+      el.querySelectorAll<HTMLElement>("a[href]").forEach((link) => {
+        link.style.pointerEvents = "auto";
+      });
+    }
+  });
 
   return gsap
     .timeline({
@@ -121,7 +126,6 @@ export function bindHeroExitScrub(section: Element, items: HTMLElement[]) {
       {
         opacity: config.exitOpacity,
         y: -config.y,
-        stagger: config.stagger,
         ease: "none",
         force3D: true,
       },

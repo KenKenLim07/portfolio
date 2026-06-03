@@ -110,12 +110,38 @@ html {
     visibility: visible;
   }
 
+  /*
+   * Faded scroll-reveal layers stay visibility:visible for compositing but must not
+   * intercept clicks over sections above them (e.g. hero CTAs after scrolling back up).
+   */
+  section:not(#home) .gsap-reveal.gsap-bound {
+    pointer-events: none;
+  }
+
+  section:not(#home) .gsap-reveal.gsap-bound a,
+  section:not(#home) .gsap-reveal.gsap-bound button,
+  section:not(#home) .gsap-reveal.gsap-bound input,
+  section:not(#home) .gsap-reveal.gsap-bound textarea,
+  section:not(#home) .gsap-reveal.gsap-bound select,
+  section:not(#home) .gsap-reveal.gsap-bound label {
+    pointer-events: auto;
+  }
+
   /* Hero: avoid blank flash while JS hydrates (matches heroScrollReveal.y ≈ 96px) */
   #home .gsap-reveal {
     opacity: 1;
     transform: none;
     will-change: transform, opacity;
     visibility: visible;
+  }
+
+  /* CTAs sit outside exit scrub — always interactive when visible */
+  #home [data-hero-cta-panel] {
+    pointer-events: auto;
+  }
+
+  #home [data-hero-cta-panel] a {
+    pointer-events: auto;
   }
 }
 

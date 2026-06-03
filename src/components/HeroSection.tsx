@@ -19,6 +19,12 @@ import { HeroMetrics } from "@/components/HeroMetrics";
 import { HeroRevealItem } from "@/components/ui/HeroRevealItem";
 import { cn } from "@/lib/utils";
 
+function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function HeroCtas({
   className,
   variant = "inline",
@@ -31,10 +37,10 @@ function HeroCtas({
   const stacked = variant === "stack";
 
   return (
-    <HeroRevealItem
-      group="tail"
+    <div
+      data-hero-cta-panel
       className={cn(
-        "overflow-visible",
+        "relative z-30 overflow-visible",
         HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-sky-400 bg-sky-400/5 p-1",
         className,
       )}
@@ -51,8 +57,12 @@ function HeroCtas({
       >
         <Link
           href="#projects"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection("projects");
+          }}
           className={cn(
-            "radius-control group inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:opacity-90",
+            "radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:opacity-90",
             stacked
               ? large
                 ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
@@ -70,8 +80,12 @@ function HeroCtas({
         </Link>
         <Link
           href="#contact"
+          onClick={(e) => {
+            e.preventDefault();
+            scrollToSection("contact");
+          }}
           className={cn(
-            "radius-control inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]",
+            "radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]",
             stacked
               ? large
                 ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
@@ -82,7 +96,7 @@ function HeroCtas({
           Get in touch
         </Link>
       </div>
-    </HeroRevealItem>
+    </div>
   );
 }
 
@@ -217,12 +231,12 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative overflow-x-hidden",
+        "relative isolate z-[1] overflow-x-hidden",
         "lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div ref={heroContentRef} className="lg:h-full lg:min-h-0">
+      <div ref={heroContentRef} className="relative z-[2] lg:h-full lg:min-h-0">
         <div
           data-hero-panel="mobile"
           className={cn(

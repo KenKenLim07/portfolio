@@ -43,22 +43,39 @@ function getRevealItems(root: HTMLElement, group?: HeroGroup): HTMLElement[] {
   return Array.from(panel.querySelectorAll<HTMLElement>(selector));
 }
 
+function getCtaPanel(root: HTMLElement): HTMLElement | null {
+  const panel = getActivePanel(root);
+  return panel?.querySelector<HTMLElement>("[data-hero-cta-panel]") ?? null;
+}
+
+/** All hero blocks scrub together — one motion, correct reverse on scroll-up. */
+function getScrubTargets(root: HTMLElement): HTMLElement[] {
+  const copyAndCue = getRevealItems(root).filter(
+    (el) => el.dataset.heroGroup !== "tail",
+  );
+  const tail = getRevealItems(root, "tail");
+  const ctaPanel = getCtaPanel(root);
+  return ctaPanel ? [...copyAndCue, ...tail, ctaPanel] : [...copyAndCue, ...tail];
+}
+
 function isHomeInView(home: HTMLElement) {
   const rect = home.getBoundingClientRect();
   return rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
 }
 
 function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
-  const all = getRevealItems(root);
   const copy = getRevealItems(root, "copy");
   const tail = getRevealItems(root, "tail");
   const cue = getRevealItems(root, "cue");
+  const ctaPanel = getCtaPanel(root);
 
-  if (!all.length) return null;
+  if (!copy.length && !tail.length && !cue.length && !ctaPanel) return null;
 
   const { y, duration, stagger, ease } = heroScrollReveal;
+  const all = getScrubTargets(root);
 
   gsap.set(all, { opacity: 0, y, force3D: true });
+  if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
 
   const tl = gsap.timeline();
   if (copy.length) {
@@ -68,22 +85,24 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
       0.05,
     );
   }
-  if (tail.length) {
+  const bandTargets = ctaPanel ? [...tail, ctaPanel] : tail;
+  if (bandTargets.length) {
     tl.to(
-      tail,
+      bandTargets,
       { opacity: 1, y: 0, stagger, duration, ease, force3D: true },
-      0.2,
+      0.18,
     );
   }
   if (cue.length) {
     tl.to(cue, { opacity: 1, y: 0, duration, ease, force3D: true }, 0.34);
   }
+
   return tl;
 }
 
 /**
- * Hero: mount entrance + scrubbed exit on `#home` for copy, tail, and cue.
- * Scrub reverses when scrolling up from below — full hero animates back in.
+ * Hero: mount entrance + one scrubbed exit for all blocks (copy, cue, CTAs, metrics).
+ * Scrub reverse = slide down from above when scrolling back up; no competing tweens.
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -99,15 +118,21 @@ export function useHeroScrollReveal(
       if (!home || !root || prefersReducedMotion) return;
 
       const ctx = gsap.context(() => {
-        const all = getRevealItems(root);
-        if (!all.length) return;
+        const scrubTargets = getScrubTargets(root);
+        if (!scrubTargets.length) return;
 
         const mount = isHomeInView(home) ? playMountEntrance(root) : null;
 
-        const bindExit = () => bindHeroExitScrub(home, all);
+        const bindExit = () => bindHeroExitScrub(home, scrubTargets);
 
         if (!mount) {
-          gsap.set(all, { opacity: 0, y: heroScrollReveal.y, force3D: true });
+          gsap.set(scrubTargets, {
+            opacity: 0,
+            y: heroScrollReveal.y,
+            force3D: true,
+          });
+          const ctaPanel = getCtaPanel(root);
+          if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
           bindExit();
         } else {
           mount.eventCallback("onComplete", bindExit);
