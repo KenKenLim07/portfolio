@@ -123,7 +123,7 @@ export function useHeroScrollReveal(
 
         const mount = isHomeInView(home) ? playMountEntrance(root) : null;
 
-        const bindExit = () => bindHeroExitScrub(home, scrubTargets);
+        const bindExit = () => bindHeroExitScrub(home, scrubTargets, isLg);
 
         if (!mount) {
           gsap.set(scrubTargets, {

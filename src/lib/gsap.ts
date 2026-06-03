@@ -79,14 +79,17 @@ export const heroTailExitScroll = {
  * Unified hero scroll exit — scrubbed to scroll distance (not a one-shot tween).
  *
  * Scroll band (maps scrub 0 → 1):
- *   start: hero top at viewport top     → fully visible
- *   end:   hero bottom mid-viewport      → vacuumed up (matches tail section feel)
+ *   start: hero top at viewport top → fully visible
+ *   end:   hero bottom crosses band   → vacuumed up
  *
- * `exitOpacity` + earlier `end` = visible “suck” while hero is still on screen.
+ * Desktop uses an earlier end (stronger vacuum). Mobile uses a longer band so
+ * copy/CTAs stay readable after a small scroll — tall stacked layout + short
+ * viewport makes `bottom 55%` complete the fade in ~0.45× viewport height.
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
   end: "clamp(bottom 55%)",
+  endMobile: "clamp(bottom 24%)",
   scrub: 1,
   y: 96,
   duration: 0.95,
@@ -95,11 +98,22 @@ export const heroScrollReveal = {
   ease: "power2.inOut" as const,
 } as const;
 
+export function getHeroScrollBand(isLg: boolean) {
+  return {
+    ...heroScrollReveal,
+    end: isLg ? heroScrollReveal.end : heroScrollReveal.endMobile,
+  };
+}
+
 /** Hero: mount entrance separate; scrub exit reverses on scroll up into `#home` */
-export function bindHeroExitScrub(section: Element, items: HTMLElement[]) {
+export function bindHeroExitScrub(
+  section: Element,
+  items: HTMLElement[],
+  isLg = true,
+) {
   if (!items.length) return null;
 
-  const config = heroScrollReveal;
+  const config = getHeroScrollBand(isLg);
 
   items.forEach((el) => {
     el.style.pointerEvents = "auto";
