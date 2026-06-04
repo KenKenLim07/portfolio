@@ -9,6 +9,7 @@ import {
   heroScrollReveal,
   initGsap,
   ScrollTrigger,
+  type HeroExitLayer,
 } from "@/lib/gsap";
 
 const LG_QUERY = "(min-width: 1024px)";
@@ -48,14 +49,26 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
   return panel?.querySelector<HTMLElement>("[data-hero-cta-panel]") ?? null;
 }
 
-/** All hero blocks scrub together — one motion, correct reverse on scroll-up. */
-function getScrubTargets(root: HTMLElement): HTMLElement[] {
-  const copyAndCue = getRevealItems(root).filter(
-    (el) => el.dataset.heroGroup !== "tail",
-  );
-  const tail = getRevealItems(root, "tail");
+/** Exit order: copy lines → CTAs → metrics → scroll cue (staggered on scrub timeline). */
+function getHeroExitLayers(root: HTMLElement): HeroExitLayer[] {
+  const copy = getRevealItems(root, "copy");
   const ctaPanel = getCtaPanel(root);
-  return ctaPanel ? [...copyAndCue, ...tail, ctaPanel] : [...copyAndCue, ...tail];
+  const tail = getRevealItems(root, "tail");
+  const cue = getRevealItems(root, "cue");
+  const layers: HeroExitLayer[] = [];
+
+  if (copy.length) layers.push({ targets: copy });
+  if (ctaPanel) layers.push({ targets: ctaPanel });
+  if (tail.length) layers.push({ targets: tail });
+  if (cue.length) layers.push({ targets: cue });
+
+  return layers;
+}
+
+function flattenExitLayers(layers: HeroExitLayer[]): HTMLElement[] {
+  return layers.flatMap((layer) =>
+    gsap.utils.toArray(layer.targets),
+  ) as HTMLElement[];
 }
 
 function isHomeInView(home: HTMLElement) {
@@ -72,7 +85,7 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
   if (!copy.length && !tail.length && !cue.length && !ctaPanel) return null;
 
   const { y, duration, stagger, ease } = heroScrollReveal;
-  const all = getScrubTargets(root);
+  const all = flattenExitLayers(getHeroExitLayers(root));
 
   gsap.set(all, { opacity: 0, y, force3D: true });
   if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
@@ -101,8 +114,8 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
 }
 
 /**
- * Hero: mount entrance + one scrubbed exit for all blocks (copy, cue, CTAs, metrics).
- * Scrub reverse = slide down from above when scrolling back up; no competing tweens.
+ * Hero: mount entrance + staggered scrub exit (copy → CTAs → metrics → cue).
+ * Scrub reverse = blocks return in reverse order when scrolling back up.
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -118,12 +131,13 @@ export function useHeroScrollReveal(
       if (!home || !root || prefersReducedMotion) return;
 
       const ctx = gsap.context(() => {
-        const scrubTargets = getScrubTargets(root);
+        const exitLayers = getHeroExitLayers(root);
+        const scrubTargets = flattenExitLayers(exitLayers);
         if (!scrubTargets.length) return;
 
         const mount = isHomeInView(home) ? playMountEntrance(root) : null;
 
-        const bindExit = () => bindHeroExitScrub(home, scrubTargets, isLg);
+        const bindExit = () => bindHeroExitScrub(home, exitLayers, isLg);
 
         if (!mount) {
           gsap.set(scrubTargets, {

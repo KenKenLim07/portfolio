@@ -84,19 +84,29 @@ export const heroTailExitScroll = {
  *
  * Desktop uses an earlier end (stronger vacuum). Mobile uses a longer band so
  * copy/CTAs stay readable after a small scroll — tall stacked layout + short
- * viewport makes `bottom 55%` complete the fade in ~0.45× viewport height.
+ * viewport needs a higher end % than desktop so the fade is not instant.
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
-  end: "clamp(bottom 55%)",
-  endMobile: "clamp(bottom 24%)",
+  end: "clamp(bottom 48%)",
+  endMobile: "clamp(bottom 32%)",
   scrub: 1,
-  y: 96,
+  y: 108,
   duration: 0.95,
   stagger: 0.11,
+  /** Scrub timeline: span of each block’s exit tween */
+  exitTweenDuration: 0.42,
+  /** Offset between copy lines / blocks while exiting */
+  exitItemStagger: 0.07,
+  /** Gap on the scrub timeline before the next layer starts */
+  exitLayerGap: 0.1,
   exitOpacity: tailMotion.exitOpacity,
   ease: "power2.inOut" as const,
 } as const;
+
+export type HeroExitLayer = {
+  targets: gsap.TweenTarget;
+};
 
 export function getHeroScrollBand(isLg: boolean) {
   return {
@@ -105,16 +115,7 @@ export function getHeroScrollBand(isLg: boolean) {
   };
 }
 
-/** Hero: mount entrance separate; scrub exit reverses on scroll up into `#home` */
-export function bindHeroExitScrub(
-  section: Element,
-  items: HTMLElement[],
-  isLg = true,
-) {
-  if (!items.length) return null;
-
-  const config = getHeroScrollBand(isLg);
-
+function enableHeroExitPointerEvents(items: HTMLElement[]) {
   items.forEach((el) => {
     el.style.pointerEvents = "auto";
     if (el.hasAttribute("data-hero-cta-panel")) {
@@ -123,27 +124,62 @@ export function bindHeroExitScrub(
       });
     }
   });
+}
 
-  return gsap
-    .timeline({
-      scrollTrigger: {
-        trigger: section,
-        start: config.start,
-        end: config.end,
-        scrub: config.scrub,
-        invalidateOnRefresh: true,
-      },
-    })
-    .fromTo(
-      items,
+/** Hero: mount entrance separate; scrub exit reverses on scroll up into `#home` */
+export function bindHeroExitScrub(
+  section: Element,
+  layers: HeroExitLayer[],
+  isLg = true,
+) {
+  const config = getHeroScrollBand(isLg);
+  const items = layers.flatMap((layer) =>
+    gsap.utils.toArray(layer.targets),
+  ) as HTMLElement[];
+
+  if (!items.length) return null;
+
+  enableHeroExitPointerEvents(items);
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: config.start,
+      end: config.end,
+      scrub: config.scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  let position = 0;
+
+  for (const layer of layers) {
+    const targets = gsap.utils.toArray(layer.targets);
+    if (!targets.length) continue;
+
+    const count = targets.length;
+    const { exitTweenDuration, exitItemStagger, exitLayerGap } = heroScrollReveal;
+
+    tl.fromTo(
+      targets,
       { opacity: 1, y: 0, force3D: true },
       {
         opacity: config.exitOpacity,
         y: -config.y,
         ease: "none",
         force3D: true,
+        duration: exitTweenDuration,
+        stagger: exitItemStagger,
       },
+      position,
     );
+
+    const layerSpan =
+      exitTweenDuration + Math.max(0, count - 1) * exitItemStagger;
+    position += layerSpan + exitLayerGap;
+  }
+
+  return tl;
 }
 
 export type DirectionalRevealOptions = {

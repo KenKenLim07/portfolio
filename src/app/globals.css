@@ -127,7 +127,7 @@ html {
     pointer-events: auto;
   }
 
-  /* Hero: avoid blank flash while JS hydrates (matches heroScrollReveal.y ≈ 96px) */
+  /* Hero: avoid blank flash while JS hydrates (matches heroScrollReveal.y ≈ 108px) */
   #home .gsap-reveal {
     opacity: 1;
     transform: none;

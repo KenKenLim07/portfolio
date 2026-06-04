@@ -25,17 +25,23 @@ function scrollToSection(id: string) {
   el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function HeroCtas({
-  className,
-  variant = "inline",
-  large = false,
-}: {
-  className?: string;
-  variant?: "inline" | "stack";
-  large?: boolean;
-}) {
-  const stacked = variant === "stack";
+function HeroAvailability() {
+  const prefersReducedMotion = useGsapReducedMotion();
 
+  return (
+    <p className="mt-3 flex items-center gap-2 text-xs text-muted sm:mt-3.5 sm:text-sm">
+      <span className="relative flex h-1.5 w-1.5 shrink-0">
+        {!prefersReducedMotion && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
+        )}
+        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+      </span>
+      {HERO_AVAILABILITY}
+    </p>
+  );
+}
+
+function HeroCtas({ className }: { className?: string }) {
   return (
     <div
       data-hero-cta-panel
@@ -47,11 +53,7 @@ function HeroCtas({
     >
       <div
         className={cn(
-          stacked
-            ? large
-              ? "flex w-full min-w-0 flex-col gap-3 sm:flex-row sm:items-stretch sm:gap-3"
-              : "flex w-full min-w-0 flex-col gap-3"
-            : "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
+          "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
       >
@@ -61,22 +63,10 @@ function HeroCtas({
             e.preventDefault();
             scrollToSection("projects");
           }}
-          className={cn(
-            "radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground font-medium text-background transition-colors duration-200 hover:opacity-90",
-            stacked
-              ? large
-                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
-                : "w-full px-5 py-2.5 text-sm"
-              : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
-          )}
+          className="radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground px-4 py-2.5 text-xs font-medium text-background transition-colors duration-200 hover:opacity-90 sm:px-5 sm:py-3 sm:text-sm"
         >
           View projects
-          <ArrowDown
-            className={cn(
-              "h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-y-0.5",
-              large && "h-5 w-5",
-            )}
-          />
+          <ArrowDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-y-0.5" />
         </Link>
         <Link
           href="#contact"
@@ -84,18 +74,12 @@ function HeroCtas({
             e.preventDefault();
             scrollToSection("contact");
           }}
-          className={cn(
-            "radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]",
-            stacked
-              ? large
-                ? "min-h-12 w-full px-5 py-3.5 text-base font-semibold sm:min-w-0 sm:flex-1"
-                : "w-full px-5 py-2.5 text-sm"
-              : "px-4 py-2.5 text-xs sm:px-5 sm:py-3 sm:text-sm",
-          )}
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-4 py-2.5 text-xs font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)] sm:px-5 sm:py-3 sm:text-sm"
         >
           Get in touch
         </Link>
       </div>
+      <HeroAvailability />
     </div>
   );
 }
@@ -107,27 +91,12 @@ function HeroCopy({
   introClassName?: string;
   compact?: boolean;
 }) {
-  const prefersReducedMotion = useGsapReducedMotion();
-
   return (
     <>
       <HeroRevealItem
         group="copy"
-        className={cn(
-          "flex flex-wrap items-center gap-2 sm:gap-3",
-          compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8",
-        )}
+        className={cn(compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8")}
       >
-        <span className="radius-chip inline-flex items-center gap-2 border border-accent-from/35 bg-accent-from/12 px-3 py-1.5 text-[11px] font-medium uppercase tracking-wider text-foreground sm:px-3.5 sm:py-2 sm:text-xs">
-          <span className="relative flex h-1.5 w-1.5">
-            {!prefersReducedMotion && (
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
-            )}
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-          </span>
-          {HERO_AVAILABILITY}
-        </span>
-        <span className="hidden h-px w-8 bg-border sm:block" />
         <HeroRotatingText />
       </HeroRevealItem>
 
@@ -260,7 +229,7 @@ export function HeroSection() {
               HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
             )}
           >
-            <HeroCtas variant="stack" large />
+            <HeroCtas />
             <HeroMetrics variant="row" />
             {!prefersReducedMotion && (
               <HeroScrollCue className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2" />
@@ -295,7 +264,7 @@ export function HeroSection() {
                   "rounded-sm border-2 border-dashed border-amber-400 bg-amber-400/5 p-1",
               )}
             >
-              <HeroCtas variant="stack" className="w-full" />
+              <HeroCtas className="w-full" />
               <HeroMetrics variant="column" className="w-full" />
             </div>
           </div>
