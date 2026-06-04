@@ -29,10 +29,7 @@ function HeroAvailability() {
   const prefersReducedMotion = useGsapReducedMotion();
 
   return (
-    <p
-      data-hero-static
-      className="mt-3 flex items-center gap-2 text-xs text-muted sm:mt-3.5 sm:text-sm"
-    >
+    <p className="mt-3 flex items-center gap-2 text-xs text-muted sm:mt-3.5 sm:text-sm">
       <span className="relative flex h-1.5 w-1.5 shrink-0">
         {!prefersReducedMotion && (
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
@@ -47,6 +44,7 @@ function HeroAvailability() {
 function HeroCtas({ className }: { className?: string }) {
   return (
     <div
+      data-hero-cta-panel
       className={cn(
         "relative z-30 overflow-visible",
         HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-sky-400 bg-sky-400/5 p-1",
@@ -54,7 +52,6 @@ function HeroCtas({ className }: { className?: string }) {
       )}
     >
       <div
-        data-hero-cta-panel
         className={cn(
           "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
