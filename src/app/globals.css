@@ -143,6 +143,13 @@ html {
   #home [data-hero-cta-panel] a {
     pointer-events: auto;
   }
+
+  /* Availability line — not part of hero scroll scrub / entrance */
+  #home [data-hero-static] {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
 }
 
 body {
