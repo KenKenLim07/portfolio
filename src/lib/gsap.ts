@@ -88,18 +88,20 @@ export const heroTailExitScroll = {
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
-  end: "clamp(bottom 48%)",
-  endMobile: "clamp(bottom 32%)",
-  scrub: 1,
+  /** Lower % = hero bottom must travel further up → more scroll, slower exit */
+  end: "clamp(bottom 40%)",
+  endMobile: "clamp(bottom 26%)",
+  /** Higher = softer link between scroll position and motion */
+  scrub: 1.25,
   y: 108,
   duration: 0.95,
   stagger: 0.11,
   /** Scrub timeline: span of each block’s exit tween */
-  exitTweenDuration: 0.42,
+  exitTweenDuration: 0.52,
   /** Offset between copy lines / blocks while exiting */
-  exitItemStagger: 0.07,
+  exitItemStagger: 0.085,
   /** Gap on the scrub timeline before the next layer starts */
-  exitLayerGap: 0.1,
+  exitLayerGap: 0.13,
   exitOpacity: tailMotion.exitOpacity,
   ease: "power2.inOut" as const,
 } as const;
