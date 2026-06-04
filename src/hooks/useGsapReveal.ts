@@ -3,25 +3,19 @@
 import { type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
-import {
-  bindScrollRevealScrub,
-  gsap,
-  initGsap,
-  layersFromRevealItems,
-  scrollRevealMotion,
-  sectionScrollBand,
-} from "@/lib/gsap";
+import { createDirectionalScrollReveal, gsap, initGsap } from "@/lib/gsap";
 
 export type GsapRevealOptions = {
+  delay?: number;
   y?: number;
+  duration?: number;
   start?: string;
   end?: string;
   exitOpacity?: number;
-  enterOnly?: boolean;
+  revealIfInView?: boolean;
   triggerRef?: RefObject<HTMLElement | null>;
 };
 
-/** Standalone card/block scrub reveal (when not inside `Section`). */
 export function useGsapReveal(
   targetRef: RefObject<HTMLElement | null>,
   options: GsapRevealOptions = {},
@@ -37,19 +31,14 @@ export function useGsapReveal(
       const triggerEl = options.triggerRef?.current ?? el;
 
       const ctx = gsap.context(() => {
-        el.classList.add("gsap-reveal");
-        if (!el.hasAttribute("data-gsap-reveal")) {
-          el.setAttribute("data-gsap-reveal", "");
-        }
-
-        bindScrollRevealScrub({
-          trigger: triggerEl,
-          layers: layersFromRevealItems([el]),
-          start: options.start ?? sectionScrollBand.start,
-          end: options.end ?? sectionScrollBand.end,
-          y: options.y ?? scrollRevealMotion.y,
+        createDirectionalScrollReveal(triggerEl, el, {
+          delay: options.delay,
+          y: options.y,
+          duration: options.duration,
+          start: options.start,
+          end: options.end,
           exitOpacity: options.exitOpacity,
-          enterOnly: options.enterOnly,
+          revealIfInView: options.revealIfInView,
         });
       }, el);
 
@@ -58,11 +47,13 @@ export function useGsapReveal(
     {
       scope: targetRef,
       dependencies: [
+        options.delay,
         options.y,
+        options.duration,
         options.start,
         options.end,
         options.exitOpacity,
-        options.enterOnly,
+        options.revealIfInView,
         options.triggerRef,
         prefersReducedMotion,
       ],

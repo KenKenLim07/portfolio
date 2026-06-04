@@ -9,7 +9,7 @@ import {
   heroScrollReveal,
   initGsap,
   ScrollTrigger,
-  type ScrollRevealLayer,
+  type HeroExitLayer,
 } from "@/lib/gsap";
 
 const LG_QUERY = "(min-width: 1024px)";
@@ -50,12 +50,12 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
 }
 
 /** Exit order: copy lines → CTAs → metrics → scroll cue (staggered on scrub timeline). */
-function getHeroExitLayers(root: HTMLElement): ScrollRevealLayer[] {
+function getHeroExitLayers(root: HTMLElement): HeroExitLayer[] {
   const copy = getRevealItems(root, "copy");
   const ctaPanel = getCtaPanel(root);
   const tail = getRevealItems(root, "tail");
   const cue = getRevealItems(root, "cue");
-  const layers: ScrollRevealLayer[] = [];
+  const layers: HeroExitLayer[] = [];
 
   if (copy.length) layers.push({ targets: copy });
   if (ctaPanel) layers.push({ targets: ctaPanel });
@@ -65,7 +65,7 @@ function getHeroExitLayers(root: HTMLElement): ScrollRevealLayer[] {
   return layers;
 }
 
-function flattenExitLayers(layers: ScrollRevealLayer[]): HTMLElement[] {
+function flattenExitLayers(layers: HeroExitLayer[]): HTMLElement[] {
   return layers.flatMap((layer) =>
     gsap.utils.toArray(layer.targets),
   ) as HTMLElement[];
