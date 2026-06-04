@@ -1,3 +1,6 @@
+"use client";
+
+import { SectionReveal } from "@/components/ui/SectionReveal";
 import { cn } from "@/lib/utils";
 
 type SectionProps = {
@@ -5,6 +8,8 @@ type SectionProps = {
   children: React.ReactNode;
   className?: string;
   containerClassName?: string;
+  /** Contact/footer: staggered enter only, no vacuum on scroll-out */
+  enterOnly?: boolean;
 };
 
 export function Section({
@@ -12,6 +17,7 @@ export function Section({
   children,
   className,
   containerClassName,
+  enterOnly = false,
 }: SectionProps) {
   return (
     <section
@@ -24,7 +30,7 @@ export function Section({
           containerClassName,
         )}
       >
-        {children}
+        <SectionReveal enterOnly={enterOnly}>{children}</SectionReveal>
       </div>
     </section>
   );
