@@ -22,8 +22,7 @@ const themeInitScript = `
 (function () {
   try {
     var stored = localStorage.getItem("theme");
-    var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    var dark = stored === "dark" || (stored !== "light" && prefersDark);
+    var dark = stored !== "light";
     document.documentElement.classList.toggle("dark", dark);
   } catch (e) {}
 })();
@@ -72,7 +71,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${spaceGrotesk.variable} h-full scroll-smooth`}
+      className={`${archivo.variable} ${spaceGrotesk.variable} dark h-full scroll-smooth`}
       suppressHydrationWarning
     >
       <head>

@@ -58,11 +58,11 @@
   --form-surface: #18181b;
   --selection-bg: rgba(129, 140, 248, 0.32);
   --selection-fg: #fafafa;
-  --menu-bg: #09090b;
+  --menu-bg: var(--surface);
   --menu-fg: #fafafa;
   --menu-muted: #a1a1aa;
   --menu-border: rgba(250, 250, 250, 0.12);
-  --menu-overlay: rgba(0, 0, 0, 0.62);
+  --menu-overlay: rgba(0, 0, 0, 0.72);
 }
 
 @theme inline {
@@ -198,9 +198,15 @@ body {
 .mobile-menu-panel {
   background-color: var(--menu-bg);
   color: var(--menu-fg);
+  border-left: 1px solid var(--menu-border);
+  box-shadow: -20px 0 56px rgba(0, 0, 0, 0.35);
   clip-path: circle(0px at calc(100% - 2.5rem) max(1.75rem, calc(env(safe-area-inset-top) + 1.75rem)));
   -webkit-clip-path: circle(0px at calc(100% - 2.5rem) max(1.75rem, calc(env(safe-area-inset-top) + 1.75rem)));
   pointer-events: none;
+}
+
+.dark .mobile-menu-panel {
+  box-shadow: -24px 0 64px rgba(0, 0, 0, 0.55);
 }
 
 .mobile-menu-panel [data-menu-link] {
