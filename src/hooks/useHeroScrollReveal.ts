@@ -49,15 +49,40 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
   return panel?.querySelector<HTMLElement>("[data-hero-cta-panel]") ?? null;
 }
 
-/** Exit order: copy lines → CTAs → metrics → scroll cue (staggered on scrub timeline). */
-function getHeroExitLayers(root: HTMLElement): HeroExitLayer[] {
+/** Mobile: sequential copy → rail. Desktop: copy + rail in parallel after hold. */
+function getHeroExitLayers(root: HTMLElement, isLg: boolean): HeroExitLayer[] {
   const copy = getRevealItems(root, "copy");
   const ctaPanel = getCtaPanel(root);
   const tail = getRevealItems(root, "tail");
   const cue = getRevealItems(root, "cue");
   const layers: HeroExitLayer[] = [];
 
-  if (copy.length) layers.push({ targets: copy });
+  const copyLayer: HeroExitLayer | null = copy.length
+    ? {
+        targets: copy,
+        exitOpacity: heroScrollReveal.exitOpacityCopy,
+        exitY: heroScrollReveal.exitYCopy,
+      }
+    : null;
+
+  if (isLg) {
+    const { exitRailStagger } = heroScrollReveal;
+    let railAt = 0;
+
+    if (copyLayer) layers.push({ ...copyLayer, at: 0 });
+    if (ctaPanel) {
+      layers.push({ targets: ctaPanel, at: railAt });
+      railAt += exitRailStagger;
+    }
+    if (tail.length) {
+      layers.push({ targets: tail, at: railAt });
+      railAt += exitRailStagger;
+    }
+    if (cue.length) layers.push({ targets: cue, at: railAt });
+    return layers;
+  }
+
+  if (copyLayer) layers.push(copyLayer);
   if (ctaPanel) layers.push({ targets: ctaPanel });
   if (tail.length) layers.push({ targets: tail });
   if (cue.length) layers.push({ targets: cue });
@@ -85,7 +110,7 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
   if (!copy.length && !tail.length && !cue.length && !ctaPanel) return null;
 
   const { y, duration, stagger, ease } = heroScrollReveal;
-  const all = flattenExitLayers(getHeroExitLayers(root));
+  const all = flattenExitLayers(getHeroExitLayers(root, window.matchMedia(LG_QUERY).matches));
 
   gsap.set(all, { opacity: 0, y, force3D: true });
   if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
@@ -131,7 +156,7 @@ export function useHeroScrollReveal(
       if (!home || !root || prefersReducedMotion) return;
 
       const ctx = gsap.context(() => {
-        const exitLayers = getHeroExitLayers(root);
+        const exitLayers = getHeroExitLayers(root, isLg);
         const scrubTargets = flattenExitLayers(exitLayers);
         if (!scrubTargets.length) return;
 

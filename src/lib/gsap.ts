@@ -79,41 +79,46 @@ export const heroTailExitScroll = {
  * Unified hero scroll exit — scrubbed to scroll distance (not a one-shot tween).
  *
  * Scroll band (maps scrub 0 → 1):
- *   start: hero top at viewport top → fully visible
- *   end:   hero bottom crosses band   → vacuumed up
+ *   start → end: full hero scroll distance linked to the timeline
  *
- * Desktop uses an earlier end (stronger vacuum). Mobile uses a longer band so
- * copy/CTAs stay readable after a small scroll — tall stacked layout + short
- * viewport needs a higher end % than desktop so the fade is not instant.
+ * exitScrollHold: first N timeline units = no motion (content stays readable on
+ * small scroll). Desktop: both columns exit in parallel after the hold.
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
-  /** Lower % = hero bottom must travel further up → more scroll, slower exit */
-  end: "clamp(bottom 40%)",
+  /** Lower % = exit finishes nearer the bottom of the hero (more scroll in-band) */
+  endDesktop: "clamp(bottom 28%)",
   endMobile: "clamp(bottom 26%)",
-  /** Higher = softer link between scroll position and motion */
   scrub: 1.25,
   y: 108,
+  /** Copy: visible motion, still more legible than chrome */
+  exitYCopy: 96,
+  exitOpacityCopy: 0.15,
   duration: 0.95,
   stagger: 0.11,
-  /** Scrub timeline: span of each block’s exit tween */
+  /** Timeline dead zone before any exit (fraction of scrub progress) */
+  exitScrollHold: 0.28,
   exitTweenDuration: 0.52,
-  /** Offset between copy lines / blocks while exiting */
   exitItemStagger: 0.085,
-  /** Gap on the scrub timeline before the next layer starts */
   exitLayerGap: 0.13,
+  /** Desktop: offset between right-rail blocks (copy runs at 0 in parallel) */
+  exitRailStagger: 0.05,
   exitOpacity: tailMotion.exitOpacity,
   ease: "power2.inOut" as const,
 } as const;
 
 export type HeroExitLayer = {
   targets: gsap.TweenTarget;
+  exitOpacity?: number;
+  exitY?: number;
+  /** Offset from end of hold — layers with the same `at` exit in parallel */
+  at?: number;
 };
 
 export function getHeroScrollBand(isLg: boolean) {
   return {
     ...heroScrollReveal,
-    end: isLg ? heroScrollReveal.end : heroScrollReveal.endMobile,
+    end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
   };
 }
 
@@ -153,32 +158,45 @@ export function bindHeroExitScrub(
     },
   });
 
-  let position = 0;
+  const { exitScrollHold, exitTweenDuration, exitItemStagger, exitLayerGap } =
+    heroScrollReveal;
+
+  if (exitScrollHold > 0) {
+    tl.to({}, { duration: exitScrollHold });
+  }
+
+  let sequentialAt = exitScrollHold;
 
   for (const layer of layers) {
     const targets = gsap.utils.toArray(layer.targets);
     if (!targets.length) continue;
 
     const count = targets.length;
-    const { exitTweenDuration, exitItemStagger, exitLayerGap } = heroScrollReveal;
+    const exitOpacity = layer.exitOpacity ?? config.exitOpacity;
+    const exitY = layer.exitY ?? config.y;
+    const startAt =
+      layer.at !== undefined ? exitScrollHold + layer.at : sequentialAt;
 
     tl.fromTo(
       targets,
       { opacity: 1, y: 0, force3D: true },
       {
-        opacity: config.exitOpacity,
-        y: -config.y,
+        opacity: exitOpacity,
+        y: -exitY,
         ease: "none",
         force3D: true,
         duration: exitTweenDuration,
         stagger: exitItemStagger,
       },
-      position,
+      startAt,
     );
 
     const layerSpan =
       exitTweenDuration + Math.max(0, count - 1) * exitItemStagger;
-    position += layerSpan + exitLayerGap;
+
+    if (layer.at === undefined) {
+      sequentialAt += layerSpan + exitLayerGap;
+    }
   }
 
   return tl;
