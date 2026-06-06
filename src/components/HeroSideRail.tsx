@@ -17,7 +17,7 @@ export function HeroSideRail() {
       className={cn(
         "fixed z-30 flex flex-col",
         /* Mobile: higher on screen, flush right */
-        "top-[33%] -translate-y-1/2 gap-4",
+        "top-[32%] -translate-y-1/2 gap-4",
         "right-[max(0.5rem,env(safe-area-inset-right))] items-end",
         /* Desktop: vertically centered left rail */
         "xl:top-1/2 xl:gap-8 xl:right-auto xl:left-6 xl:items-start 2xl:left-8",

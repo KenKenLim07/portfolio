@@ -187,14 +187,24 @@ body {
   );
 }
 
-/* Mobile drawer — display toggled by GSAP hook (closed = display:none) */
+/* Mobile drawer — closed state in CSS prevents flash before GSAP hydrates */
 .mobile-menu-overlay {
   background-color: var(--menu-overlay);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .mobile-menu-panel {
   background-color: var(--menu-bg);
   color: var(--menu-fg);
+  clip-path: circle(0px at calc(100% - 2.5rem) max(1.75rem, calc(env(safe-area-inset-top) + 1.75rem)));
+  -webkit-clip-path: circle(0px at calc(100% - 2.5rem) max(1.75rem, calc(env(safe-area-inset-top) + 1.75rem)));
+  pointer-events: none;
+}
+
+.mobile-menu-panel [data-menu-link] {
+  opacity: 0;
 }
 
 .mobile-menu-link {

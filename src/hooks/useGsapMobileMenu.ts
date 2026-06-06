@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap } from "@/lib/gsap";
 
@@ -48,10 +48,11 @@ export function useGsapMobileMenu({
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const clipRef = useRef<ClipPaths | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     initGsap();
     const overlay = overlayRef.current;
     const panel = panelRef.current;
+    const trigger = triggerRef.current;
     if (!overlay || !panel) return;
 
     gsap.set(overlay, {
@@ -61,11 +62,19 @@ export function useGsapMobileMenu({
     });
     gsap.set(panel, { pointerEvents: "none" });
 
+    if (trigger) {
+      const { closed } = measureClipPaths(trigger, panel);
+      applyClip(panel, closed);
+    }
+
+    const links = panel.querySelectorAll<HTMLElement>("[data-menu-link]");
+    gsap.set(links, { opacity: 0, y: 14 });
+
     return () => {
       timelineRef.current?.kill();
       timelineRef.current = null;
     };
-  }, []);
+  }, [triggerRef]);
 
   useEffect(() => {
     const overlay = overlayRef.current;

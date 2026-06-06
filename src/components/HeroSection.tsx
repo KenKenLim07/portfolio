@@ -53,7 +53,7 @@ function HeroCtas({ className }: { className?: string }) {
     >
       <div
         className={cn(
-          "flex flex-row flex-wrap items-center gap-2 sm:gap-3",
+          "flex flex-row flex-wrap items-center gap-2.5 sm:gap-3",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
       >
@@ -63,7 +63,7 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("projects");
           }}
-          className="radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground px-4 py-2.5 text-xs font-medium text-background transition-colors duration-200 hover:opacity-90 sm:px-5 sm:py-3 sm:text-sm"
+          className="radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 bg-foreground px-4 py-2.5 text-sm font-medium text-background transition-colors duration-200 hover:opacity-90 lg:px-5 lg:py-3"
         >
           View projects
           <ArrowDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-y-0.5" />
@@ -74,7 +74,7 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("contact");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-4 py-2.5 text-xs font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)] sm:px-5 sm:py-3 sm:text-sm"
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)] lg:px-5 lg:py-3"
         >
           Get in touch
         </Link>
