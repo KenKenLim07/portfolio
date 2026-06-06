@@ -194,9 +194,7 @@ body {
 
 .mobile-menu-panel {
   background-color: var(--menu-bg);
-  border-color: var(--menu-border);
   color: var(--menu-fg);
-  box-shadow: -24px 0 64px var(--menu-overlay);
 }
 
 .mobile-menu-link {
