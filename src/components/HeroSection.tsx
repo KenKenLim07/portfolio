@@ -133,7 +133,7 @@ function HeroCopy({
         >
           Hi! I&apos;m{" "}
           <span className="font-semibold text-foreground">
-            {SITE.name.split(" ").slice(0, 2).join(" ")}
+            {SITE.name}
           </span>
           . {SITE.description}
         </p>

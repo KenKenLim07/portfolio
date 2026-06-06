@@ -278,12 +278,12 @@ export const PROCESS_STEPS = [
 
 export const ABOUT = {
   belief:
-    "I believe in user-centered engineering — every system I build is tailored to real users, measurable outcomes, and production reliability.",
+    "I believe in user-centered engineering — every system I build is designed around real users, measurable outcomes, and long-term reliability.",
   title: "This is me.",
-  lead: "I build AI-powered platforms, modern web applications, and digital systems engineered for performance, usability, and scale.",
+  lead: "I build data-driven products, AI-powered applications, and automation systems that solve real business problems. My work combines full-stack development, web scraping, analytics, and intelligent workflows to transform raw data into actionable insights.",
   paragraphs: [
-    "I am Jose Marie Lim, a Full-Stack Developer and AI Systems Engineer working across backend infrastructure, premium frontend development, real-time systems, analytics pipelines, and workflow automation.",
-    "My goal is to create products that are not only visually refined, but architecturally robust and operationally reliable.",
+    "My experience includes building news intelligence platforms, marketplace analytics systems, business websites, and automated data pipelines. I work across frontend development, backend infrastructure, NLP, data engineering, and workflow automation.",
+    "My goal is to create products that are not only intuitive and visually polished, but also scalable, maintainable, and capable of delivering real value to the people who use them.",
   ],
 } as const;
 
@@ -294,6 +294,9 @@ export const ABOUT_HIGHLIGHTS = [
   "Modern UI/UX",
   "Scalable backend architecture",
   "Digital business modernization",
+  "Data Acquisition & Web Scraping",
+  "Business Intelligence Systems",
+  "Workflow Automation",
 ] as const;
 
 export const ABOUT_EXPERIENCE = [
