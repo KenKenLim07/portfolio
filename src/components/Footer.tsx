@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GitHubIcon, LinkedInIcon } from "@/components/icons/BrandIcons";
+import { FacebookIcon, GitHubIcon } from "@/components/icons/BrandIcons";
 import { NAV_LINKS, SITE, SOCIAL_LINKS } from "@/lib/constants";
 
 export function Footer() {
@@ -50,13 +50,13 @@ export function Footer() {
             <GitHubIcon />
           </a>
           <a
-            href={SOCIAL_LINKS.linkedin}
+            href={SOCIAL_LINKS.facebook}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="LinkedIn"
+            aria-label="Facebook"
             className="radius-chip cursor-pointer border border-border p-2.5 text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
           >
-            <LinkedInIcon />
+            <FacebookIcon />
           </a>
         </div>
       </div>

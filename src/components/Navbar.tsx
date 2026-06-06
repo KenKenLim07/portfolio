@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
@@ -17,8 +17,12 @@ const SCROLL_THRESHOLD = 32;
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const { overlayRef, panelRef } = useGsapMobileMenu({ open: mobileOpen });
+  const { overlayRef, panelRef } = useGsapMobileMenu({
+    open: mobileOpen,
+    triggerRef: menuTriggerRef,
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -75,6 +79,7 @@ export function Navbar() {
       </header>
 
       <button
+        ref={menuTriggerRef}
         type="button"
         className={cn(
           "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2.5 transition-colors duration-200 lg:hidden",

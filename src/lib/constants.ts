@@ -119,9 +119,8 @@ export const NAV_LINKS = [
 ] as const;
 
 export const SOCIAL_LINKS = {
-  github: "https://github.com",
-  linkedin: "https://linkedin.com",
-  messenger: "https://m.me",
+  github: "https://github.com/KenKenLim07",
+  facebook: "https://www.facebook.com/josemarie.lim",
 } as const;
 
 export type ProjectCategory = "ai" | "web" | "commerce";
