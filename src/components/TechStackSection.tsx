@@ -14,7 +14,7 @@ const groups = [
 
 export function TechStackSection() {
   return (
-    <Section id="tech-stack" className="border-t border-border">
+    <Section id="tech-stack">
       <SectionHeading
         label=""
         title="My Stack"

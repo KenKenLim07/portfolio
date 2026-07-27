@@ -40,7 +40,7 @@ const links: {
 
 export function ContactSection() {
   return (
-    <Section id="contact" className="border-t border-border">
+    <Section id="contact">
       <div className="radius-panel-lg relative overflow-hidden border border-border">
         <div className="pointer-events-none absolute inset-0 glow-orb opacity-80" />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--accent-from)]/20 via-transparent to-[var(--accent-to)]/15" />

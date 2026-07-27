@@ -7,7 +7,7 @@ import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function ProcessSection() {
   return (
-    <Section id="process" className="border-t border-border">
+    <Section id="process">
       <SectionHeading
         label=""
         title="How I Work"

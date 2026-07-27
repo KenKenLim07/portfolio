@@ -6,7 +6,7 @@ import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function AboutSection() {
   return (
-    <Section id="about" className="border-t border-border">
+    <Section id="about">
       <SectionHeading label="" title="About Me" description={ABOUT.lead} />
 
       <AnimatedSection delay={0.15} className="mb-14 md:mb-20">

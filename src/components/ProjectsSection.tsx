@@ -60,7 +60,7 @@ export function ProjectsSection() {
   );
 
   return (
-    <Section id="projects" className="border-t border-border">
+    <Section id="projects">
       <SectionHeading
         label=""
         title="Selected Projects"

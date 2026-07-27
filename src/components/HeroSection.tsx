@@ -25,11 +25,16 @@ function scrollToSection(id: string) {
   el.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function HeroAvailability() {
+function HeroAvailability({ className }: { className?: string }) {
   const prefersReducedMotion = useGsapReducedMotion();
 
   return (
-    <p className="mt-3 flex items-center gap-2 text-xs text-muted sm:mt-3.5 sm:text-sm">
+    <p
+      className={cn(
+        "flex items-center gap-2 text-xs text-muted sm:text-sm",
+        className,
+      )}
+    >
       <span className="relative flex h-1.5 w-1.5 shrink-0">
         {!prefersReducedMotion && (
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
@@ -79,7 +84,6 @@ function HeroCtas({ className }: { className?: string }) {
           Get in touch
         </Link>
       </div>
-      <HeroAvailability />
     </div>
   );
 }
@@ -93,6 +97,13 @@ function HeroCopy({
 }) {
   return (
     <>
+      <HeroRevealItem
+        group="copy"
+        className={cn(compact ? "mb-3" : "mb-4 sm:mb-5")}
+      >
+        <HeroAvailability />
+      </HeroRevealItem>
+
       <HeroRevealItem
         group="copy"
         className={cn(compact ? "mb-4" : "mb-6 sm:mb-7 lg:mb-8")}
