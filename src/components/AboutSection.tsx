@@ -9,7 +9,7 @@ export function AboutSection() {
     <Section id="about" className="border-t border-border">
       <SectionHeading label="" title="About Me" description={ABOUT.lead} />
 
-      <AnimatedSection className="mb-14 md:mb-20">
+      <AnimatedSection delay={0.15} className="mb-14 md:mb-20">
         <AnimatedItem>
           <blockquote className="max-w-4xl font-display text-xl leading-snug tracking-tight text-foreground md:text-2xl lg:text-3xl">
             {ABOUT.belief}

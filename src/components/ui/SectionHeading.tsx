@@ -21,6 +21,7 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   return (
     <AnimatedSection
+      delay={0.15}
       className={cn(
         "mb-14 md:mb-20",
         align === "center" && "mx-auto max-w-3xl text-center",

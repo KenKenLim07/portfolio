@@ -14,15 +14,14 @@ export function initGsap() {
   registered = true;
 }
 
-/** Scroll reveal defaults — later trigger + short beat before motion */
+/** Scroll reveal defaults */
 export const revealDefaults = {
   y: 56,
-  duration: 0.85,
-  stagger: 0.1,
-  delay: 0.15,
+  duration: 0.75,
+  stagger: 0.08,
+  delay: 0,
   ease: "power3.out" as const,
-  /** Wait until ~22% of the block is on-screen (vs 10% at 90%) */
-  start: "clamp(top 78%)",
+  start: "clamp(top 90%)",
 };
 
 /** Hero / above-the-fold blocks — wider band for tail exit only */
@@ -36,13 +35,13 @@ export const tailRevealScroll = {
  * Exit runs while the section (and card) are still largely on screen.
  */
 export const sectionTailRevealScroll = {
-  start: "clamp(top 78%)",
+  start: "clamp(top bottom-=8%)",
   end: "clamp(bottom 52%)",
 } as const;
 
 /** Small tail block without a section trigger — earlier exit on the block itself */
 export const tailBlockRevealScroll = {
-  start: "clamp(top 78%)",
+  start: "clamp(top bottom-=8%)",
   end: "clamp(bottom 78%)",
 } as const;
 
@@ -51,6 +50,7 @@ export const tailMotion = {
   y: 64,
   duration: 0.9,
   stagger: 0.1,
+  /** Short beat before enter — softens “pops in as soon as visible” */
   delay: 0.15,
   exitOpacity: 0.15,
   /** Exit tweens use ~95% of enter duration (default blocks use 65%). */
@@ -62,7 +62,7 @@ export const tailMotion = {
  * Requires `end` — without it ScrollTrigger collapses to a zero-width toggle.
  */
 export const lastSectionReveal = {
-  start: "clamp(top 78%)",
+  start: "clamp(top 88%)",
   end: "clamp(bottom 62%)",
   y: tailMotion.y,
   duration: tailMotion.duration,
