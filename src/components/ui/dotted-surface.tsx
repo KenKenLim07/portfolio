@@ -29,11 +29,19 @@ const WAVE_SCROLL_AMP = 78;
 const WAVE_IDLE_SPEED = 0.028;
 const WAVE_SCROLL_SPEED = 0.16;
 
-const STAR_COUNT = 520;
-/** Large rock meshes (not point sprites). */
+const STAR_COUNT = 580;
+/** Side rocks — main asteroid field. */
 const ROCK_COUNT = 12;
-/** Spread of the field (was a dense 40×60 grid). */
-const FIELD = { x: 5200, y: 520, z: 6400 } as const;
+/** Distant center rocks — subtle mid-frame anchors (weak scroll warp). */
+const CENTER_ROCK_COUNT = 2;
+/**
+ * Depth bands (camera sits around z ≈ 1180 looking toward -Z):
+ * - stars: deep background plane (still in fog range so they read)
+ * - asteroids: nearer mid-field (closer to POV, larger)
+ */
+const FIELD = { x: 5600, y: 640, z: 6400 } as const;
+const STAR_Z = { near: -2100, far: -180 } as const;
+const ROCK_Z = { near: 220, far: 860 } as const;
 
 type ScrollState = {
   progress: { current: number; target: number };
@@ -56,6 +64,10 @@ type RockBody = {
   mesh: THREE.Mesh;
   spin: THREE.Vector3;
   home: THREE.Vector3;
+  /** Collision radius in world units. */
+  radius: number;
+  /** 0 = almost no scroll warp, 1 = full warp. */
+  warpInfluence: number;
 };
 
 function lerp(a: number, b: number, t: number) {
@@ -73,38 +85,57 @@ function indicatorProgress(scrollProgress: number) {
   return p * (2 - p);
 }
 
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
+/** Deterministic RNG — keeps layout stable across theme remounts. */
+function createRng(seed: number) {
+  let s = seed >>> 0;
+  return () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
 }
+
+type Rng = () => number;
+
+function randRange(rng: Rng, min: number, max: number) {
+  return min + rng() * (max - min);
+}
+
+const STAR_SEED = 0x51a7;
+const ROCK_SEED = 0xc0de;
 
 function buildStarfield(isDark: boolean): {
   seeds: StarSeed[];
   positions: number[];
   colors: number[];
 } {
+  const rng = createRng(STAR_SEED);
   const seeds: StarSeed[] = [];
   const positions: number[] = [];
   const colors: number[] = [];
 
   for (let i = 0; i < STAR_COUNT; i++) {
-    const x = (Math.random() - 0.5) * FIELD.x;
-    const y = (Math.random() - 0.5) * FIELD.y;
-    const z = (Math.random() - 0.5) * FIELD.z;
+    // Bias depth toward the far plane — keep stars behind rocks
+    const depthT = Math.pow(rng(), 0.65);
+    const z = lerp(STAR_Z.near, STAR_Z.far, depthT);
+    const x = (rng() - 0.5) * FIELD.x;
+    const y = (rng() - 0.5) * FIELD.y;
 
-    const twinklePhase = Math.random() * Math.PI * 2;
-    const twinkleSpeed = rand(0.4, 1.4);
-    const baseAlpha = isDark ? rand(0.45, 0.95) : rand(0.35, 0.75);
+    const twinklePhase = rng() * Math.PI * 2;
+    const twinkleSpeed = randRange(rng, 0.35, 1.2);
+    const baseAlpha = isDark
+      ? lerp(0.45, 0.95, depthT)
+      : lerp(0.32, 0.7, depthT);
 
     let r: number;
     let g: number;
     let b: number;
     if (isDark) {
-      const cool = Math.random();
-      r = lerp(0.78, 0.95, cool);
-      g = lerp(0.82, 0.96, cool);
-      b = lerp(0.9, 1, cool);
+      const cool = rng();
+      r = lerp(0.72, 0.95, cool);
+      g = lerp(0.76, 0.97, cool);
+      b = lerp(0.88, 1, cool);
     } else {
-      const cool = Math.random();
+      const cool = rng();
       r = lerp(0.28, 0.42, cool);
       g = lerp(0.32, 0.46, cool);
       b = lerp(0.48, 0.62, cool);
@@ -114,7 +145,7 @@ function buildStarfield(isDark: boolean): {
       x,
       y,
       z,
-      size: Math.random() > 0.92 ? rand(7, 12) : rand(2.2, 5.5),
+      size: lerp(2.2, 4.2, depthT),
       twinklePhase,
       twinkleSpeed,
       baseAlpha,
@@ -127,7 +158,10 @@ function buildStarfield(isDark: boolean): {
 }
 
 /** Irregular rock mesh — displaced icosahedron with crater-like dents. */
-function createAsteroidGeometry(detail = 2): THREE.BufferGeometry {
+function createAsteroidGeometry(
+  rng: Rng,
+  detail = 2,
+): THREE.BufferGeometry {
   const geometry = new THREE.IcosahedronGeometry(1, detail);
   const pos = geometry.attributes.position;
   const vertex = new THREE.Vector3();
@@ -137,44 +171,63 @@ function createAsteroidGeometry(detail = 2): THREE.BufferGeometry {
     vertex.fromBufferAttribute(pos, i);
     const n = vertex.clone().normalize();
 
-    // Multi-frequency noise for rocky silhouette
     const ridge =
       0.18 * Math.sin(n.x * 7.3 + n.y * 3.1) +
       0.14 * Math.sin(n.y * 5.7 - n.z * 4.2) +
       0.1 * Math.sin(n.z * 9.1 + n.x * 2.4) +
       0.08 * Math.sin(n.x * 13.0 + n.y * 11.0 + n.z * 8.0);
 
-    // Occasional deeper crater
     const craterSeed = Math.abs(Math.sin(n.x * 17.0) * Math.cos(n.y * 19.0));
     const crater = craterSeed > 0.82 ? -0.22 * (craterSeed - 0.82) * 6 : 0;
 
-    const scale = 1 + ridge + crater + rand(-0.04, 0.04);
+    const scale = 1 + ridge + crater + randRange(rng, -0.04, 0.04);
     scratch.copy(n).multiplyScalar(scale);
     pos.setXYZ(i, scratch.x, scratch.y, scratch.z);
   }
 
-  // Stretch into a less-spherical rock
-  geometry.scale(rand(0.85, 1.25), rand(0.7, 1.1), rand(0.8, 1.35));
+  geometry.scale(
+    randRange(rng, 0.85, 1.25),
+    randRange(rng, 0.7, 1.1),
+    randRange(rng, 0.8, 1.35),
+  );
   geometry.computeVertexNormals();
   return geometry;
 }
 
-function createRockField(isDark: boolean): {
+function createRockField(
+  isDark: boolean,
+  isMobile: boolean,
+): {
   group: THREE.Group;
   rocks: RockBody[];
   geometries: THREE.BufferGeometry[];
   materials: THREE.Material[];
 } {
+  const rng = createRng(ROCK_SEED);
   const group = new THREE.Group();
   const rocks: RockBody[] = [];
   const geometries: THREE.BufferGeometry[] = [];
   const materials: THREE.Material[] = [];
 
-  for (let i = 0; i < ROCK_COUNT; i++) {
-    const geometry = createAsteroidGeometry(Math.random() > 0.45 ? 2 : 1);
+  // Side rocks stay on the flanks (mobile still visible, not center-clustered)
+  const xMin = isMobile ? 120 : 380;
+  const xMax = isMobile ? 360 : FIELD.x * 0.38;
+  const zNear = isMobile ? 420 : ROCK_Z.near;
+  const zFar = isMobile ? 880 : ROCK_Z.far;
+  const scaleMin = isMobile ? 22 : 36;
+  const scaleMax = isMobile ? 52 : 110;
+
+  const pushRock = (opts: {
+    x: number;
+    y: number;
+    z: number;
+    scale: number;
+    warpInfluence: number;
+  }) => {
+    const geometry = createAsteroidGeometry(rng, rng() > 0.45 ? 2 : 1);
     geometries.push(geometry);
 
-    const tone = Math.random();
+    const tone = rng();
     const color = isDark
       ? new THREE.Color().setRGB(
           lerp(0.22, 0.38, tone),
@@ -189,35 +242,89 @@ function createRockField(isDark: boolean): {
 
     const material = new THREE.MeshStandardMaterial({
       color,
-      roughness: rand(0.78, 0.96),
-      metalness: rand(0.02, 0.12),
-      flatShading: Math.random() > 0.55,
+      roughness: randRange(rng, 0.78, 0.96),
+      metalness: randRange(rng, 0.02, 0.12),
+      flatShading: rng() > 0.55,
       transparent: true,
-      opacity: isDark ? rand(0.55, 0.78) : rand(0.4, 0.58),
+      opacity: isDark
+        ? randRange(rng, 0.55, 0.78)
+        : randRange(rng, 0.4, 0.58),
       depthWrite: true,
     });
     materials.push(material);
 
     const mesh = new THREE.Mesh(geometry, material);
-    const scale = rand(28, 72);
-    mesh.scale.setScalar(scale);
-
-    // Keep most rocks off-center so they don't crowd the hero copy
-    const side = Math.random() > 0.5 ? 1 : -1;
-    const home = new THREE.Vector3(
-      side * rand(420, FIELD.x * 0.42),
-      rand(-180, 220),
-      rand(-FIELD.z * 0.35, FIELD.z * 0.35),
-    );
+    mesh.scale.setScalar(opts.scale);
+    const home = new THREE.Vector3(opts.x, opts.y, opts.z);
     mesh.position.copy(home);
-    mesh.rotation.set(rand(0, Math.PI * 2), rand(0, Math.PI * 2), rand(0, Math.PI * 2));
+    mesh.rotation.set(
+      randRange(rng, 0, Math.PI * 2),
+      randRange(rng, 0, Math.PI * 2),
+      randRange(rng, 0, Math.PI * 2),
+    );
 
     group.add(mesh);
     rocks.push({
       mesh,
-      spin: new THREE.Vector3(rand(-0.25, 0.25), rand(-0.35, 0.35), rand(-0.2, 0.2)),
+      spin: new THREE.Vector3(
+        randRange(rng, -0.25, 0.25),
+        randRange(rng, -0.35, 0.35),
+        randRange(rng, -0.2, 0.2),
+      ),
       home,
+      radius: opts.scale * 1.15,
+      warpInfluence: opts.warpInfluence,
     });
+  };
+
+  // Side field
+  for (let i = 0; i < ROCK_COUNT; i++) {
+    const proximity = Math.pow(rng(), 0.7);
+    const side = i % 2 === 0 ? 1 : -1;
+    pushRock({
+      x: side * randRange(rng, xMin, xMax),
+      y: randRange(rng, isMobile ? -100 : -160, isMobile ? 120 : 200),
+      z: lerp(zNear, zFar, proximity),
+      scale: lerp(scaleMin, scaleMax, proximity),
+      warpInfluence: 1,
+    });
+  }
+
+  // 1–2 distant center rocks — far enough that scroll warp stays gentle
+  for (let i = 0; i < CENTER_ROCK_COUNT; i++) {
+    pushRock({
+      x: randRange(rng, isMobile ? -70 : -140, isMobile ? 70 : 140),
+      y: randRange(rng, -40, 80),
+      z: randRange(rng, isMobile ? -80 : -220, isMobile ? 140 : 60),
+      scale: randRange(rng, isMobile ? 18 : 28, isMobile ? 30 : 44),
+      warpInfluence: 0.18,
+    });
+  }
+
+  // Separate overlapping homes at spawn
+  for (let pass = 0; pass < 8; pass++) {
+    for (let i = 0; i < rocks.length; i++) {
+      for (let j = i + 1; j < rocks.length; j++) {
+        const a = rocks[i];
+        const b = rocks[j];
+        const dx = a.home.x - b.home.x;
+        const dy = a.home.y - b.home.y;
+        const dz = a.home.z - b.home.z;
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.001;
+        const minDist = a.radius + b.radius + 24;
+        if (dist >= minDist) continue;
+
+        const push = ((minDist - dist) / dist) * 0.55;
+        a.home.x += dx * push;
+        a.home.y += dy * push;
+        a.home.z += dz * push;
+        b.home.x -= dx * push;
+        b.home.y -= dy * push;
+        b.home.z -= dz * push;
+        a.mesh.position.copy(a.home);
+        b.mesh.position.copy(b.home);
+      }
+    }
   }
 
   return { group, rocks, geometries, materials };
@@ -273,10 +380,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     ).matches;
 
     const isDark = theme === "dark";
+    const isMobile = window.innerWidth < 768;
     const { seeds, positions, colors } = buildStarfield(isDark);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(isDark ? FOG.dark : FOG.light, 1600, 9000);
+    scene.fog = new THREE.Fog(isDark ? FOG.dark : FOG.light, 2400, 8200);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -323,10 +431,10 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     );
 
     const starMat = new THREE.PointsMaterial({
-      size: isDark ? 5.5 : 6.5,
+      size: isDark ? 4.2 : 4.8,
       vertexColors: true,
       transparent: true,
-      opacity: isDark ? 0.9 : 0.72,
+      opacity: isDark ? 0.88 : 0.7,
       sizeAttenuation: true,
       depthWrite: false,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
@@ -338,7 +446,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       rocks,
       geometries: rockGeometries,
       materials: rockMaterials,
-    } = createRockField(isDark);
+    } = createRockField(isDark, isMobile);
 
     const field = new THREE.Group();
     field.add(stars);
@@ -501,17 +609,52 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         starGeo.attributes.position.needsUpdate = true;
         starGeo.attributes.color.needsUpdate = true;
 
-        // Tumbling rocks + subtle bob with the warp
+        // Tumbling rocks + subtle bob; center rocks warp much less
         for (const rock of rocks) {
           rock.mesh.rotation.x += rock.spin.x * dt;
           rock.mesh.rotation.y += rock.spin.y * dt;
           rock.mesh.rotation.z += rock.spin.z * dt;
 
+          const influence = rock.warpInfluence;
           const bob =
-            Math.sin(count * 0.35 + rock.home.x * 0.001) * waveAmp * 0.22;
+            Math.sin(count * 0.35 + rock.home.x * 0.001) *
+            waveAmp *
+            0.22 *
+            influence;
+          rock.mesh.position.x = rock.home.x;
           rock.mesh.position.y = rock.home.y + bob;
           rock.mesh.position.z =
-            rock.home.z + bob * warpZ * 0.18 * (0.4 + active);
+            rock.home.z + bob * warpZ * 0.18 * (0.4 + active) * influence;
+        }
+
+        // Soft collision — push overlapping rocks apart so they don't clip
+        for (let i = 0; i < rocks.length; i++) {
+          for (let j = i + 1; j < rocks.length; j++) {
+            const a = rocks[i];
+            const b = rocks[j];
+            const dx = a.mesh.position.x - b.mesh.position.x;
+            const dy = a.mesh.position.y - b.mesh.position.y;
+            const dz = a.mesh.position.z - b.mesh.position.z;
+            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.001;
+            const minDist = a.radius + b.radius;
+            if (dist >= minDist) continue;
+
+            const push = ((minDist - dist) / dist) * 0.5;
+            a.mesh.position.x += dx * push;
+            a.mesh.position.y += dy * push;
+            a.mesh.position.z += dz * push;
+            b.mesh.position.x -= dx * push;
+            b.mesh.position.y -= dy * push;
+            b.mesh.position.z -= dz * push;
+
+            // Nudge homes so they don't immediately re-overlap next frame
+            a.home.x += dx * push * 0.35;
+            a.home.y += dy * push * 0.35;
+            a.home.z += dz * push * 0.35;
+            b.home.x -= dx * push * 0.35;
+            b.home.y -= dy * push * 0.35;
+            b.home.z -= dz * push * 0.35;
+          }
         }
 
         count += countSpeed;
