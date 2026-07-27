@@ -14,13 +14,15 @@ export function initGsap() {
   registered = true;
 }
 
-/** Scroll reveal defaults */
+/** Scroll reveal defaults — later trigger + short beat before motion */
 export const revealDefaults = {
   y: 56,
-  duration: 0.75,
-  stagger: 0.08,
+  duration: 0.85,
+  stagger: 0.1,
+  delay: 0.15,
   ease: "power3.out" as const,
-  start: "clamp(top 90%)",
+  /** Wait until ~22% of the block is on-screen (vs 10% at 90%) */
+  start: "clamp(top 78%)",
 };
 
 /** Hero / above-the-fold blocks — wider band for tail exit only */
@@ -34,21 +36,22 @@ export const tailRevealScroll = {
  * Exit runs while the section (and card) are still largely on screen.
  */
 export const sectionTailRevealScroll = {
-  start: "clamp(top bottom-=8%)",
+  start: "clamp(top 78%)",
   end: "clamp(bottom 52%)",
 } as const;
 
 /** Small tail block without a section trigger — earlier exit on the block itself */
 export const tailBlockRevealScroll = {
-  start: "clamp(top bottom-=8%)",
+  start: "clamp(top 78%)",
   end: "clamp(bottom 78%)",
 } as const;
 
 /** Stronger motion for tail enter/exit (sections below hero) */
 export const tailMotion = {
   y: 64,
-  duration: 0.85,
-  stagger: 0.09,
+  duration: 0.9,
+  stagger: 0.1,
+  delay: 0.15,
   exitOpacity: 0.15,
   /** Exit tweens use ~95% of enter duration (default blocks use 65%). */
   exitDurationFactor: 0.95,
@@ -59,11 +62,12 @@ export const tailMotion = {
  * Requires `end` — without it ScrollTrigger collapses to a zero-width toggle.
  */
 export const lastSectionReveal = {
-  start: "clamp(top 88%)",
+  start: "clamp(top 78%)",
   end: "clamp(bottom 62%)",
   y: tailMotion.y,
   duration: tailMotion.duration,
   stagger: tailMotion.stagger,
+  delay: tailMotion.delay,
 } as const;
 
 /**
@@ -315,7 +319,7 @@ export function createDirectionalScrollReveal(
   const start = options.start ?? revealDefaults.start;
   const end = options.end;
   const exitOpacity = options.exitOpacity ?? 0;
-  const delay = options.delay ?? 0;
+  const delay = options.delay ?? revealDefaults.delay;
   const exitDurationFactor = options.exitDurationFactor ?? 0.65;
   const exitDuration = duration * exitDurationFactor;
 

@@ -37,7 +37,7 @@ type AnimatedSectionProps = {
 export function AnimatedSection({
   children,
   className,
-  delay = 0,
+  delay,
   variant = "default",
   start,
   end,
@@ -90,7 +90,13 @@ export function AnimatedSection({
           isLast || (variant === "tail" && !revealIfInView);
 
         createDirectionalScrollReveal(root, items, {
-          delay,
+          delay:
+            delay ??
+            (isLast
+              ? lastSectionReveal.delay
+              : variant === "tail" && !revealIfInView
+                ? tailMotion.delay
+                : revealDefaults.delay),
           start: resolvedStart,
           end: resolvedEnd,
           exitOpacity: resolvedExitOpacity,
@@ -175,7 +181,7 @@ export function AnimatedItem({
 export function AnimatedStagger({
   children,
   className,
-  delay = 0,
+  delay,
   variant,
   start,
   end,
