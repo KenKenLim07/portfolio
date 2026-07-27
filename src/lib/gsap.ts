@@ -327,8 +327,12 @@ export function createDirectionalScrollReveal(
     duration,
     ease,
     stagger,
-    delay,
     overwrite: "auto" as const,
+  };
+  /** Delay only on downward enter (from bottom) — not on scroll-up enter-back */
+  const enterFromBottom = {
+    ...enter,
+    delay,
   };
   const exit = {
     duration: exitDuration,
@@ -360,7 +364,7 @@ export function createDirectionalScrollReveal(
     gsap.fromTo(
       targets,
       { opacity: 0, y, force3D: true, immediateRender: true },
-      { opacity: 1, y: 0, force3D: true, ...enter },
+      { opacity: 1, y: 0, force3D: true, ...enterFromBottom },
     );
 
     hasEntered = true;
@@ -372,7 +376,7 @@ export function createDirectionalScrollReveal(
     gsap.to(targets, { opacity: exitOpacity, y: -y, force3D: true, ...exit });
   };
 
-  /** Scroll up into band — slide down from above (scroll up the page, content enters from top) */
+  /** Scroll up into band — slide down from above (no delay; keeps top enter snappy) */
   const playEnterBack = () => {
     const firstTarget = gsap.utils.toArray(targets)[0] as Element | undefined;
     const opacity =
