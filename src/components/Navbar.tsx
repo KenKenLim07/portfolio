@@ -5,7 +5,11 @@ import Link from "next/link";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ScrollBurgerIcon } from "@/components/ui/ScrollBurgerIcon";
+import {
+  MenuBlackholeCore,
+  MenuBlackholeDisk,
+  ScrollBurgerIcon,
+} from "@/components/ui/ScrollBurgerIcon";
 import { cn } from "@/lib/utils";
 
 const linkClass =
@@ -18,10 +22,11 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const { overlayRef, panelRef } = useGsapMobileMenu({
-    open: mobileOpen,
-    triggerRef: menuTriggerRef,
-  });
+  const { overlayRef, panelRef, diskRef, coreRef, flightRef } =
+    useGsapMobileMenu({
+      open: mobileOpen,
+      triggerRef: menuTriggerRef,
+    });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -77,11 +82,24 @@ export function Navbar() {
         </nav>
       </header>
 
+      {/* Stack: disk (64) → flying content (65) → core (66) → button/X (70) */}
+      <div ref={diskRef} className="pointer-events-none fixed z-[64] lg:hidden">
+        <MenuBlackholeDisk />
+      </div>
+      <div
+        ref={flightRef}
+        className="pointer-events-none fixed inset-0 z-[65] overflow-visible lg:hidden"
+        aria-hidden
+      />
+      <div ref={coreRef} className="pointer-events-none fixed z-[66] lg:hidden">
+        <MenuBlackholeCore />
+      </div>
+
       <button
         ref={menuTriggerRef}
         type="button"
         className={cn(
-          "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[60] cursor-pointer p-2.5 transition-colors duration-200 lg:hidden",
+          "fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[70] cursor-pointer p-2.5 transition-colors duration-200 lg:hidden",
           mobileOpen
             ? "text-[var(--menu-fg)] hover:text-[var(--menu-muted)]"
             : "text-foreground hover:text-muted",

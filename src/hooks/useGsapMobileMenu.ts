@@ -18,13 +18,23 @@ type UseGsapMobileMenuOptions = {
 
 type PullSample = {
   el: HTMLElement;
-  /** Layout center (viewport) with transforms cleared. */
+  clone: HTMLElement | null;
   layoutX: number;
   layoutY: number;
-  /** Distance from hole — used for proximity order. */
+  width: number;
+  height: number;
   radius: number;
-  /** Fixed direction from hole to rest position (no orbit). */
   angle: number;
+};
+
+type HoleParts = {
+  lines: HTMLElement | null;
+  close: HTMLElement | null;
+  disk: HTMLElement | null;
+  coreWrap: HTMLElement | null;
+  rings: NodeListOf<HTMLElement>;
+  core: HTMLElement | null;
+  holeLayers: HTMLElement[];
 };
 
 const VORTEX = {
@@ -34,6 +44,8 @@ const VORTEX = {
   morph: 0.28,
   easeOpen: "power3.out",
   easeClose: "power4.in",
+  /** Visual size of the fixed hole layers (px). */
+  holeSize: 72,
 } as const;
 
 function measureClipPaths(
@@ -67,13 +79,19 @@ function menuItems(panel: HTMLElement) {
   );
 }
 
-function iconParts(trigger: HTMLElement) {
+function resolveParts(
+  trigger: HTMLElement,
+  disk: HTMLElement | null,
+  coreWrap: HTMLElement | null,
+): HoleParts {
   const lines = trigger.querySelector<HTMLElement>("[data-burger-lines]");
-  const vortex = trigger.querySelector<HTMLElement>("[data-burger-vortex]");
-  const rings = trigger.querySelectorAll<HTMLElement>("[data-vortex-ring]");
-  const core = trigger.querySelector<HTMLElement>("[data-vortex-core]");
   const close = trigger.querySelector<HTMLElement>("[data-burger-close]");
-  return { lines, vortex, rings, core, close };
+  const rings = (disk?.querySelectorAll<HTMLElement>("[data-vortex-ring]") ??
+    []) as NodeListOf<HTMLElement>;
+  const core =
+    coreWrap?.querySelector<HTMLElement>("[data-vortex-core]") ?? null;
+  const holeLayers = [disk, coreWrap].filter(Boolean) as HTMLElement[];
+  return { lines, close, disk, coreWrap, rings, core, holeLayers };
 }
 
 function hideClose(close: HTMLElement | null) {
@@ -96,6 +114,34 @@ function showCloseSettled(close: HTMLElement | null) {
   });
 }
 
+function pinHoleLayers(
+  layers: HTMLElement[],
+  holeX: number,
+  holeY: number,
+) {
+  const half = VORTEX.holeSize / 2;
+  layers.forEach((layer) => {
+    gsap.set(layer, {
+      left: holeX - half,
+      top: holeY - half,
+      width: VORTEX.holeSize,
+      height: VORTEX.holeSize,
+      x: 0,
+      y: 0,
+    });
+  });
+}
+
+function hideHoleLayers(layers: HTMLElement[]) {
+  layers.forEach((layer) => {
+    gsap.set(layer, {
+      opacity: 0,
+      scale: 0.2,
+      visibility: "hidden",
+    });
+  });
+}
+
 function resetItemsAtRest(items: NodeListOf<HTMLElement> | HTMLElement[]) {
   gsap.set(items, {
     opacity: 0,
@@ -104,14 +150,12 @@ function resetItemsAtRest(items: NodeListOf<HTMLElement> | HTMLElement[]) {
     x: 0,
     y: 0,
     filter: "blur(0px)",
+    visibility: "visible",
     force3D: true,
+    clearProps: "position,left,top,width,height,margin,zIndex",
   });
 }
 
-/**
- * Snapshot each item's layout center + vector to the hole.
- * Clears transforms first so layout is the resting menu position.
- */
 function samplePulls(
   items: NodeListOf<HTMLElement> | HTMLElement[],
   holeX: number,
@@ -124,7 +168,9 @@ function samplePulls(
     rotate: 0,
     opacity: 1,
     filter: "blur(0px)",
+    visibility: "visible",
     force3D: true,
+    clearProps: "position,left,top,width,height,margin,zIndex",
   });
 
   return Array.from(items).map((el) => {
@@ -135,61 +181,129 @@ function samplePulls(
     const dy = layoutY - holeY;
     return {
       el,
+      clone: null,
       layoutX,
       layoutY,
+      width: r.width,
+      height: r.height,
       radius: Math.hypot(dx, dy) || 1,
       angle: Math.atan2(dy, dx),
     };
   });
 }
 
-/** Nearest to the hole first — how a blackhole actually pulls. */
 function byProximity(samples: PullSample[]): PullSample[] {
   return [...samples].sort((a, b) => a.radius - b.radius);
 }
 
+function clearFlight(flight: HTMLElement | null) {
+  if (!flight) return;
+  flight.replaceChildren();
+}
+
 /**
- * Straight pull into the hole (no orbit, no text spin).
- * t=0 at rest, t=1 inside the hole.
+ * Clone items into the flight layer (between disk z-64 and core z-66).
+ * Originals stay in the panel (hidden) so React layout never reshuffles.
  */
+function launchClones(
+  samples: PullSample[],
+  flight: HTMLElement,
+) {
+  clearFlight(flight);
+  samples.forEach((sample) => {
+    const clone = sample.el.cloneNode(true) as HTMLElement;
+    clone.setAttribute("aria-hidden", "true");
+    clone.style.pointerEvents = "none";
+    // Avoid duplicate interactive ids / focus
+    clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+    clone.querySelectorAll("a,button").forEach((node) => {
+      node.setAttribute("tabindex", "-1");
+    });
+
+    flight.appendChild(clone);
+    sample.clone = clone;
+
+    gsap.set(sample.el, { opacity: 0, visibility: "hidden" });
+    gsap.set(clone, {
+      position: "fixed",
+      left: sample.layoutX - sample.width / 2,
+      top: sample.layoutY - sample.height / 2,
+      width: sample.width,
+      height: sample.height,
+      margin: 0,
+      x: 0,
+      y: 0,
+      scale: 1,
+      rotate: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+      transformOrigin: "50% 50%",
+      force3D: true,
+    });
+  });
+}
+
 function setPullProgress(
   sample: PullSample,
   holeX: number,
   holeY: number,
   t: number,
 ) {
+  const target = sample.clone ?? sample.el;
   const radius = sample.radius * (1 - t);
   const px = holeX + Math.cos(sample.angle) * radius;
   const py = holeY + Math.sin(sample.angle) * radius;
 
-  const scale = gsap.utils.interpolate(1, 0.02, Math.pow(t, 1.4));
+  // Stay readable over the disk; only vanish as they enter the core
+  const scale = gsap.utils.interpolate(1, 0.04, Math.pow(t, 1.55));
   const opacity =
-    t < 0.4 ? 1 : Math.max(0, 1 - Math.pow((t - 0.4) / 0.6, 1.5));
-  const blur = t > 0.55 ? ((t - 0.55) / 0.45) * 7 : 0;
+    t < 0.72 ? 1 : Math.max(0, 1 - Math.pow((t - 0.72) / 0.28, 1.35));
+  const blur = t > 0.7 ? ((t - 0.7) / 0.3) * 6 : 0;
 
-  gsap.set(sample.el, {
+  gsap.set(target, {
     x: px - sample.layoutX,
     y: py - sample.layoutY,
     scale,
     rotate: 0,
     opacity,
     filter: blur > 0.05 ? `blur(${blur}px)` : "blur(0px)",
-    transformOrigin: "50% 50%",
     force3D: true,
   });
 }
 
 function parkItemsInHole(
   samples: PullSample[],
+  flight: HTMLElement,
   holeX: number,
   holeY: number,
 ) {
+  launchClones(samples, flight);
   samples.forEach((sample) => {
     setPullProgress(sample, holeX, holeY, 1);
   });
 }
 
-/** suck: closest in first; spit: LIFO — farthest (last in) out first. */
+/** Reveal originals in place and wipe clones — all at once (no stagger reshuffle). */
+function settleFromFlight(
+  samples: PullSample[],
+  flight: HTMLElement | null,
+) {
+  samples.forEach((sample) => {
+    gsap.set(sample.el, {
+      opacity: 1,
+      visibility: "visible",
+      scale: 1,
+      rotate: 0,
+      x: 0,
+      y: 0,
+      filter: "blur(0px)",
+      clearProps: "position,left,top,width,height,margin,zIndex",
+    });
+    sample.clone = null;
+  });
+  clearFlight(flight);
+}
+
 function addPullTweens(
   tl: gsap.core.Timeline,
   samples: PullSample[],
@@ -198,11 +312,16 @@ function addPullTweens(
   mode: "suck" | "spit",
   startAt: number,
   duration: number,
+  flight: HTMLElement | null,
 ) {
   const ordered =
     mode === "suck"
       ? byProximity(samples)
       : [...byProximity(samples)].reverse();
+
+  if (mode === "suck" && flight) {
+    launchClones(samples, flight);
+  }
 
   ordered.forEach((sample, i) => {
     const proxy = { t: mode === "suck" ? 0 : 1 };
@@ -217,22 +336,18 @@ function addPullTweens(
         onUpdate: () => {
           setPullProgress(sample, holeX, holeY, proxy.t);
         },
-        onComplete: () => {
-          if (mode === "spit") {
-            gsap.set(sample.el, {
-              x: 0,
-              y: 0,
-              scale: 1,
-              rotate: 0,
-              opacity: 1,
-              filter: "blur(0px)",
-            });
-          }
-        },
       },
       startAt + delay,
     );
   });
+
+  if (mode === "spit") {
+    const spitEnd =
+      startAt +
+      duration +
+      Math.max(0, samples.length - 1) * VORTEX.stagger;
+    tl.call(() => settleFromFlight(samples, flight), undefined, spitEnd);
+  }
 }
 
 export function useGsapMobileMenu({
@@ -242,6 +357,9 @@ export function useGsapMobileMenu({
   const prefersReducedMotion = useGsapReducedMotion();
   const overlayRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLElement>(null);
+  const diskRef = useRef<HTMLDivElement>(null);
+  const coreRef = useRef<HTMLDivElement>(null);
+  const flightRef = useRef<HTMLDivElement>(null);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const clipRef = useRef<ClipPaths | null>(null);
   const isOpenRef = useRef(false);
@@ -252,9 +370,9 @@ export function useGsapMobileMenu({
     spinTweensRef.current = [];
   };
 
-  const startSpin = (rings: NodeListOf<HTMLElement>) => {
+  const startSpin = (rings: NodeListOf<HTMLElement> | HTMLElement[]) => {
     stopSpin();
-    rings.forEach((ring, i) => {
+    Array.from(rings).forEach((ring, i) => {
       const dir = i % 2 === 0 ? 1 : -1;
       spinTweensRef.current.push(
         gsap.to(ring, {
@@ -269,23 +387,27 @@ export function useGsapMobileMenu({
 
   const morphToBlackhole = (
     tl: gsap.core.Timeline,
-    parts: ReturnType<typeof iconParts>,
+    parts: HoleParts,
+    holeX: number,
+    holeY: number,
     at: number,
   ) => {
-    const { lines, vortex, rings, core } = parts;
-    if (!vortex) return;
+    const { lines, holeLayers, rings, core } = parts;
+    if (!holeLayers.length) return;
 
-    gsap.set(vortex, {
-      visibility: "visible",
-      display: "block",
-      opacity: 0,
-      scale: 0.35,
-      pointerEvents: "none",
+    pinHoleLayers(holeLayers, holeX, holeY);
+    holeLayers.forEach((layer) => {
+      gsap.set(layer, {
+        visibility: "visible",
+        opacity: 0,
+        scale: 0.35,
+        pointerEvents: "none",
+      });
     });
     startSpin(rings);
 
     tl.to(
-      vortex,
+      holeLayers,
       {
         opacity: 1,
         scale: 1.65,
@@ -321,10 +443,10 @@ export function useGsapMobileMenu({
 
   const morphToBurger = (
     tl: gsap.core.Timeline,
-    parts: ReturnType<typeof iconParts>,
+    parts: HoleParts,
     at: number,
   ) => {
-    const { lines, vortex, close } = parts;
+    const { lines, close, holeLayers } = parts;
     if (close) {
       tl.to(
         close,
@@ -338,16 +460,16 @@ export function useGsapMobileMenu({
         at,
       );
     }
-    if (vortex) {
+    if (holeLayers.length) {
       tl.to(
-        vortex,
+        holeLayers,
         {
           opacity: 0,
           scale: 0.2,
           duration: VORTEX.morph,
           ease: "power2.in",
           onComplete: () => {
-            gsap.set(vortex, { visibility: "hidden" });
+            hideHoleLayers(holeLayers);
             stopSpin();
           },
         },
@@ -381,6 +503,8 @@ export function useGsapMobileMenu({
     const overlay = overlayRef.current;
     const panel = panelRef.current;
     const trigger = triggerRef.current;
+    const disk = diskRef.current;
+    const coreWrap = coreRef.current;
     if (!overlay || !panel) return;
 
     gsap.set(overlay, {
@@ -393,16 +517,11 @@ export function useGsapMobileMenu({
     if (trigger) {
       const clips = measureClipPaths(trigger, panel);
       applyClip(panel, clips.closed);
-      const { lines, vortex, close } = iconParts(trigger);
-      if (lines) gsap.set(lines, { opacity: 1, scale: 1, rotate: 0 });
-      if (vortex) {
-        gsap.set(vortex, {
-          opacity: 0,
-          scale: 0.2,
-          visibility: "hidden",
-        });
-      }
-      hideClose(close);
+      const parts = resolveParts(trigger, disk, coreWrap);
+      if (parts.lines) gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
+      pinHoleLayers(parts.holeLayers, clips.holeX, clips.holeY);
+      hideHoleLayers(parts.holeLayers);
+      hideClose(parts.close);
     }
 
     resetItemsAtRest(menuItems(panel));
@@ -412,6 +531,7 @@ export function useGsapMobileMenu({
       timelineRef.current?.kill();
       timelineRef.current = null;
       stopSpin();
+      clearFlight(flightRef.current);
     };
   }, [triggerRef]);
 
@@ -419,17 +539,22 @@ export function useGsapMobileMenu({
     const overlay = overlayRef.current;
     const panel = panelRef.current;
     const trigger = triggerRef.current;
+    const disk = diskRef.current;
+    const coreWrap = coreRef.current;
+    const flight = flightRef.current;
     if (!overlay || !panel || !trigger) return;
 
     const items = menuItems(panel);
     const clips = measureClipPaths(trigger, panel);
     clipRef.current = clips;
-    const parts = iconParts(trigger);
+    const parts = resolveParts(trigger, disk, coreWrap);
+    pinHoleLayers(parts.holeLayers, clips.holeX, clips.holeY);
 
     if (prefersReducedMotion) {
       timelineRef.current?.kill();
       timelineRef.current = null;
       stopSpin();
+      clearFlight(flight);
 
       if (open) {
         gsap.set(overlay, {
@@ -441,6 +566,7 @@ export function useGsapMobileMenu({
         gsap.set(panel, { pointerEvents: "auto" });
         gsap.set(items, {
           opacity: 1,
+          visibility: "visible",
           scale: 1,
           rotate: 0,
           x: 0,
@@ -448,13 +574,7 @@ export function useGsapMobileMenu({
           filter: "blur(0px)",
         });
         if (parts.lines) gsap.set(parts.lines, { opacity: 0, scale: 0.2 });
-        if (parts.vortex) {
-          gsap.set(parts.vortex, {
-            opacity: 0,
-            scale: 0.2,
-            visibility: "hidden",
-          });
-        }
+        hideHoleLayers(parts.holeLayers);
         showCloseSettled(parts.close);
         isOpenRef.current = true;
       } else {
@@ -467,41 +587,31 @@ export function useGsapMobileMenu({
         gsap.set(panel, { pointerEvents: "none" });
         resetItemsAtRest(items);
         if (parts.lines) gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
-        if (parts.vortex) {
-          gsap.set(parts.vortex, {
-            opacity: 0,
-            scale: 0.2,
-            visibility: "hidden",
-          });
-        }
+        hideHoleLayers(parts.holeLayers);
         hideClose(parts.close);
         isOpenRef.current = false;
       }
       return;
     }
 
-    // ——— OPEN: blackhole → spit content → spit X last → hole fades ———
+    // ——— OPEN ———
     if (open) {
       timelineRef.current?.kill();
+      clearFlight(flight);
 
       applyClip(panel, clips.open);
       gsap.set(panel, { visibility: "visible", pointerEvents: "none" });
 
       const samples = samplePulls(items, clips.holeX, clips.holeY);
-      parkItemsInHole(samples, clips.holeX, clips.holeY);
+      if (flight) {
+        parkItemsInHole(samples, flight, clips.holeX, clips.holeY);
+      }
       applyClip(panel, clips.closed);
 
-      if (parts.vortex) {
-        gsap.set(parts.vortex, {
-          opacity: 0,
-          scale: 0.2,
-          visibility: "hidden",
-        });
-      }
+      hideHoleLayers(parts.holeLayers);
       if (parts.lines) {
         gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
       }
-      // X starts parked inside the hole
       if (parts.close) {
         gsap.set(parts.close, {
           visibility: "visible",
@@ -520,7 +630,7 @@ export function useGsapMobileMenu({
       });
       timelineRef.current = tl;
 
-      morphToBlackhole(tl, parts, 0);
+      morphToBlackhole(tl, parts, clips.holeX, clips.holeY, 0);
 
       const contentAt = VORTEX.morph * 0.35;
       const spitStart = contentAt + VORTEX.spitLead;
@@ -566,9 +676,9 @@ export function useGsapMobileMenu({
         "spit",
         spitStart,
         itemDur,
+        flight,
       );
 
-      // X spits out last, then the blackhole disappears under it
       const xAt = spitEnd - 0.04;
       if (parts.close) {
         tl.to(
@@ -583,16 +693,16 @@ export function useGsapMobileMenu({
           xAt,
         );
       }
-      if (parts.vortex) {
+      if (parts.holeLayers.length) {
         tl.to(
-          parts.vortex,
+          parts.holeLayers,
           {
             opacity: 0,
             scale: 0.35,
             duration: 0.32,
             ease: "power2.in",
             onComplete: () => {
-              gsap.set(parts.vortex!, { visibility: "hidden" });
+              hideHoleLayers(parts.holeLayers);
               stopSpin();
             },
           },
@@ -603,16 +713,15 @@ export function useGsapMobileMenu({
       return;
     }
 
-    // ——— CLOSE: X → blackhole → suck content → burger lines ———
+    // ——— CLOSE ———
     if (
       isOpenRef.current ||
       (timelineRef.current && timelineRef.current.progress() > 0)
     ) {
       timelineRef.current?.kill();
+      clearFlight(flight);
 
       const closedClip = clipRef.current?.closed ?? clips.closed;
-
-      // Sample at resting layout (clears mid-tween transforms)
       const samples = samplePulls(items, clips.holeX, clips.holeY);
 
       if (parts.lines) {
@@ -624,6 +733,7 @@ export function useGsapMobileMenu({
         onComplete: () => {
           isOpenRef.current = false;
           hideClose(parts.close);
+          clearFlight(flight);
           gsap.set(overlay, {
             opacity: 0,
             visibility: "hidden",
@@ -636,16 +746,18 @@ export function useGsapMobileMenu({
       });
       timelineRef.current = tl;
 
-      // Blackhole reappears as X gets pulled back in
-      if (parts.vortex) {
-        gsap.set(parts.vortex, {
-          visibility: "visible",
-          opacity: 0,
-          scale: 0.4,
+      if (parts.holeLayers.length) {
+        pinHoleLayers(parts.holeLayers, clips.holeX, clips.holeY);
+        parts.holeLayers.forEach((layer) => {
+          gsap.set(layer, {
+            visibility: "visible",
+            opacity: 0,
+            scale: 0.4,
+          });
         });
         startSpin(parts.rings);
         tl.to(
-          parts.vortex,
+          parts.holeLayers,
           {
             opacity: 1,
             scale: 1.85,
@@ -670,7 +782,6 @@ export function useGsapMobileMenu({
         );
       }
 
-      // 1) Suck while panel stays open
       const suckAt = 0.2;
       const suckDur = VORTEX.duration * 0.72;
       const pullEnd =
@@ -686,9 +797,9 @@ export function useGsapMobileMenu({
         "suck",
         suckAt,
         suckDur,
+        flight,
       );
 
-      // 2) Collapse after suck
       const collapseAt = pullEnd - 0.08;
       const collapseDur = 0.38;
 
@@ -722,12 +833,12 @@ export function useGsapMobileMenu({
         collapseAt + collapseDur * 0.2,
       );
 
-      // 3) Restore burger lines
       morphToBurger(tl, parts, collapseAt + collapseDur * 0.4);
 
       return;
     }
 
+    clearFlight(flight);
     gsap.set(overlay, {
       opacity: 0,
       visibility: "hidden",
@@ -737,17 +848,11 @@ export function useGsapMobileMenu({
     gsap.set(panel, { pointerEvents: "none" });
     resetItemsAtRest(items);
     if (parts.lines) gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
-    if (parts.vortex) {
-      gsap.set(parts.vortex, {
-        opacity: 0,
-        scale: 0.2,
-        visibility: "hidden",
-      });
-    }
+    hideHoleLayers(parts.holeLayers);
     hideClose(parts.close);
     stopSpin();
     isOpenRef.current = false;
   }, [open, prefersReducedMotion, triggerRef]);
 
-  return { overlayRef, panelRef };
+  return { overlayRef, panelRef, diskRef, coreRef, flightRef };
 }

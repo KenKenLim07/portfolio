@@ -29,8 +29,8 @@ const CHEVRON_UP = {
 };
 
 /**
- * Burger / scroll-chevron icon with an embedded blackhole layer.
- * The menu hook morphs lines ↔ vortex; scroll morph only runs when not disabled.
+ * Burger / scroll-chevron + close X.
+ * Blackhole visuals live in Navbar layers (disk under content, core above).
  */
 export function ScrollBurgerIcon({
   className,
@@ -163,26 +163,6 @@ export function ScrollBurgerIcon({
         />
       </svg>
 
-      {/* Blackhole — above the lines, sized larger via CSS */}
-      <span className="menu-trigger-vortex" data-burger-vortex aria-hidden>
-        <span className="menu-trigger-vortex__glow" />
-        <span data-vortex-ring className="menu-trigger-vortex__disk" />
-        <span
-          data-vortex-ring
-          className="menu-trigger-vortex__ring menu-trigger-vortex__ring--a"
-        />
-        <span
-          data-vortex-ring
-          className="menu-trigger-vortex__ring menu-trigger-vortex__ring--b"
-        />
-        <span
-          data-vortex-ring
-          className="menu-trigger-vortex__ring menu-trigger-vortex__ring--c"
-        />
-        <span data-vortex-core className="menu-trigger-vortex__core" />
-      </span>
-
-      {/* Close X — spit out last on open; sits where the hole was */}
       <svg
         viewBox="0 0 24 24"
         className="menu-trigger-close"
@@ -197,5 +177,54 @@ export function ScrollBurgerIcon({
         <line x1="18" y1="6" x2="6" y2="18" />
       </svg>
     </span>
+  );
+}
+
+/** Accretion disk layer — sits UNDER flying menu content. */
+export function MenuBlackholeDisk({
+  className,
+}: {
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn("menu-trigger-vortex menu-trigger-vortex--disk", className)}
+      data-burger-vortex-disk
+      aria-hidden
+    >
+      <span className="menu-trigger-vortex__corona" />
+      <span className="menu-trigger-vortex__glow" />
+      <span data-vortex-ring className="menu-trigger-vortex__disk" />
+      <span
+        data-vortex-ring
+        className="menu-trigger-vortex__disk menu-trigger-vortex__disk--inner"
+      />
+      <span
+        data-vortex-ring
+        className="menu-trigger-vortex__ring menu-trigger-vortex__ring--a"
+      />
+      <span
+        data-vortex-ring
+        className="menu-trigger-vortex__ring menu-trigger-vortex__ring--b"
+      />
+    </div>
+  );
+}
+
+/** Event-horizon core — sits ABOVE flying menu content so items enter the void. */
+export function MenuBlackholeCore({
+  className,
+}: {
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn("menu-trigger-vortex menu-trigger-vortex--core", className)}
+      data-burger-vortex-core
+      aria-hidden
+    >
+      <span className="menu-trigger-vortex__photon" />
+      <span data-vortex-core className="menu-trigger-vortex__core" />
+    </div>
   );
 }
