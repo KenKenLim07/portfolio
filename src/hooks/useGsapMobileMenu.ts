@@ -72,7 +72,28 @@ function iconParts(trigger: HTMLElement) {
   const vortex = trigger.querySelector<HTMLElement>("[data-burger-vortex]");
   const rings = trigger.querySelectorAll<HTMLElement>("[data-vortex-ring]");
   const core = trigger.querySelector<HTMLElement>("[data-vortex-core]");
-  return { lines, vortex, rings, core };
+  const close = trigger.querySelector<HTMLElement>("[data-burger-close]");
+  return { lines, vortex, rings, core, close };
+}
+
+function hideClose(close: HTMLElement | null) {
+  if (!close) return;
+  gsap.set(close, {
+    opacity: 0,
+    scale: 0.2,
+    rotate: 0,
+    visibility: "hidden",
+  });
+}
+
+function showCloseSettled(close: HTMLElement | null) {
+  if (!close) return;
+  gsap.set(close, {
+    opacity: 1,
+    scale: 1,
+    rotate: 0,
+    visibility: "visible",
+  });
 }
 
 function resetItemsAtRest(items: NodeListOf<HTMLElement> | HTMLElement[]) {
@@ -303,7 +324,20 @@ export function useGsapMobileMenu({
     parts: ReturnType<typeof iconParts>,
     at: number,
   ) => {
-    const { lines, vortex } = parts;
+    const { lines, vortex, close } = parts;
+    if (close) {
+      tl.to(
+        close,
+        {
+          opacity: 0,
+          scale: 0.15,
+          duration: VORTEX.morph * 0.7,
+          ease: "power2.in",
+          onComplete: () => hideClose(close),
+        },
+        at,
+      );
+    }
     if (vortex) {
       tl.to(
         vortex,
@@ -359,7 +393,7 @@ export function useGsapMobileMenu({
     if (trigger) {
       const clips = measureClipPaths(trigger, panel);
       applyClip(panel, clips.closed);
-      const { lines, vortex } = iconParts(trigger);
+      const { lines, vortex, close } = iconParts(trigger);
       if (lines) gsap.set(lines, { opacity: 1, scale: 1, rotate: 0 });
       if (vortex) {
         gsap.set(vortex, {
@@ -368,6 +402,7 @@ export function useGsapMobileMenu({
           visibility: "hidden",
         });
       }
+      hideClose(close);
     }
 
     resetItemsAtRest(menuItems(panel));
@@ -412,7 +447,7 @@ export function useGsapMobileMenu({
           y: 0,
           filter: "blur(0px)",
         });
-        if (parts.lines) gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
+        if (parts.lines) gsap.set(parts.lines, { opacity: 0, scale: 0.2 });
         if (parts.vortex) {
           gsap.set(parts.vortex, {
             opacity: 0,
@@ -420,6 +455,7 @@ export function useGsapMobileMenu({
             visibility: "hidden",
           });
         }
+        showCloseSettled(parts.close);
         isOpenRef.current = true;
       } else {
         gsap.set(overlay, {
@@ -438,12 +474,13 @@ export function useGsapMobileMenu({
             visibility: "hidden",
           });
         }
+        hideClose(parts.close);
         isOpenRef.current = false;
       }
       return;
     }
 
-    // ——— OPEN: blackhole → shoot content out ———
+    // ——— OPEN: blackhole → spit content → spit X last → hole fades ———
     if (open) {
       timelineRef.current?.kill();
 
@@ -464,6 +501,15 @@ export function useGsapMobileMenu({
       if (parts.lines) {
         gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
       }
+      // X starts parked inside the hole
+      if (parts.close) {
+        gsap.set(parts.close, {
+          visibility: "visible",
+          opacity: 0,
+          scale: 0.12,
+          rotate: -40,
+        });
+      }
 
       const itemDur = VORTEX.duration * 0.95;
       const tl = gsap.timeline({
@@ -477,6 +523,11 @@ export function useGsapMobileMenu({
       morphToBlackhole(tl, parts, 0);
 
       const contentAt = VORTEX.morph * 0.35;
+      const spitStart = contentAt + VORTEX.spitLead;
+      const spitEnd =
+        spitStart +
+        itemDur +
+        Math.max(0, samples.length - 1) * VORTEX.stagger;
 
       tl.to(
         overlay,
@@ -513,26 +564,46 @@ export function useGsapMobileMenu({
         clips.holeX,
         clips.holeY,
         "spit",
-        contentAt + VORTEX.spitLead,
+        spitStart,
         itemDur,
       );
 
+      // X spits out last, then the blackhole disappears under it
+      const xAt = spitEnd - 0.04;
+      if (parts.close) {
+        tl.to(
+          parts.close,
+          {
+            opacity: 1,
+            scale: 1,
+            rotate: 0,
+            duration: 0.34,
+            ease: "power3.out",
+          },
+          xAt,
+        );
+      }
       if (parts.vortex) {
         tl.to(
           parts.vortex,
           {
-            scale: 1.25,
-            duration: 0.35,
-            ease: "power2.inOut",
+            opacity: 0,
+            scale: 0.35,
+            duration: 0.32,
+            ease: "power2.in",
+            onComplete: () => {
+              gsap.set(parts.vortex!, { visibility: "hidden" });
+              stopSpin();
+            },
           },
-          VORTEX.morph + 0.35,
+          xAt + 0.1,
         );
       }
 
       return;
     }
 
-    // ——— CLOSE: pull into icon blackhole → restore lines ———
+    // ——— CLOSE: X → blackhole → suck content → burger lines ———
     if (
       isOpenRef.current ||
       (timelineRef.current && timelineRef.current.progress() > 0)
@@ -540,21 +611,10 @@ export function useGsapMobileMenu({
       timelineRef.current?.kill();
 
       const closedClip = clipRef.current?.closed ?? clips.closed;
-      const itemDur = VORTEX.duration * 0.95;
 
       // Sample at resting layout (clears mid-tween transforms)
       const samples = samplePulls(items, clips.holeX, clips.holeY);
 
-      if (parts.vortex) {
-        gsap.set(parts.vortex, { visibility: "visible" });
-        startSpin(parts.rings);
-        gsap.set(parts.vortex, {
-          opacity: Math.max(
-            Number(gsap.getProperty(parts.vortex, "opacity")) || 0,
-            0.85,
-          ),
-        });
-      }
       if (parts.lines) {
         gsap.set(parts.lines, { opacity: 0, scale: 0.35 });
       }
@@ -563,6 +623,7 @@ export function useGsapMobileMenu({
         defaults: { overwrite: "auto" },
         onComplete: () => {
           isOpenRef.current = false;
+          hideClose(parts.close);
           gsap.set(overlay, {
             opacity: 0,
             visibility: "hidden",
@@ -575,31 +636,47 @@ export function useGsapMobileMenu({
       });
       timelineRef.current = tl;
 
+      // Blackhole reappears as X gets pulled back in
       if (parts.vortex) {
+        gsap.set(parts.vortex, {
+          visibility: "visible",
+          opacity: 0,
+          scale: 0.4,
+        });
+        startSpin(parts.rings);
         tl.to(
           parts.vortex,
           {
             opacity: 1,
             scale: 1.85,
-            duration: 0.2,
+            duration: 0.26,
             ease: "power2.out",
           },
           0,
         );
       }
+      if (parts.close) {
+        tl.to(
+          parts.close,
+          {
+            opacity: 0,
+            scale: 0.1,
+            rotate: 35,
+            duration: 0.22,
+            ease: "power2.in",
+            onComplete: () => hideClose(parts.close),
+          },
+          0,
+        );
+      }
 
-      const suckAt = 0.1;
-
-      tl.to(
-        panel,
-        {
-          clipPath: closedClip,
-          WebkitClipPath: closedClip,
-          duration: VORTEX.duration,
-          ease: VORTEX.easeClose,
-        },
-        suckAt,
-      );
+      // 1) Suck while panel stays open
+      const suckAt = 0.2;
+      const suckDur = VORTEX.duration * 0.72;
+      const pullEnd =
+        suckAt +
+        suckDur +
+        Math.max(0, samples.length - 1) * VORTEX.stagger;
 
       addPullTweens(
         tl,
@@ -608,14 +685,32 @@ export function useGsapMobileMenu({
         clips.holeY,
         "suck",
         suckAt,
-        itemDur,
+        suckDur,
+      );
+
+      // 2) Collapse after suck
+      const collapseAt = pullEnd - 0.08;
+      const collapseDur = 0.38;
+
+      tl.to(
+        panel,
+        {
+          clipPath: closedClip,
+          WebkitClipPath: closedClip,
+          duration: collapseDur,
+          ease: VORTEX.easeClose,
+          onStart: () => {
+            gsap.set(panel, { pointerEvents: "none" });
+          },
+        },
+        collapseAt,
       );
 
       tl.to(
         overlay,
         {
           opacity: 0,
-          duration: VORTEX.duration * 0.4,
+          duration: collapseDur * 0.55,
           ease: "power2.in",
           onComplete: () => {
             gsap.set(overlay, {
@@ -624,10 +719,11 @@ export function useGsapMobileMenu({
             });
           },
         },
-        VORTEX.duration * 0.55,
+        collapseAt + collapseDur * 0.2,
       );
 
-      morphToBurger(tl, parts, VORTEX.duration * 0.82);
+      // 3) Restore burger lines
+      morphToBurger(tl, parts, collapseAt + collapseDur * 0.4);
 
       return;
     }
@@ -648,6 +744,7 @@ export function useGsapMobileMenu({
         visibility: "hidden",
       });
     }
+    hideClose(parts.close);
     stopSpin();
     isOpenRef.current = false;
   }, [open, prefersReducedMotion, triggerRef]);

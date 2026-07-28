@@ -181,6 +181,21 @@ export function ScrollBurgerIcon({
         />
         <span data-vortex-core className="menu-trigger-vortex__core" />
       </span>
+
+      {/* Close X — spit out last on open; sits where the hole was */}
+      <svg
+        viewBox="0 0 24 24"
+        className="menu-trigger-close"
+        aria-hidden
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        data-burger-close
+      >
+        <line x1="6" y1="6" x2="18" y2="18" />
+        <line x1="18" y1="6" x2="6" y2="18" />
+      </svg>
     </span>
   );
 }
