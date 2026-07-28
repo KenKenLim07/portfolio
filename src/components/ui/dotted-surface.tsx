@@ -330,6 +330,108 @@ function createRockField(
   return { group, rocks, geometries, materials };
 }
 
+const PLANET_PALETTES = {
+  dark: [
+    { body: [0.28, 0.42, 0.62], atmosphere: [0.45, 0.65, 0.95] },
+    { body: [0.48, 0.32, 0.28], atmosphere: [0.75, 0.5, 0.4] },
+    { body: [0.32, 0.48, 0.42], atmosphere: [0.5, 0.78, 0.68] },
+  ],
+  light: [
+    { body: [0.42, 0.52, 0.68], atmosphere: [0.55, 0.65, 0.85] },
+    { body: [0.62, 0.48, 0.42], atmosphere: [0.78, 0.58, 0.5] },
+    { body: [0.45, 0.58, 0.52], atmosphere: [0.55, 0.7, 0.62] },
+  ],
+} as const;
+
+function createPlanetField(
+  isDark: boolean,
+  isMobile: boolean,
+): {
+  group: THREE.Group;
+  planets: PlanetBody[];
+  geometries: THREE.BufferGeometry[];
+  materials: THREE.Material[];
+} {
+  const rng = createRng(PLANET_SEED);
+  const group = new THREE.Group();
+  const planets: PlanetBody[] = [];
+  const geometries: THREE.BufferGeometry[] = [];
+  const materials: THREE.Material[] = [];
+  const palettes = isDark ? PLANET_PALETTES.dark : PLANET_PALETTES.light;
+
+  const placements = isMobile
+    ? [
+        { x: -220, y: 110, z: -720, scale: 70 },
+        { x: 260, y: -40, z: -980, scale: 95 },
+        { x: -60, y: 160, z: -1280, scale: 55 },
+      ]
+    : [
+        { x: -920, y: 180, z: -860, scale: 120 },
+        { x: 1100, y: -80, z: -1180, scale: 160 },
+        { x: 180, y: 240, z: -1480, scale: 90 },
+      ];
+
+  for (let i = 0; i < PLANET_COUNT; i++) {
+    const place = placements[i];
+    const palette = palettes[i % palettes.length];
+    const planetGroup = new THREE.Group();
+
+    const bodyGeo = new THREE.SphereGeometry(1, 32, 32);
+    geometries.push(bodyGeo);
+    const bodyMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color().setRGB(
+        palette.body[0],
+        palette.body[1],
+        palette.body[2],
+      ),
+      roughness: randRange(rng, 0.55, 0.85),
+      metalness: randRange(rng, 0.05, 0.18),
+      transparent: true,
+      opacity: isDark ? 0.92 : 0.72,
+    });
+    materials.push(bodyMat);
+    const body = new THREE.Mesh(bodyGeo, bodyMat);
+    body.scale.setScalar(place.scale);
+
+    const atmoGeo = new THREE.SphereGeometry(1, 24, 24);
+    geometries.push(atmoGeo);
+    const atmoMat = new THREE.MeshBasicMaterial({
+      color: new THREE.Color().setRGB(
+        palette.atmosphere[0],
+        palette.atmosphere[1],
+        palette.atmosphere[2],
+      ),
+      transparent: true,
+      opacity: isDark ? 0.14 : 0.1,
+      depthWrite: false,
+      side: THREE.BackSide,
+    });
+    materials.push(atmoMat);
+    const atmosphere = new THREE.Mesh(atmoGeo, atmoMat);
+    atmosphere.scale.setScalar(place.scale * 1.08);
+
+    planetGroup.add(body);
+    planetGroup.add(atmosphere);
+
+    const home = new THREE.Vector3(place.x, place.y, place.z);
+    home.x += randRange(rng, -40, 40);
+    home.y += randRange(rng, -30, 30);
+    planetGroup.position.copy(home);
+
+    group.add(planetGroup);
+    planets.push({
+      group: planetGroup,
+      body,
+      atmosphere,
+      spin: randRange(rng, 0.02, 0.06),
+      home,
+      warpInfluence: 0.08,
+    });
+  }
+
+  return { group, planets, geometries, materials };
+}
+
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -447,9 +549,16 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       geometries: rockGeometries,
       materials: rockMaterials,
     } = createRockField(isDark, isMobile);
+    const {
+      group: planetGroup,
+      planets,
+      geometries: planetGeometries,
+      materials: planetMaterials,
+    } = createPlanetField(isDark, isMobile);
 
     const field = new THREE.Group();
     field.add(stars);
+    field.add(planetGroup);
     field.add(rockGroup);
     scene.add(field);
 
@@ -463,6 +572,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let velocityKick = 0;
     let smoothedActivity = 0;
     let smoothedVelocity = 0;
+    /** Continuous zoom gesture (-1 scroll up, +1 scroll down) — avoids settle snap. */
+    let smoothedGesture = 0;
 
     const animate = (timestamp: number) => {
       animationId = requestAnimationFrame(animate);
@@ -476,7 +587,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       const goingDown =
         scroll.progress.target > scroll.progress.current + 0.0005;
 
-      const progressFollow = goingUp ? 0.14 : goingDown ? 0.095 : 0.085;
+      // Same follow rate both ways — asymmetric catch-up caused settle jitter on scroll-up
+      const progressFollow = goingUp || goingDown ? 0.1 : 0.085;
       scroll.progress.current = lerp(
         scroll.progress.current,
         scroll.progress.target,
@@ -485,91 +597,81 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
       const scrollAge = performance.now() - scroll.lastScrollAt;
       const activityTarget =
-        scrollAge < 140 ? 1 : Math.exp(-(scrollAge - 140) * 0.007);
-      smoothedActivity = expSmooth(smoothedActivity, activityTarget, 16, dt);
-      smoothedVelocity = expSmooth(smoothedVelocity, scroll.velocity, 10, dt);
+        scrollAge < 140 ? 1 : Math.exp(-(scrollAge - 140) * 0.0065);
+      smoothedActivity = expSmooth(smoothedActivity, activityTarget, 10, dt);
+      smoothedVelocity = expSmooth(smoothedVelocity, scroll.velocity, 8, dt);
       scroll.velocity *= Math.exp(-10 * dt);
 
       const active = smoothedActivity;
       const p = scroll.progress.current;
-      const targetP = scroll.progress.target;
       const dir = scroll.scrollDir;
 
-      if (dir !== 0 && active < 0.02) {
+      if (dir !== 0 && active < 0.03 && Math.abs(smoothedVelocity) < 0.4) {
         scroll.scrollDir = 0;
       }
 
-      const liftP = goingUp ? lerp(p, targetP, 0.45) : p;
-      const liftT = goingUp
-        ? Math.min(1, Math.max(0, liftP))
-        : indicatorProgress(p);
+      // Soft gesture envelope — decay to 0 smoothly instead of flipping lift/zoom curves
+      const gestureTarget =
+        dir === 1 ? active : dir === -1 ? -active : 0;
+      smoothedGesture = expSmooth(smoothedGesture, gestureTarget, 7, dt);
+      const zoomInAmt = Math.max(0, smoothedGesture);
+      const zoomOutAmt = Math.max(0, -smoothedGesture);
+
+      // Same lift curve always (scroll-up used a different formula → snap on stop mid-page)
+      const liftT = indicatorProgress(p);
       const indicatorLift = liftT * INDICATOR_MAX_LIFT;
 
-      const velBoost = Math.min(Math.abs(smoothedVelocity) * 0.55, 72);
-      const kickCap = 28;
+      const velBoost = Math.min(Math.abs(smoothedVelocity) * 0.45, 56);
+      const kickCap = 22;
       const kickTarget = Math.max(
         -kickCap,
-        Math.min(kickCap, smoothedVelocity * 0.62),
+        Math.min(kickCap, smoothedVelocity * 0.5),
       );
-      velocityKick = expSmooth(velocityKick, kickTarget * active, 12, dt);
+      velocityKick = expSmooth(velocityKick, kickTarget * active, 9, dt);
       field.position.y = indicatorLift + velocityKick;
 
-      const zoomIn = dir === 1;
-      const zoomOut = dir === -1;
-      const gestureDolly = zoomIn
-        ? active * (DOLLY_GESTURE_IN + velBoost)
-        : zoomOut
-          ? active * (DOLLY_GESTURE_OUT + velBoost)
-          : 0;
-      const gestureDollySigned = zoomOut ? -gestureDolly : gestureDolly;
+      const gestureDolly =
+        zoomInAmt * (DOLLY_GESTURE_IN + velBoost) -
+        zoomOutAmt * (DOLLY_GESTURE_OUT + velBoost);
 
       const progressZ = p * 38;
-      const zGesture = zoomIn
-        ? active * (72 + velBoost)
-        : zoomOut
-          ? -active * (58 + velBoost)
-          : 0;
+      const zGesture =
+        zoomInAmt * (72 + velBoost) - zoomOutAmt * (58 + velBoost);
       const targetZ = progressZ + zGesture;
-      field.position.z = expSmooth(field.position.z, targetZ, 18, dt);
+      field.position.z = expSmooth(field.position.z, targetZ, 12, dt);
 
       field.rotation.z = expSmooth(
         field.rotation.z,
-        Math.max(-0.06, Math.min(0.06, smoothedVelocity * 0.00016 * active)),
-        12,
+        Math.max(-0.05, Math.min(0.05, smoothedVelocity * 0.00014 * active)),
+        9,
         dt,
       );
 
       const cameraLift =
-        liftT * 32 + (zoomOut ? -1 : 1) * active * (zoomIn ? 48 : 38);
+        liftT * 32 + zoomInAmt * 48 - zoomOutAmt * 38;
 
       const progressDolly = p * DOLLY_FROM_PROGRESS;
-      const targetCamZ = CAMERA_BASE.z - progressDolly - gestureDollySigned;
-      camera.position.y = CAMERA_BASE.y + cameraLift;
-      camera.position.z = expSmooth(camera.position.z, targetCamZ, 20, dt);
+      const targetCamZ = CAMERA_BASE.z - progressDolly - gestureDolly;
+      camera.position.y = expSmooth(
+        camera.position.y,
+        CAMERA_BASE.y + cameraLift,
+        12,
+        dt,
+      );
+      camera.position.z = expSmooth(camera.position.z, targetCamZ, 12, dt);
 
-      const tiltTarget = zoomOut
-        ? active * 0.085
-        : zoomIn
-          ? -active * 0.085
-          : 0;
-      camera.rotation.x = expSmooth(camera.rotation.x, tiltTarget, 14, dt);
+      const tiltTarget = zoomOutAmt * 0.085 - zoomInAmt * 0.085;
+      camera.rotation.x = expSmooth(camera.rotation.x, tiltTarget, 10, dt);
 
-      const targetFov = zoomOut
-        ? CAMERA_BASE_FOV + active * 8
-        : zoomIn
-          ? CAMERA_BASE_FOV - active * 7
-          : CAMERA_BASE_FOV;
-      camera.fov = expSmooth(camera.fov, targetFov, 14, dt);
+      const targetFov =
+        CAMERA_BASE_FOV + zoomOutAmt * 8 - zoomInAmt * 7;
+      camera.fov = expSmooth(camera.fov, targetFov, 10, dt);
       if (Math.abs(camera.fov - targetFov) > 0.02) {
         camera.updateProjectionMatrix();
       }
 
-      const targetScale = zoomOut
-        ? 1 - active * 0.06
-        : zoomIn
-          ? 1 + active * 0.09
-          : 1;
-      const scale = expSmooth(field.scale.x, targetScale, 14, dt);
+      const targetScale = 1 - zoomOutAmt * 0.06 + zoomInAmt * 0.09;
+      const scale = expSmooth(field.scale.x, targetScale, 10, dt);
       field.scale.set(scale, scale, scale);
 
       if (!reducedMotion) {
@@ -625,6 +727,18 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
           rock.mesh.position.y = rock.home.y + bob;
           rock.mesh.position.z =
             rock.home.z + bob * warpZ * 0.18 * (0.4 + active) * influence;
+        }
+
+        for (const planet of planets) {
+          planet.body.rotation.y += planet.spin * dt;
+          const bob =
+            Math.sin(count * 0.12 + planet.home.x * 0.0008) *
+            waveAmp *
+            0.08 *
+            planet.warpInfluence;
+          planet.group.position.y = planet.home.y + bob;
+          planet.group.position.z =
+            planet.home.z + bob * warpZ * 0.06 * planet.warpInfluence;
         }
 
         // Soft collision — push overlapping rocks apart so they don't clip
@@ -687,6 +801,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       starMat.dispose();
       for (const geo of rockGeometries) geo.dispose();
       for (const mat of rockMaterials) mat.dispose();
+      for (const geo of planetGeometries) geo.dispose();
+      for (const mat of planetMaterials) mat.dispose();
       renderer.dispose();
 
       if (renderer.domElement.parentElement === container) {
