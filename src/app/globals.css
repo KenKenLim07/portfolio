@@ -225,6 +225,113 @@ body {
   color: var(--menu-fg);
 }
 
+/* Burger icon blackhole — must read clearly on dark & light surfaces */
+.menu-trigger-icon {
+  overflow: visible;
+}
+
+.menu-trigger-vortex {
+  position: absolute;
+  /* Larger than the 28px icon so the hole is obvious */
+  inset: -70%;
+  z-index: 20;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.35);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.menu-trigger-vortex__glow,
+.menu-trigger-vortex__disk,
+.menu-trigger-vortex__ring,
+.menu-trigger-vortex__core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.menu-trigger-vortex__glow {
+  inset: -25%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(180, 200, 255, 0.12) 35%,
+    transparent 68%
+  );
+}
+
+.dark .menu-trigger-vortex__glow {
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.28) 0%,
+    rgba(140, 170, 255, 0.16) 38%,
+    transparent 70%
+  );
+}
+
+/* Bright accretion disk — the thing that makes the hole readable */
+.menu-trigger-vortex__disk {
+  inset: 8%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 12%,
+    transparent 28%,
+    rgba(200, 220, 255, 0.35) 48%,
+    transparent 62%,
+    rgba(255, 255, 255, 0.5) 78%,
+    transparent 100%
+  );
+  mask-image: radial-gradient(circle, transparent 42%, #000 52%, #000 72%, transparent 78%);
+  -webkit-mask-image: radial-gradient(
+    circle,
+    transparent 42%,
+    #000 52%,
+    #000 72%,
+    transparent 78%
+  );
+}
+
+.menu-trigger-vortex__ring {
+  border: 2px solid transparent;
+  box-sizing: border-box;
+}
+
+.menu-trigger-vortex__ring--a {
+  inset: 6%;
+  border-top-color: rgba(255, 255, 255, 0.85);
+  border-right-color: rgba(255, 255, 255, 0.25);
+  border-bottom-color: rgba(180, 200, 255, 0.15);
+}
+
+.menu-trigger-vortex__ring--b {
+  inset: 22%;
+  border-bottom-color: rgba(255, 255, 255, 0.7);
+  border-left-color: rgba(200, 220, 255, 0.35);
+}
+
+.menu-trigger-vortex__ring--c {
+  inset: 36%;
+  border-top-color: rgba(255, 255, 255, 0.55);
+  border-left-color: rgba(255, 255, 255, 0.2);
+}
+
+.menu-trigger-vortex__core {
+  inset: 28%;
+  background: radial-gradient(
+    circle at 38% 32%,
+    #1a1a22 0%,
+    #050508 48%,
+    #000 100%
+  );
+  box-shadow:
+    0 0 0 1.5px rgba(255, 255, 255, 0.35),
+    0 0 18px 4px rgba(0, 0, 0, 0.85),
+    inset 0 0 12px rgba(0, 0, 0, 1);
+}
+
 /* Panels & controls — subtle border-radius (edit --radius-* in :root to taste) */
 .radius-panel-lg {
   border-radius: var(--radius-panel-lg);

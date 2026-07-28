@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 type ScrollBurgerIconProps = {
   className?: string;
+  /** When true, scroll chevron morph is paused (menu open / vortex active). */
   disabled?: boolean;
   resetDelayMs?: number;
   strokeWidth?: number;
@@ -27,6 +28,10 @@ const CHEVRON_UP = {
   bottom: { x1: 21, y1: 14, x2: APEX.x, y2: APEX.yUp },
 };
 
+/**
+ * Burger / scroll-chevron icon with an embedded blackhole layer.
+ * The menu hook morphs lines ↔ vortex; scroll morph only runs when not disabled.
+ */
 export function ScrollBurgerIcon({
   className,
   disabled = false,
@@ -125,25 +130,57 @@ export function ScrollBurgerIcon({
   );
 
   return (
-    <span ref={rootRef} className="inline-flex">
+    <span
+      ref={rootRef}
+      className={cn("menu-trigger-icon relative inline-flex h-7 w-7", className)}
+      data-menu-trigger-icon
+    >
       <svg
         viewBox="0 0 24 24"
-        className={cn("h-7 w-7", className)}
+        className="relative z-[1] h-full w-full"
         aria-hidden
         fill="none"
         stroke="currentColor"
         strokeWidth={strokeWidth}
         strokeLinecap="round"
+        data-burger-lines
       >
-        <line ref={topRef} x1={BURGER.top.x1} y1={BURGER.top.y1} x2={BURGER.top.x2} y2={BURGER.top.y2} />
+        <line
+          ref={topRef}
+          data-burger-line="top"
+          x1={BURGER.top.x1}
+          y1={BURGER.top.y1}
+          x2={BURGER.top.x2}
+          y2={BURGER.top.y2}
+        />
         <line
           ref={bottomRef}
+          data-burger-line="bottom"
           x1={BURGER.bottom.x1}
           y1={BURGER.bottom.y1}
           x2={BURGER.bottom.x2}
           y2={BURGER.bottom.y2}
         />
       </svg>
+
+      {/* Blackhole — above the lines, sized larger via CSS */}
+      <span className="menu-trigger-vortex" data-burger-vortex aria-hidden>
+        <span className="menu-trigger-vortex__glow" />
+        <span data-vortex-ring className="menu-trigger-vortex__disk" />
+        <span
+          data-vortex-ring
+          className="menu-trigger-vortex__ring menu-trigger-vortex__ring--a"
+        />
+        <span
+          data-vortex-ring
+          className="menu-trigger-vortex__ring menu-trigger-vortex__ring--b"
+        />
+        <span
+          data-vortex-ring
+          className="menu-trigger-vortex__ring menu-trigger-vortex__ring--c"
+        />
+        <span data-vortex-core className="menu-trigger-vortex__core" />
+      </span>
     </span>
   );
 }

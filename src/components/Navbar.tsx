@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -92,16 +91,12 @@ export function Navbar() {
         aria-label={mobileOpen ? "Close menu" : "Open menu"}
         onClick={toggleMenu}
       >
-        {mobileOpen ? (
-          <X className="h-7 w-7" strokeWidth={2.2} aria-hidden />
-        ) : (
-          <ScrollBurgerIcon
-            className="h-7 w-7"
-            strokeWidth={2.4}
-            resetDelayMs={300}
-            disabled={mobileOpen}
-          />
-        )}
+        <ScrollBurgerIcon
+          className="h-7 w-7"
+          strokeWidth={2.4}
+          resetDelayMs={300}
+          disabled={mobileOpen}
+        />
       </button>
 
       <div
@@ -120,7 +115,10 @@ export function Navbar() {
         aria-hidden={!mobileOpen}
         className="mobile-menu-panel fixed top-0 right-0 z-50 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden sm:w-[min(88vw,20rem)] lg:hidden"
       >
-        <div className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20">
+        <div
+          className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20"
+          data-menu-chrome
+        >
           <ThemeToggle className="mobile-menu-chrome text-[var(--menu-fg)] hover:text-[var(--menu-muted)]" />
         </div>
 
