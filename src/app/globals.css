@@ -211,6 +211,12 @@ body {
 
 .mobile-menu-panel [data-menu-link] {
   opacity: 0;
+  list-style: none;
+}
+
+/* Flight clones leave the <ul>, so kill bullets there too */
+[data-menu-link] {
+  list-style: none;
 }
 
 .mobile-menu-link {

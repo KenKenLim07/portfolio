@@ -226,6 +226,7 @@ function launchClones(
     const clone = sample.el.cloneNode(true) as HTMLElement;
     clone.setAttribute("aria-hidden", "true");
     clone.style.pointerEvents = "none";
+    clone.style.listStyle = "none";
     // Avoid duplicate interactive ids / focus
     clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
     clone.querySelectorAll("a,button").forEach((node) => {
