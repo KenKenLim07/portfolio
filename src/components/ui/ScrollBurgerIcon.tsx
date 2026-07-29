@@ -180,7 +180,7 @@ export function ScrollBurgerIcon({
   );
 }
 
-/** Accretion disk layer — sits UNDER flying menu content. */
+/** Disk layer under flying content — void silhouette only. */
 export function MenuBlackholeDisk({
   className,
 }: {
@@ -192,26 +192,12 @@ export function MenuBlackholeDisk({
       data-burger-vortex-disk
       aria-hidden
     >
-      <span className="menu-trigger-vortex__corona" />
-      <span className="menu-trigger-vortex__glow" />
-      <span data-vortex-ring className="menu-trigger-vortex__disk" />
-      <span
-        data-vortex-ring
-        className="menu-trigger-vortex__disk menu-trigger-vortex__disk--inner"
-      />
-      <span
-        data-vortex-ring
-        className="menu-trigger-vortex__ring menu-trigger-vortex__ring--a"
-      />
-      <span
-        data-vortex-ring
-        className="menu-trigger-vortex__ring menu-trigger-vortex__ring--b"
-      />
+      <span className="menu-trigger-vortex__void" />
     </div>
   );
 }
 
-/** Event-horizon core — sits ABOVE flying menu content so items enter the void. */
+/** Core above content — void + thin spinning rim at the event horizon. */
 export function MenuBlackholeCore({
   className,
 }: {
@@ -223,7 +209,12 @@ export function MenuBlackholeCore({
       data-burger-vortex-core
       aria-hidden
     >
-      <span className="menu-trigger-vortex__photon" />
+      {/* Bright arc on the 1px rim — closest to the hole, so it spins */}
+      <span data-vortex-ring className="menu-trigger-vortex__rim" />
+      <span
+        data-vortex-ring
+        className="menu-trigger-vortex__rim menu-trigger-vortex__rim--counter"
+      />
       <span data-vortex-core className="menu-trigger-vortex__core" />
     </div>
   );

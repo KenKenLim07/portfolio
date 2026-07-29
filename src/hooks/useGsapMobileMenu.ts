@@ -32,7 +32,7 @@ type HoleParts = {
   close: HTMLElement | null;
   disk: HTMLElement | null;
   coreWrap: HTMLElement | null;
-  rings: NodeListOf<HTMLElement>;
+  rings: HTMLElement[];
   core: HTMLElement | null;
   holeLayers: HTMLElement[];
 };
@@ -45,7 +45,7 @@ const VORTEX = {
   easeOpen: "power3.out",
   easeClose: "power4.in",
   /** Visual size of the fixed hole layers (px). */
-  holeSize: 72,
+  holeSize: 60,
 } as const;
 
 function measureClipPaths(
@@ -53,9 +53,12 @@ function measureClipPaths(
   panel: HTMLElement,
 ): ClipPaths {
   const panelRect = panel.getBoundingClientRect();
-  const triggerRect = trigger.getBoundingClientRect();
-  const holeX = triggerRect.left + triggerRect.width / 2;
-  const holeY = triggerRect.top + triggerRect.height / 2;
+  // Prefer the icon glyph box so the hole lines up with burger / X, not button padding
+  const icon =
+    trigger.querySelector<HTMLElement>("[data-menu-trigger-icon]") ?? trigger;
+  const iconRect = icon.getBoundingClientRect();
+  const holeX = iconRect.left + iconRect.width / 2;
+  const holeY = iconRect.top + iconRect.height / 2;
   const origin = `${holeX - panelRect.left}px ${holeY - panelRect.top}px`;
 
   return {
@@ -86,8 +89,14 @@ function resolveParts(
 ): HoleParts {
   const lines = trigger.querySelector<HTMLElement>("[data-burger-lines]");
   const close = trigger.querySelector<HTMLElement>("[data-burger-close]");
-  const rings = (disk?.querySelectorAll<HTMLElement>("[data-vortex-ring]") ??
-    []) as NodeListOf<HTMLElement>;
+  const rings = [
+    ...Array.from(
+      disk?.querySelectorAll<HTMLElement>("[data-vortex-ring]") ?? [],
+    ),
+    ...Array.from(
+      coreWrap?.querySelectorAll<HTMLElement>("[data-vortex-ring]") ?? [],
+    ),
+  ];
   const core =
     coreWrap?.querySelector<HTMLElement>("[data-vortex-core]") ?? null;
   const holeLayers = [disk, coreWrap].filter(Boolean) as HTMLElement[];
@@ -119,15 +128,18 @@ function pinHoleLayers(
   holeX: number,
   holeY: number,
 ) {
-  const half = VORTEX.holeSize / 2;
   layers.forEach((layer) => {
     gsap.set(layer, {
-      left: holeX - half,
-      top: holeY - half,
-      width: VORTEX.holeSize,
-      height: VORTEX.holeSize,
+      position: "fixed",
+      left: holeX,
+      top: holeY,
+      xPercent: -50,
+      yPercent: -50,
       x: 0,
       y: 0,
+      width: VORTEX.holeSize,
+      height: VORTEX.holeSize,
+      transformOrigin: "50% 50%",
     });
   });
 }
@@ -370,14 +382,16 @@ export function useGsapMobileMenu({
     spinTweensRef.current = [];
   };
 
-  const startSpin = (rings: NodeListOf<HTMLElement> | HTMLElement[]) => {
+  const startSpin = (rings: HTMLElement[]) => {
     stopSpin();
-    Array.from(rings).forEach((ring, i) => {
+    rings.forEach((ring, i) => {
       const dir = i % 2 === 0 ? 1 : -1;
+      // Inner rim spins faster — closest to the hole
+      const duration = i === 0 ? 0.85 : 1.35;
       spinTweensRef.current.push(
         gsap.to(ring, {
-          rotation: 360 * dir,
-          duration: 0.9 + i * 0.28,
+          rotation: `+=${360 * dir}`,
+          duration,
           ease: "none",
           repeat: -1,
         }),
@@ -410,7 +424,7 @@ export function useGsapMobileMenu({
       holeLayers,
       {
         opacity: 1,
-        scale: 1.65,
+        scale: 1.2,
         duration: VORTEX.morph,
         ease: "power2.out",
       },
@@ -760,7 +774,7 @@ export function useGsapMobileMenu({
           parts.holeLayers,
           {
             opacity: 1,
-            scale: 1.85,
+            scale: 1.25,
             duration: 0.26,
             ease: "power2.out",
           },

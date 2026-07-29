@@ -225,12 +225,11 @@ body {
   color: var(--menu-fg);
 }
 
-/* Burger blackhole — orange accretion disk + photon ring (NASA-inspired) */
+/* Burger blackhole — void + thin spinning rim at the event horizon */
 .menu-trigger-icon {
   overflow: visible;
 }
 
-/* Pinned hole hosts (Navbar) — GSAP sets left/top/size on the host */
 .menu-trigger-vortex--disk,
 .menu-trigger-vortex--core {
   position: absolute;
@@ -241,171 +240,55 @@ body {
   visibility: visible;
   transform: none;
   pointer-events: none;
-  filter: saturate(1.15);
   will-change: transform, opacity;
+  overflow: visible;
 }
 
-.menu-trigger-vortex__corona,
-.menu-trigger-vortex__glow,
-.menu-trigger-vortex__disk,
-.menu-trigger-vortex__ring,
-.menu-trigger-vortex__photon,
+.menu-trigger-vortex__void,
+.menu-trigger-vortex__rim,
 .menu-trigger-vortex__core {
   position: absolute;
-  inset: 0;
+  inset: 26%;
   border-radius: 50%;
   pointer-events: none;
 }
 
-.menu-trigger-vortex__corona,
-.menu-trigger-vortex__glow,
-.menu-trigger-vortex__disk,
-.menu-trigger-vortex__ring {
+.menu-trigger-vortex__void {
   z-index: 1;
+  background: #000;
 }
 
-.menu-trigger-vortex__photon {
-  z-index: 3;
-}
-
-.menu-trigger-vortex__core {
-  z-index: 4;
-}
-
-/* Soft outer heat haze */
-.menu-trigger-vortex__corona {
-  inset: -45%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 140, 40, 0.35) 0%,
-    rgba(255, 90, 20, 0.18) 32%,
-    rgba(180, 40, 10, 0.06) 55%,
-    transparent 72%
-  );
-  filter: blur(2px);
-}
-
-.menu-trigger-vortex__glow {
-  inset: -18%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 200, 120, 0.45) 0%,
-    rgba(255, 120, 30, 0.22) 40%,
-    transparent 70%
-  );
-}
-
-/* Outer accretion disk — hot orange with Doppler bright side */
-.menu-trigger-vortex__disk {
-  inset: 4%;
-  background: conic-gradient(
-    from 210deg,
-    rgba(255, 220, 160, 0.05) 0deg,
-    rgba(255, 170, 60, 0.55) 40deg,
-    rgba(255, 110, 20, 0.95) 70deg,
-    rgba(255, 240, 200, 1) 95deg,
-    rgba(255, 140, 40, 0.85) 130deg,
-    rgba(180, 50, 10, 0.35) 180deg,
-    rgba(80, 20, 5, 0.15) 220deg,
-    rgba(255, 100, 25, 0.4) 280deg,
-    rgba(255, 180, 70, 0.55) 320deg,
-    rgba(255, 220, 160, 0.05) 360deg
-  );
-  mask-image: radial-gradient(
-    circle,
-    transparent 38%,
-    #000 46%,
-    #000 78%,
-    transparent 88%
-  );
-  -webkit-mask-image: radial-gradient(
-    circle,
-    transparent 38%,
-    #000 46%,
-    #000 78%,
-    transparent 88%
-  );
-  box-shadow: 0 0 14px 2px rgba(255, 120, 30, 0.35);
-}
-
-/* Inner hotter disk band */
-.menu-trigger-vortex__disk--inner {
-  inset: 18%;
-  background: conic-gradient(
-    from 200deg,
-    rgba(255, 80, 10, 0.15) 0deg,
-    rgba(255, 200, 80, 0.9) 55deg,
-    rgba(255, 255, 230, 1) 85deg,
-    rgba(255, 140, 30, 0.75) 130deg,
-    rgba(120, 30, 5, 0.2) 200deg,
-    rgba(255, 90, 20, 0.45) 290deg,
-    rgba(255, 80, 10, 0.15) 360deg
-  );
-  mask-image: radial-gradient(
-    circle,
-    transparent 42%,
-    #000 52%,
-    #000 70%,
-    transparent 82%
-  );
-  -webkit-mask-image: radial-gradient(
-    circle,
-    transparent 42%,
-    #000 52%,
-    #000 70%,
-    transparent 82%
-  );
-  filter: blur(0.4px);
-  box-shadow: none;
-}
-
-.menu-trigger-vortex__ring {
-  border: 1.5px solid transparent;
+/* 1px event-horizon rim — this is what spins (closest to the hole) */
+.menu-trigger-vortex__rim {
+  z-index: 2;
   box-sizing: border-box;
+  border: 1.5px solid transparent;
+  border-top-color: rgba(255, 230, 180, 1);
+  border-right-color: rgba(255, 140, 40, 0.75);
+  border-bottom-color: rgba(255, 90, 20, 0.15);
+  border-left-color: rgba(255, 160, 50, 0.45);
+  filter: drop-shadow(0 0 2px rgba(255, 140, 40, 0.65));
 }
 
-.menu-trigger-vortex__ring--a {
-  inset: 8%;
-  border-top-color: rgba(255, 210, 140, 0.75);
-  border-right-color: rgba(255, 140, 40, 0.45);
-  border-bottom-color: rgba(120, 40, 10, 0.25);
-  border-left-color: rgba(255, 100, 20, 0.2);
+.menu-trigger-vortex__rim--counter {
+  border-top-color: rgba(255, 100, 20, 0.2);
+  border-right-color: rgba(255, 200, 120, 0.35);
+  border-bottom-color: rgba(255, 240, 200, 0.9);
+  border-left-color: rgba(255, 120, 30, 0.55);
+  filter: drop-shadow(0 0 1px rgba(255, 160, 60, 0.4));
 }
 
-.menu-trigger-vortex__ring--b {
-  inset: 24%;
-  border-top-color: rgba(255, 160, 50, 0.35);
-  border-right-color: rgba(255, 230, 180, 0.85);
-  border-bottom-color: rgba(255, 100, 20, 0.4);
-  border-left-color: rgba(80, 25, 5, 0.2);
-}
-
-/* Thin photon ring hugging the event horizon */
-.menu-trigger-vortex__photon {
-  inset: 30%;
-  box-shadow:
-    0 0 0 1.5px rgba(255, 200, 120, 0.95),
-    0 0 6px 1px rgba(255, 140, 40, 0.9),
-    0 0 14px 3px rgba(255, 90, 20, 0.45),
-    inset 0 0 8px 1px rgba(255, 160, 60, 0.35);
-  background: transparent;
-}
-
-/* Event horizon — pure void with orange rim light */
+/* Pure void — rim is the spinning ring outside this fill */
 .menu-trigger-vortex__core {
-  inset: 32%;
+  z-index: 3;
+  inset: calc(26% + 1.5px);
   background: radial-gradient(
     circle at 42% 36%,
-    #1a0c06 0%,
-    #050201 42%,
-    #000 72%,
+    #120a06 0%,
+    #050201 45%,
     #000 100%
   );
-  box-shadow:
-    0 0 0 1px rgba(255, 120, 30, 0.55),
-    0 0 10px 2px rgba(255, 80, 10, 0.35),
-    inset 0 0 10px 2px rgba(0, 0, 0, 1),
-    inset 0 0 18px rgba(40, 10, 0, 0.8);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
 }
 
 /* Close X — lands on the burger slot after the hole spit */
