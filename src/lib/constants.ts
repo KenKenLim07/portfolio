@@ -276,33 +276,19 @@ export const PROCESS_STEPS = [
 ] as const;
 
 export const ABOUT = {
-  belief:
-    "I believe great software is more than clean code—it should be useful, scalable, and built around the needs of its users. Whether developing a business website, an automation tool, or an AI-driven application, my goal is to create products that are maintainable, impactful, and capable of delivering long-term value.",
-  title: "This is me.",
-  lead: "I am a Full-Stack Developer with a passion for building intelligent software that transforms data into practical solutions. My work spans modern web development, backend engineering, AI-powered applications, and workflow automation. I enjoy creating systems that solve real-world problems while delivering intuitive user experiences and reliable performance.",
-  paragraphs: [
-    "I have developed projects ranging from an NLP-powered news intelligence platform and automated data collection pipelines to marketplace analytics tools and business websites. Working across the full software development lifecycle has allowed me to gain experience in frontend development, backend services, databases, web scraping, and data engineering using modern technologies.",
-  ],
+  intro:
+    "Full-Stack Developer building modern web applications, intelligent automation, and AI-powered systems that transform data into practical solutions.",
+  quote:
+    "Great software isn't just built to work—it is built to solve real problems.",
+  experience:
+    "I've built an NLP-powered news intelligence platform, automated data pipelines, marketplace analytics tools, and business websites, working across frontend, backend, web scraping, and data engineering.",
 } as const;
 
-export const ABOUT_HIGHLIGHTS = [
-  "Frontend engineering",
-  "Fullstack development",
-  "AI-powered systems",
-  "Modern UI/UX",
-  "Scalable backend architecture",
-  "Digital business modernization",
-  "Data Acquisition & Web Scraping",
-  "Business Intelligence Systems",
-  "Workflow Automation",
-] as const;
-
-export const ABOUT_EXPERIENCE = [
-  "Real-time systems",
-  "Analytics platforms",
-  "AI-assisted workflows",
-  "Business-focused web experiences",
-  "Data visualization systems",
-  "Scraping pipelines",
-  "Data Science",
+export const ABOUT_TAGS = [
+  "Full-Stack",
+  "AI",
+  "Automation",
+  "NLP",
+  "Web Scraping",
+  "Data Engineering",
 ] as const;
