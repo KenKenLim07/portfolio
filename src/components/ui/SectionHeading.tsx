@@ -11,7 +11,7 @@ type SectionHeadingProps = {
   variant?: "default" | "mega";
 };
 
-/** Last word outlined (full-strength stroke); earlier words solid fill. */
+/** Leading words outlined (full-strength stroke); last word solid fill. */
 export function MegaTitleText({ title }: { title: string }) {
   const parts = title.trim().split(/\s+/);
   if (parts.length < 2) {
@@ -23,7 +23,6 @@ export function MegaTitleText({ title }: { title: string }) {
 
   return (
     <>
-      <span className="text-foreground">{lead} </span>
       <span
         className="section-mega-outline"
         style={{
@@ -33,8 +32,9 @@ export function MegaTitleText({ title }: { title: string }) {
           WebkitTextStrokeColor: "var(--foreground)",
         }}
       >
-        {last}
+        {lead}{" "}
       </span>
+      <span className="text-foreground">{last}</span>
     </>
   );
 }

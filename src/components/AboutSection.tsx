@@ -1,43 +1,53 @@
-import { ABOUT, ABOUT_TAGS } from "@/lib/constants";
+import { Check } from "lucide-react";
+import { ABOUT, ABOUT_HIGHLIGHTS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
 import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 
 export function AboutSection() {
   return (
     <Section id="about">
-      <SectionHeading label="" title="About Me" className="mb-10 md:mb-12" />
+      <SectionHeading label="" title="About Me" description={ABOUT.lead} />
 
-      <AnimatedSection className="flex max-w-3xl flex-col gap-8 md:gap-10">
+      <AnimatedSection delay={0.15} className="mb-14 md:mb-20">
         <AnimatedItem>
-          <p className="text-base leading-relaxed text-muted md:text-lg md:leading-relaxed">
-            {ABOUT.intro}
-          </p>
+          <blockquote className="max-w-4xl font-display text-xl leading-snug tracking-tight text-foreground md:text-2xl lg:text-3xl">
+            {ABOUT.belief}
+          </blockquote>
         </AnimatedItem>
+      </AnimatedSection>
 
+      <AnimatedSection variant="tail">
         <AnimatedItem>
-          <figure className="radius-panel border border-border border-l-[3px] border-l-[var(--accent-from)] bg-surface px-5 py-5 md:px-6 md:py-6">
-            <blockquote className="font-display text-xl font-semibold leading-snug tracking-tight text-foreground md:text-2xl">
-              &ldquo;{ABOUT.quote}&rdquo;
-            </blockquote>
-          </figure>
-        </AnimatedItem>
+          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+            <div>
+              {ABOUT.paragraphs.map((paragraph, index) => (
+                <p
+                  key={index}
+                  className={`text-lg leading-relaxed text-muted ${index > 0 ? "mt-6" : ""}`}
+                >
+                  {paragraph}
+                </p>
+              ))}
+            </div>
 
-        <AnimatedItem>
-          <p className="text-base leading-relaxed text-muted md:text-lg md:leading-relaxed">
-            {ABOUT.experience}
-          </p>
-        </AnimatedItem>
-
-        <AnimatedItem>
-          <ul className="flex list-none flex-wrap gap-2 p-0">
-            {ABOUT_TAGS.map((tag) => (
-              <li key={tag}>
-                <Badge>{tag}</Badge>
-              </li>
-            ))}
-          </ul>
+            <div className="glass radius-panel p-6 md:p-8">
+              <h3 className="font-display mb-5 text-sm font-semibold uppercase tracking-widest text-foreground">
+                Core Focus
+              </h3>
+              <ul className="grid gap-3 sm:grid-cols-2">
+                {ABOUT_HIGHLIGHTS.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-3 text-sm text-muted"
+                  >
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent-from" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </AnimatedItem>
       </AnimatedSection>
     </Section>

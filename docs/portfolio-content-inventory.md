@@ -104,24 +104,35 @@ Defined in `HERO_CAPABILITIES` — not wired to the current hero layout.
 | Element | Text |
 |---------|------|
 | **Section heading** | About Me |
-| **Intro** | Full-Stack Developer building modern web applications, intelligent automation, and AI-powered systems that transform data into practical solutions. |
+| **Lead** | I build AI-powered platforms, modern web applications, and digital systems engineered for performance, usability, and scale. |
 
-### Quote (boxed)
+### Belief (blockquote)
 
-> Great software isn't just built to work—it is built to solve real problems.
+> I believe in user-centered engineering — every system I build is tailored to real users, measurable outcomes, and production reliability.
 
-### Experience
+### Body paragraphs
 
-I've built an NLP-powered news intelligence platform, automated data pipelines, marketplace analytics tools, and business websites, working across frontend, backend, web scraping, and data engineering.
+1. I am Jose Marie Lim, a Full-Stack Developer and AI Systems Engineer working across backend infrastructure, premium frontend development, real-time systems, analytics pipelines, and workflow automation.
+2. My goal is to create products that are not only visually refined, but architecturally robust and operationally reliable.
 
-### Tags (`ABOUT_TAGS`)
+### Core Focus (checklist)
 
-- Full-Stack
-- AI
-- Automation
-- NLP
-- Web Scraping
-- Data Engineering
+- Frontend engineering
+- Fullstack development
+- AI-powered systems
+- Modern UI/UX
+- Scalable backend architecture
+- Digital business modernization
+
+### Defined but not shown (`ABOUT_EXPERIENCE`)
+
+- Real-time systems
+- Analytics platforms
+- AI-assisted workflows
+- Business-focused web experiences
+- Data visualization systems
+- Scraping pipelines
+- Data Science
 
 ---
 
@@ -275,7 +286,7 @@ Current voice is **capability-heavy and premium-agency** ("premium engineering,"
 | Section | Current headline | Current proof | Current CTA |
 |---------|------------------|---------------|-------------|
 | Hero | Full-Stack & AI Systems Engineer | 7+ live products, metrics | View projects / Get in touch |
-| About | About Me | Intro + quote + experience + tags | — |
+| About | About Me | Belief + core focus list | — |
 | Projects | Selected Projects | 3 project descriptions | Open project detail |
 | Tech Stack | My Stack | Tool lists | — |
 | Process | How I Work | 5-step pipeline | — |
