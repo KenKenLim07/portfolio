@@ -342,7 +342,7 @@ body {
   font-family: var(--font-display);
   font-size: clamp(2rem, 9vw, 6.5rem);
   font-weight: 900;
-  font-stretch: 120%;
+  font-stretch: 108%;
   line-height: 0.86;
   letter-spacing: -0.02em;
   text-transform: uppercase;
@@ -352,7 +352,7 @@ body {
   .hero-mega {
     font-size: clamp(2.5rem, 12vw, 3.5rem);
     line-height: 0.86;
-    font-stretch: 115%;
+    font-stretch: 105%;
   }
 }
 
@@ -361,7 +361,7 @@ body {
     /* Desktop: headline must dominate CTAs/metrics in the right column */
     font-size: clamp(3rem, 5.5vw, 4.75rem);
     line-height: 0.86;
-    font-stretch: 125%;
+    font-stretch: 110%;
   }
 }
 
@@ -379,10 +379,17 @@ body {
 .section-mega {
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.02em;
   text-transform: uppercase;
+}
+
+.section-mega-outline {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke-width: 0.03em;
+  -webkit-text-stroke-color: var(--foreground);
 }
 
 .text-gradient {

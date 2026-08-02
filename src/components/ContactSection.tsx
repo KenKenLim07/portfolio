@@ -6,6 +6,7 @@ import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 import { ContactForm } from "@/components/ContactForm";
+import { MegaTitleText } from "@/components/ui/SectionHeading";
 
 type ContactIcon = LucideIcon | typeof GitHubIcon;
 
@@ -48,8 +49,8 @@ export function ContactSection() {
         <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
           <AnimatedSection variant="last">
             <AnimatedItem>
-              <h2 className="section-mega max-w-xl text-foreground">
-                Get in Touch
+              <h2 className="section-mega max-w-xl">
+                <MegaTitleText title="Get in Touch" />
               </h2>
             </AnimatedItem>
             <AnimatedItem>

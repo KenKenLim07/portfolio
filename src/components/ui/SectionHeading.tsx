@@ -11,6 +11,34 @@ type SectionHeadingProps = {
   variant?: "default" | "mega";
 };
 
+/** Last word outlined (full-strength stroke); earlier words solid fill. */
+export function MegaTitleText({ title }: { title: string }) {
+  const parts = title.trim().split(/\s+/);
+  if (parts.length < 2) {
+    return <span className="text-foreground">{title}</span>;
+  }
+
+  const last = parts.at(-1)!;
+  const lead = parts.slice(0, -1).join(" ");
+
+  return (
+    <>
+      <span className="text-foreground">{lead} </span>
+      <span
+        className="section-mega-outline"
+        style={{
+          color: "transparent",
+          WebkitTextFillColor: "transparent",
+          WebkitTextStrokeWidth: "0.03em",
+          WebkitTextStrokeColor: "var(--foreground)",
+        }}
+      >
+        {last}
+      </span>
+    </>
+  );
+}
+
 export function SectionHeading({
   label,
   title,
@@ -39,11 +67,11 @@ export function SectionHeading({
         <h2
           className={cn(
             variant === "mega"
-              ? "section-mega text-foreground"
+              ? "section-mega"
               : "font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl",
           )}
         >
-          {title}
+          {variant === "mega" ? <MegaTitleText title={title} /> : title}
         </h2>
       </AnimatedItem>
       {description && (
