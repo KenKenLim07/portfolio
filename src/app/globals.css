@@ -111,6 +111,39 @@ html {
   }
 
   /*
+   * Hero: CSS entrance on first paint — do not wait for React/GSAP/Three.js.
+   * GSAP still owns scroll-exit after it syncs final props.
+   */
+  @keyframes gsap-hero-enter {
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  #home .gsap-reveal,
+  #home [data-hero-cta-panel] {
+    visibility: visible;
+    opacity: 0;
+    transform: translate3d(0, 2.75rem, 0);
+    will-change: transform, opacity;
+    animation: gsap-hero-enter 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  #home .gsap-reveal[data-hero-group="copy"] {
+    animation-delay: 0.04s;
+  }
+
+  #home .gsap-reveal[data-hero-group="tail"],
+  #home [data-hero-cta-panel] {
+    animation-delay: 0.16s;
+  }
+
+  #home .gsap-reveal[data-hero-group="cue"] {
+    animation-delay: 0.3s;
+  }
+
+  /*
    * Faded scroll-reveal layers stay visibility:visible for compositing but must not
    * intercept clicks over sections above them (e.g. hero CTAs after scrolling back up).
    */

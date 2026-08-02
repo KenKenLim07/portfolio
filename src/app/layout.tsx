@@ -72,6 +72,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${archivo.variable} ${spaceGrotesk.variable} dark h-full scroll-smooth`}
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
       <head>

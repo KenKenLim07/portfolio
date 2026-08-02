@@ -109,31 +109,27 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
 
   if (!copy.length && !tail.length && !cue.length && !ctaPanel) return null;
 
-  const { y, duration, stagger, ease } = heroScrollReveal;
-  const all = flattenExitLayers(getHeroExitLayers(root, window.matchMedia(LG_QUERY).matches));
+  const all = flattenExitLayers(
+    getHeroExitLayers(root, window.matchMedia(LG_QUERY).matches),
+  );
 
-  gsap.set(all, { opacity: 0, y, force3D: true });
-  if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
+  // CSS already plays the entrance on first paint — don't re-hide and replay.
+  all.forEach((el) => el.classList.add("gsap-bound"));
+  if (ctaPanel) {
+    ctaPanel.classList.add("gsap-bound");
+    ctaPanel.style.pointerEvents = "auto";
+  }
 
   const tl = gsap.timeline();
-  if (copy.length) {
-    tl.to(
-      copy,
-      { opacity: 1, y: 0, stagger, duration, ease, force3D: true },
-      0.05,
-    );
-  }
-  const bandTargets = ctaPanel ? [...tail, ctaPanel] : tail;
-  if (bandTargets.length) {
-    tl.to(
-      bandTargets,
-      { opacity: 1, y: 0, stagger, duration, ease, force3D: true },
-      0.18,
-    );
-  }
-  if (cue.length) {
-    tl.to(cue, { opacity: 1, y: 0, duration, ease, force3D: true }, 0.34);
-  }
+  // Hand off to GSAP after CSS entrance finishes (delay + duration ≈ 0.3 + 0.72)
+  tl.to({}, { duration: 0.85 });
+  tl.add(() => {
+    const targets = ctaPanel ? [...all, ctaPanel] : all;
+    targets.forEach((el) => {
+      el.style.animation = "none";
+    });
+    gsap.set(targets, { opacity: 1, y: 0, force3D: true });
+  });
 
   return tl;
 }
