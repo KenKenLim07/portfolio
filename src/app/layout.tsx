@@ -10,6 +10,8 @@ const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
   display: "swap",
+  // Enables font-stretch / wdth so hero mega type can go wider
+  axes: ["wdth"],
 });
 
 const spaceGrotesk = Space_Grotesk({

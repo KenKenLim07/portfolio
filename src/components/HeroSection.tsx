@@ -120,10 +120,10 @@ function HeroCopy({
           <span className="hero-mega text-foreground">Full-Stack</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega hero-mega-muted">&amp; AI Systems</span>
+          <span className="hero-mega text-foreground">Developer</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega text-foreground">Engineer</span>
+          <span className="hero-mega hero-mega-outline">• AI Systems</span>
         </HeroRevealItem>
       </div>
 
@@ -142,11 +142,11 @@ function HeroCopy({
               : "max-w-[36ch] text-[1.0625rem] leading-relaxed sm:max-w-xl sm:text-lg lg:max-w-xl lg:text-lg",
           )}
         >
-          Hi! I&apos;m{" "}
+          Hi, I&apos;m{" "}
           <span className="font-semibold text-foreground">
             {SITE.name}
           </span>
-          . {SITE.description}
+          —{SITE.description}
         </p>
       </HeroRevealItem>
     </>

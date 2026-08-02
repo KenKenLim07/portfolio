@@ -1,10 +1,10 @@
 export const SITE = {
   name: "Jose Marie Lim",
-  role: "Full-Stack Developer & AI Systems Engineer",
+  role: "Full-Stack Developer • AI Systems",
   email: "josemarelim7@gmail.com",
   tagline: "Building Intelligent Digital Systems",
   description:
-    "From modern interfaces to intelligent systems — designing and engineering products powered by data, automation, and AI",
+    "a Full-Stack Developer who builds modern web applications, intelligent automation, and AI-powered systems that transform data into practical solutions.",
   url: "https://portfolio.example.com",
 } as const;
 
@@ -99,9 +99,9 @@ export const HERO_AVAILABILITY = "Open to new projects" as const;
 
 /** Hero metric blocks (large number + label) */
 export const HERO_METRICS = [
-  { value: "7+", label: "Live products" },
-  { value: "Full-stack", label: "+ AI systems" },
-  { value: "End-to-end", label: "Product delivery" },
+  { value: "7+", label: "Projects Built" },
+  { value: "35K+", label: "News Articles Processed" },
+  { value: "1K+", label: "Facebook Marketplace Listings Collected" },
 ] as const;
 
 /** @deprecated Use HERO_METRICS */
@@ -277,12 +277,11 @@ export const PROCESS_STEPS = [
 
 export const ABOUT = {
   belief:
-    "I believe in user-centered engineering — every system I build is designed around real users, measurable outcomes, and long-term reliability.",
+    "I believe great software is more than clean code—it should be useful, scalable, and built around the needs of its users. Whether developing a business website, an automation tool, or an AI-driven application, my goal is to create products that are maintainable, impactful, and capable of delivering long-term value.",
   title: "This is me.",
-  lead: "I build data-driven products, AI-powered applications, and automation systems that solve real business problems. My work combines full-stack development, web scraping, analytics, and intelligent workflows to transform raw data into actionable insights.",
+  lead: "I am a Full-Stack Developer with a passion for building intelligent software that transforms data into practical solutions. My work spans modern web development, backend engineering, AI-powered applications, and workflow automation. I enjoy creating systems that solve real-world problems while delivering intuitive user experiences and reliable performance.",
   paragraphs: [
-    "My experience includes building news intelligence platforms, marketplace analytics systems, business websites, and automated data pipelines. I work across frontend development, backend infrastructure, NLP, data engineering, and workflow automation.",
-    "My goal is to create products that are not only intuitive and visually polished, but also scalable, maintainable, and capable of delivering real value to the people who use them.",
+    "I have developed projects ranging from an NLP-powered news intelligence platform and automated data collection pipelines to marketplace analytics tools and business websites. Working across the full software development lifecycle has allowed me to gain experience in frontend development, backend services, databases, web scraping, and data engineering using modern technologies.",
   ],
 } as const;
 
