@@ -111,36 +111,19 @@ html {
   }
 
   /*
-   * Hero: CSS entrance on first paint — do not wait for React/GSAP/Three.js.
-   * GSAP still owns scroll-exit after it syncs final props.
+   * Hero: paintable (not visibility:hidden) but still opacity:0 from .gsap-reveal
+   * until GSAP fades in. Do NOT force opacity:1 here — that skips the entrance
+   * on first visit (content sits fully visible before hydrate).
    */
-  @keyframes gsap-hero-enter {
-    to {
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-    }
-  }
-
   #home .gsap-reveal,
   #home [data-hero-cta-panel] {
     visibility: visible;
-    opacity: 0;
-    transform: translate3d(0, 2.75rem, 0);
-    will-change: transform, opacity;
-    animation: gsap-hero-enter 0.72s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
-  #home .gsap-reveal[data-hero-group="copy"] {
-    animation-delay: 0.04s;
-  }
-
-  #home .gsap-reveal[data-hero-group="tail"],
   #home [data-hero-cta-panel] {
-    animation-delay: 0.16s;
-  }
-
-  #home .gsap-reveal[data-hero-group="cue"] {
-    animation-delay: 0.3s;
+    opacity: 0;
+    transform: translate3d(0, 3.5rem, 0);
+    will-change: transform, opacity;
   }
 
   /*
@@ -158,14 +141,6 @@ html {
   section:not(#home) .gsap-reveal.gsap-bound select,
   section:not(#home) .gsap-reveal.gsap-bound label {
     pointer-events: auto;
-  }
-
-  /* Hero: avoid blank flash while JS hydrates (matches heroScrollReveal.y ≈ 108px) */
-  #home .gsap-reveal {
-    opacity: 1;
-    transform: none;
-    will-change: transform, opacity;
-    visibility: visible;
   }
 
   /* CTAs sit outside exit scrub — always interactive when visible */
