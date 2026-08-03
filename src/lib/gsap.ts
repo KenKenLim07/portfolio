@@ -111,12 +111,27 @@ export const heroScrollReveal = {
   ease: "power2.inOut" as const,
 } as const;
 
-export type HeroExitLayer = {
+export type SectionExitLayer = {
   targets: gsap.TweenTarget;
   exitOpacity?: number;
   exitY?: number;
   /** Offset from end of hold — layers with the same `at` exit in parallel */
   at?: number;
+};
+
+/** @deprecated Prefer SectionExitLayer — alias kept for hero call sites */
+export type HeroExitLayer = SectionExitLayer;
+
+export type SectionExitScrubConfig = {
+  start: string;
+  end: string;
+  scrub: number | boolean;
+  y: number;
+  exitOpacity: number;
+  exitScrollHold: number;
+  exitTweenDuration: number;
+  exitItemStagger: number;
+  exitLayerGap: number;
 };
 
 export function getHeroScrollBand(isLg: boolean) {
@@ -125,6 +140,44 @@ export function getHeroScrollBand(isLg: boolean) {
     end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
   };
 }
+
+/**
+ * About — two bands so exit isn’t pushed off-screen:
+ * 1) Enter while rising into view (with deferred lead hold)
+ * 2) Exit while `#about` top is still near the top (hero-style suck-up)
+ */
+export const aboutScrollReveal = {
+  enterStart: "clamp(top 78%)",
+  /** Longer enter band so heading → belief → copy → focus all scrub in */
+  enterEnd: "clamp(top 26%)",
+  exitStart: "clamp(top 18%)",
+  exitEnd: "clamp(bottom 34%)",
+  scrub: heroScrollReveal.scrub,
+  y: heroScrollReveal.y,
+  exitY: heroScrollReveal.exitYCopy,
+  exitOpacity: heroScrollReveal.exitOpacityCopy,
+  /** Lead hold before fade-up (deferred reveal) */
+  enterScrollHold: 0.2,
+  enterTweenDuration: 0.42,
+  enterItemStagger: 0.07,
+  enterLayerGap: 0.08,
+  exitScrollHold: 0.24,
+  exitTweenDuration: heroScrollReveal.exitTweenDuration,
+  exitItemStagger: heroScrollReveal.exitItemStagger,
+  exitLayerGap: heroScrollReveal.exitLayerGap,
+  ease: heroScrollReveal.ease,
+} as const;
+
+export type SectionEnterScrubConfig = {
+  start: string;
+  end: string;
+  scrub: number | boolean;
+  y: number;
+  enterScrollHold?: number;
+  enterTweenDuration: number;
+  enterItemStagger: number;
+  enterLayerGap: number;
+};
 
 function enableHeroExitPointerEvents(items: HTMLElement[]) {
   items.forEach((el) => {
@@ -137,20 +190,22 @@ function enableHeroExitPointerEvents(items: HTMLElement[]) {
   });
 }
 
-/** Hero: mount entrance separate; scrub exit reverses on scroll up into `#home` */
-export function bindHeroExitScrub(
+/** Shared scrubbed exit — scroll-linked suck-up that reverses on scroll up */
+export function bindSectionExitScrub(
   section: Element,
-  layers: HeroExitLayer[],
-  isLg = true,
+  layers: SectionExitLayer[],
+  config: SectionExitScrubConfig,
+  options?: { enableHeroPointerEvents?: boolean },
 ) {
-  const config = getHeroScrollBand(isLg);
   const items = layers.flatMap((layer) =>
     gsap.utils.toArray(layer.targets),
   ) as HTMLElement[];
 
   if (!items.length) return null;
 
-  enableHeroExitPointerEvents(items);
+  if (options?.enableHeroPointerEvents) {
+    enableHeroExitPointerEvents(items);
+  }
 
   const tl = gsap.timeline({
     scrollTrigger: {
@@ -162,8 +217,12 @@ export function bindHeroExitScrub(
     },
   });
 
-  const { exitScrollHold, exitTweenDuration, exitItemStagger, exitLayerGap } =
-    heroScrollReveal;
+  const {
+    exitScrollHold,
+    exitTweenDuration,
+    exitItemStagger,
+    exitLayerGap,
+  } = config;
 
   if (exitScrollHold > 0) {
     tl.to({}, { duration: exitScrollHold });
@@ -191,6 +250,8 @@ export function bindHeroExitScrub(
         force3D: true,
         duration: exitTweenDuration,
         stagger: exitItemStagger,
+        // Don't paint "from" on create — that forced opacity:1 and killed enter
+        immediateRender: false,
       },
       startAt,
     );
@@ -204,6 +265,218 @@ export function bindHeroExitScrub(
   }
 
   return tl;
+}
+
+/**
+ * Below-fold enter only — scrubbed fade-up with optional lead hold.
+ * Pair with `bindSectionExitScrub` on a later band so exit stays on-screen.
+ */
+export function bindSectionEnterScrub(
+  section: Element,
+  layers: SectionExitLayer[],
+  config: SectionEnterScrubConfig,
+) {
+  const items = layers.flatMap((layer) =>
+    gsap.utils.toArray(layer.targets),
+  ) as HTMLElement[];
+
+  if (!items.length) return null;
+
+  items.forEach((el) => el.classList.add("gsap-bound"));
+  gsap.set(items, { opacity: 0, y: config.y, force3D: true });
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: config.start,
+      end: config.end,
+      scrub: config.scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  const {
+    y,
+    enterScrollHold = 0,
+    enterTweenDuration,
+    enterItemStagger,
+    enterLayerGap,
+  } = config;
+
+  let at = 0;
+  if (enterScrollHold > 0) {
+    tl.to({}, { duration: enterScrollHold });
+    at = enterScrollHold;
+  }
+
+  for (const layer of layers) {
+    const targets = gsap.utils.toArray(layer.targets);
+    if (!targets.length) continue;
+
+    const count = targets.length;
+    tl.fromTo(
+      targets,
+      { opacity: 0, y, force3D: true },
+      {
+        opacity: 1,
+        y: 0,
+        ease: "none",
+        force3D: true,
+        duration: enterTweenDuration,
+        stagger: enterItemStagger,
+        immediateRender: false,
+      },
+      at,
+    );
+    at +=
+      enterTweenDuration +
+      Math.max(0, count - 1) * enterItemStagger +
+      enterLayerGap;
+  }
+
+  return tl;
+}
+
+/**
+ * @deprecated Prefer bindSectionEnterScrub + bindSectionExitScrub — a single
+ * band pushes exit off-screen on tall sections.
+ */
+export function bindSectionEnterExitScrub(
+  section: Element,
+  layers: SectionExitLayer[],
+  config: SectionEnterScrubConfig & {
+    exitOpacity: number;
+    exitY?: number;
+    readableHold: number;
+    exitTweenDuration: number;
+    exitItemStagger: number;
+    exitLayerGap: number;
+  },
+) {
+  const items = layers.flatMap((layer) =>
+    gsap.utils.toArray(layer.targets),
+  ) as HTMLElement[];
+
+  if (!items.length) return null;
+
+  items.forEach((el) => el.classList.add("gsap-bound"));
+  gsap.set(items, { opacity: 0, y: config.y, force3D: true });
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: config.start,
+      end: config.end,
+      scrub: config.scrub,
+      invalidateOnRefresh: true,
+    },
+  });
+
+  const {
+    y,
+    exitOpacity,
+    enterScrollHold = 0,
+    enterTweenDuration,
+    enterItemStagger,
+    enterLayerGap,
+    readableHold,
+    exitTweenDuration,
+    exitItemStagger,
+    exitLayerGap,
+  } = config;
+  const exitYDefault = config.exitY ?? y;
+
+  let at = 0;
+
+  if (enterScrollHold > 0) {
+    tl.to({}, { duration: enterScrollHold });
+    at = enterScrollHold;
+  }
+
+  for (const layer of layers) {
+    const targets = gsap.utils.toArray(layer.targets);
+    if (!targets.length) continue;
+
+    const count = targets.length;
+    tl.fromTo(
+      targets,
+      { opacity: 0, y, force3D: true },
+      {
+        opacity: 1,
+        y: 0,
+        ease: "none",
+        force3D: true,
+        duration: enterTweenDuration,
+        stagger: enterItemStagger,
+      },
+      at,
+    );
+    at +=
+      enterTweenDuration +
+      Math.max(0, count - 1) * enterItemStagger +
+      enterLayerGap;
+  }
+
+  if (readableHold > 0) {
+    tl.to({}, { duration: readableHold }, at);
+    at += readableHold;
+  }
+
+  let exitAt = at;
+  for (const layer of layers) {
+    const targets = gsap.utils.toArray(layer.targets);
+    if (!targets.length) continue;
+
+    const count = targets.length;
+    const exitOpacityLayer = layer.exitOpacity ?? exitOpacity;
+    const exitY = layer.exitY ?? exitYDefault;
+
+    tl.fromTo(
+      targets,
+      { opacity: 1, y: 0, force3D: true },
+      {
+        opacity: exitOpacityLayer,
+        y: -exitY,
+        ease: "none",
+        force3D: true,
+        duration: exitTweenDuration,
+        stagger: exitItemStagger,
+      },
+      exitAt,
+    );
+
+    exitAt +=
+      exitTweenDuration +
+      Math.max(0, count - 1) * exitItemStagger +
+      exitLayerGap;
+  }
+
+  return tl;
+}
+
+/** Hero: mount entrance separate; scrub exit reverses on scroll up into `#home` */
+export function bindHeroExitScrub(
+  section: Element,
+  layers: SectionExitLayer[],
+  isLg = true,
+) {
+  const band = getHeroScrollBand(isLg);
+  return bindSectionExitScrub(
+    section,
+    layers,
+    {
+      start: band.start,
+      end: band.end,
+      scrub: band.scrub,
+      y: band.y,
+      exitOpacity: band.exitOpacity,
+      exitScrollHold: heroScrollReveal.exitScrollHold,
+      exitTweenDuration: heroScrollReveal.exitTweenDuration,
+      exitItemStagger: heroScrollReveal.exitItemStagger,
+      exitLayerGap: heroScrollReveal.exitLayerGap,
+    },
+    { enableHeroPointerEvents: true },
+  );
 }
 
 export type DirectionalRevealOptions = {

@@ -105,6 +105,34 @@ function markBound(els: HTMLElement[]) {
   els.forEach((el) => el.classList.add("gsap-bound"));
 }
 
+/**
+ * Hero ships two panels (mobile + desktop). Entrance/scrub only touch the active
+ * one — the other stays at CSS opacity:0 and looks blank after a breakpoint
+ * resize. Keep the *hidden* panel paint-ready. Never reset the active panel
+ * here (that fought the exit scrub and caused rewind).
+ */
+function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
+  const inactive = root.querySelector<HTMLElement>(
+    isLg ? '[data-hero-panel="mobile"]' : '[data-hero-panel="desktop"]',
+  );
+  if (!inactive) return;
+
+  const items = Array.from(
+    inactive.querySelectorAll<HTMLElement>(
+      "[data-gsap-reveal], [data-hero-cta-panel]",
+    ),
+  );
+  if (!items.length) return;
+
+  markBound(items);
+  gsap.set(items, { opacity: 1, y: 0, force3D: true });
+  items.forEach((el) => {
+    if (el.hasAttribute("data-hero-cta-panel")) {
+      el.style.pointerEvents = "auto";
+    }
+  });
+}
+
 /** Staggered fade-up on hydrate — runs when the user can actually see it. */
 function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
   const copy = getRevealItems(root, "copy");
@@ -196,61 +224,72 @@ export function useHeroScrollReveal(
       const root = contentRef.current;
       if (!home || !root || prefersReducedMotion) return;
 
-      const ctx = gsap.context(() => {
+      let ctx: gsap.Context | undefined;
+
+      const bindExit = () => {
+        ctx?.revert();
+        ctx = undefined;
+
+        const exitLayers = getHeroExitLayers(root, isLg);
+        if (!flattenExitLayers(exitLayers).length) return;
+
+        // Outside context so revertOnUpdate can't clear it — resize-only prep
+        paintInactiveHeroPanel(root, isLg);
+
+        ctx = gsap.context(() => {
+          bindHeroExitScrub(home, exitLayers, isLg);
+        }, root);
+      };
+
+      const afterEntrance = (fn: () => void) => {
+        const entrance = entranceTlRef.current;
+        if (entrance && entrance.progress() < 1) {
+          entrance.eventCallback("onComplete", () => {
+            entranceTlRef.current = null;
+            fn();
+          });
+          return;
+        }
+        entranceTlRef.current = null;
+        fn();
+      };
+
+      if (!isHomeInView(home) && !didEnterRef.current) {
         const exitLayers = getHeroExitLayers(root, isLg);
         const scrubTargets = flattenExitLayers(exitLayers);
-        if (!scrubTargets.length) return;
-
-        const bindExit = () => bindHeroExitScrub(home, exitLayers, isLg);
-
-        const afterEntrance = (fn: () => void) => {
-          const entrance = entranceTlRef.current;
-          if (entrance && entrance.progress() < 1) {
-            entrance.eventCallback("onComplete", () => {
-              entranceTlRef.current = null;
-              fn();
-            });
-            return;
-          }
-          entranceTlRef.current = null;
-          fn();
-        };
-
-        if (!isHomeInView(home) && !didEnterRef.current) {
-          gsap.set(scrubTargets, {
+        gsap.set(scrubTargets, {
+          opacity: 0,
+          y: heroScrollReveal.y,
+          force3D: true,
+        });
+        markBound(scrubTargets);
+        const ctaPanel = getCtaPanel(root);
+        if (ctaPanel) {
+          gsap.set(ctaPanel, {
             opacity: 0,
             y: heroScrollReveal.y,
             force3D: true,
           });
-          markBound(scrubTargets);
-          const ctaPanel = getCtaPanel(root);
-          if (ctaPanel) {
-            gsap.set(ctaPanel, {
-              opacity: 0,
-              y: heroScrollReveal.y,
-              force3D: true,
-            });
-            markBound([ctaPanel]);
-            ctaPanel.style.pointerEvents = "auto";
-          }
-          bindExit();
-          return;
+          markBound([ctaPanel]);
+          ctaPanel.style.pointerEvents = "auto";
         }
-
-        // In view: never bind scrub until entrance has finished (or skipped)
+        paintInactiveHeroPanel(root, isLg);
+        ctx = gsap.context(() => {
+          bindHeroExitScrub(home, exitLayers, isLg);
+        }, root);
+      } else {
         afterEntrance(() => {
           if (!didEnterRef.current) {
-            // Entrance hook hasn't claimed yet — wait one frame
             requestAnimationFrame(() => afterEntrance(bindExit));
             return;
           }
           bindExit();
         });
-      }, root);
+      }
 
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
-      return () => ctx.revert();
+      return () => ctx?.revert();
     },
     {
       scope: contentRef,
