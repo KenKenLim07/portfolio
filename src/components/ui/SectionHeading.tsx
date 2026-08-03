@@ -9,11 +9,6 @@ type SectionHeadingProps = {
   className?: string;
   /** Tajmirul-style uppercase mega title */
   variant?: "default" | "mega";
-  /**
-   * When false, render static `.gsap-reveal` rows for an external scrub hook
-   * (e.g. About) — no AnimatedSection directional tweens.
-   */
-  animate?: boolean;
 };
 
 /** Leading words outlined (full-strength stroke); last word solid fill. */
@@ -51,61 +46,16 @@ export function SectionHeading({
   align = "left",
   className,
   variant = "mega",
-  animate = true,
 }: SectionHeadingProps) {
-  const layoutClass = cn(
-    "mb-14 md:mb-20",
-    align === "center" && "mx-auto max-w-3xl text-center",
-    className,
-  );
-
-  const titleEl = (
-    <h2
-      className={cn(
-        variant === "mega"
-          ? "section-mega"
-          : "font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl",
-      )}
-    >
-      {variant === "mega" ? <MegaTitleText title={title} /> : title}
-    </h2>
-  );
-
-  const descriptionEl = description ? (
-    <p
-      className={cn(
-        "mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg",
-        align === "center" && "mx-auto",
-      )}
-    >
-      {description}
-    </p>
-  ) : null;
-
-  if (!animate) {
-    return (
-      <div className={layoutClass}>
-        {label ? (
-          <div data-gsap-reveal className="gsap-reveal">
-            <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
-              {label}
-            </p>
-          </div>
-        ) : null}
-        <div data-gsap-reveal className="gsap-reveal">
-          {titleEl}
-        </div>
-        {descriptionEl ? (
-          <div data-gsap-reveal className="gsap-reveal">
-            {descriptionEl}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
-
   return (
-    <AnimatedSection delay={0.15} className={layoutClass}>
+    <AnimatedSection
+      delay={0.15}
+      className={cn(
+        "mb-14 md:mb-20",
+        align === "center" && "mx-auto max-w-3xl text-center",
+        className,
+      )}
+    >
       {label && (
         <AnimatedItem>
           <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.22em] text-muted">
@@ -113,8 +63,29 @@ export function SectionHeading({
           </p>
         </AnimatedItem>
       )}
-      <AnimatedItem>{titleEl}</AnimatedItem>
-      {descriptionEl && <AnimatedItem>{descriptionEl}</AnimatedItem>}
+      <AnimatedItem>
+        <h2
+          className={cn(
+            variant === "mega"
+              ? "section-mega"
+              : "font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl",
+          )}
+        >
+          {variant === "mega" ? <MegaTitleText title={title} /> : title}
+        </h2>
+      </AnimatedItem>
+      {description && (
+        <AnimatedItem>
+          <p
+            className={cn(
+              "mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg",
+              align === "center" && "mx-auto",
+            )}
+          >
+            {description}
+          </p>
+        </AnimatedItem>
+      )}
     </AnimatedSection>
   );
 }
