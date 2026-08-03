@@ -62,12 +62,11 @@ export function useAboutScrollReveal(
         bindSectionEnterScrub(about, layers, {
           start: aboutScrollReveal.enterStart,
           end: aboutScrollReveal.enterEnd,
-          scrub: aboutScrollReveal.scrub,
+          scrub: aboutScrollReveal.enterScrub,
           y: aboutScrollReveal.y,
           enterScrollHold: aboutScrollReveal.enterScrollHold,
           enterTweenDuration: aboutScrollReveal.enterTweenDuration,
           enterItemStagger: aboutScrollReveal.enterItemStagger,
-          enterLayerGap: aboutScrollReveal.enterLayerGap,
         });
 
         bindSectionExitScrub(about, layers, {

@@ -147,20 +147,24 @@ export function getHeroScrollBand(isLg: boolean) {
  * 2) Exit while `#about` top is still near the top (hero-style suck-up)
  */
 export const aboutScrollReveal = {
-  enterStart: "clamp(top 78%)",
-  /** Longer enter band so heading → belief → copy → focus all scrub in */
-  enterEnd: "clamp(top 26%)",
-  exitStart: "clamp(top 18%)",
+  enterStart: "clamp(top 82%)",
+  enterEnd: "clamp(top 36%)",
+  exitStart: "clamp(top 20%)",
   exitEnd: "clamp(bottom 34%)",
+  /** Snappier enter tracking so later rows aren’t skipped when scrolling down */
+  enterScrub: 0.55,
   scrub: heroScrollReveal.scrub,
   y: heroScrollReveal.y,
   exitY: heroScrollReveal.exitYCopy,
   exitOpacity: heroScrollReveal.exitOpacityCopy,
   /** Lead hold before fade-up (deferred reveal) */
-  enterScrollHold: 0.2,
-  enterTweenDuration: 0.42,
-  enterItemStagger: 0.07,
-  enterLayerGap: 0.08,
+  enterScrollHold: 0.22,
+  /**
+   * Enter is ONE staggered pass over all rows (not full sequential layers).
+   * Sequential full-duration layers only fit the heading into the down-scroll band.
+   */
+  enterTweenDuration: 0.55,
+  enterItemStagger: 0.1,
   exitScrollHold: 0.24,
   exitTweenDuration: heroScrollReveal.exitTweenDuration,
   exitItemStagger: heroScrollReveal.exitItemStagger,
@@ -176,7 +180,8 @@ export type SectionEnterScrubConfig = {
   enterScrollHold?: number;
   enterTweenDuration: number;
   enterItemStagger: number;
-  enterLayerGap: number;
+  /** @deprecated Enter now staggers all items in one pass */
+  enterLayerGap?: number;
 };
 
 function enableHeroExitPointerEvents(items: HTMLElement[]) {
@@ -268,8 +273,8 @@ export function bindSectionExitScrub(
 }
 
 /**
- * Below-fold enter only — scrubbed fade-up with optional lead hold.
- * Pair with `bindSectionExitScrub` on a later band so exit stays on-screen.
+ * Below-fold enter — one staggered fade-up of every reveal row after a lead hold.
+ * Pair with `bindSectionExitScrub` for layered suck-up on a later band.
  */
 export function bindSectionEnterScrub(
   section: Element,
@@ -300,39 +305,27 @@ export function bindSectionEnterScrub(
     enterScrollHold = 0,
     enterTweenDuration,
     enterItemStagger,
-    enterLayerGap,
   } = config;
 
-  let at = 0;
   if (enterScrollHold > 0) {
     tl.to({}, { duration: enterScrollHold });
-    at = enterScrollHold;
   }
 
-  for (const layer of layers) {
-    const targets = gsap.utils.toArray(layer.targets);
-    if (!targets.length) continue;
-
-    const count = targets.length;
-    tl.fromTo(
-      targets,
-      { opacity: 0, y, force3D: true },
-      {
-        opacity: 1,
-        y: 0,
-        ease: "none",
-        force3D: true,
-        duration: enterTweenDuration,
-        stagger: enterItemStagger,
-        immediateRender: false,
-      },
-      at,
-    );
-    at +=
-      enterTweenDuration +
-      Math.max(0, count - 1) * enterItemStagger +
-      enterLayerGap;
-  }
+  // Single pass — every row gets scrub progress while scrolling down into view
+  tl.fromTo(
+    items,
+    { opacity: 0, y, force3D: true },
+    {
+      opacity: 1,
+      y: 0,
+      ease: "none",
+      force3D: true,
+      duration: enterTweenDuration,
+      stagger: enterItemStagger,
+      immediateRender: false,
+    },
+    enterScrollHold,
+  );
 
   return tl;
 }
@@ -414,7 +407,7 @@ export function bindSectionEnterExitScrub(
     at +=
       enterTweenDuration +
       Math.max(0, count - 1) * enterItemStagger +
-      enterLayerGap;
+      (enterLayerGap ?? 0.1);
   }
 
   if (readableHold > 0) {
