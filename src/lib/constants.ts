@@ -177,17 +177,6 @@ export const PROJECTS: Project[] = [
     liveUrl: "https://ph-vibe-check.vercel.app/",
   },
   {
-    id: "skyward-restaurant",
-    title: "Skyward Japanese Restaurant Website",
-    category: "web",
-    description:
-      "Premium restaurant site for Skyward Japanese Cuisine in Iloilo — cinematic hero, featured menu, gallery, visit info, and mobile-first UX built for local discovery and reservations.",
-    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
-    image: "/projects/skyward.png",
-    gradient: "from-zinc-950 via-stone-900 to-amber-950",
-    liveUrl: "https://skyward-iloilo.vercel.app/",
-  },
-  {
     id: "iphone-scraper",
     title: "IAASE — Iloilo iPhone Deal Intelligence",
     category: "commerce",
@@ -205,6 +194,17 @@ export const PROJECTS: Project[] = [
     image: "/projects/iphone.png",
     gradient: "from-zinc-950 via-slate-900 to-sky-950",
     liveUrl: "https://iloilo-apple-deals.vercel.app/",
+  },
+  {
+    id: "skyward-restaurant",
+    title: "Skyward Japanese Restaurant Website",
+    category: "web",
+    description:
+      "Premium restaurant site for Skyward Japanese Cuisine in Iloilo — cinematic hero, featured menu, gallery, visit info, and mobile-first UX built for local discovery and reservations.",
+    stack: ["Next.js", "TypeScript", "Tailwind CSS", "Framer Motion"],
+    image: "/projects/skyward.png",
+    gradient: "from-zinc-950 via-stone-900 to-amber-950",
+    liveUrl: "https://skyward-iloilo.vercel.app/",
   },
 ];
 
