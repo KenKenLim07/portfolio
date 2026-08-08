@@ -1,6 +1,10 @@
 import type { LucideIcon } from "lucide-react";
 import { Mail } from "lucide-react";
-import { FacebookIcon, GitHubIcon } from "@/components/icons/BrandIcons";
+import {
+  FacebookIcon,
+  GitHubIcon,
+  LinkedInIcon,
+} from "@/components/icons/BrandIcons";
 import { SITE, SOCIAL_LINKS } from "@/lib/constants";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
@@ -27,6 +31,13 @@ const links: {
     label: "GitHub",
     href: SOCIAL_LINKS.github,
     icon: GitHubIcon,
+    variant: "secondary" as const,
+    external: true,
+  },
+  {
+    label: "LinkedIn",
+    href: SOCIAL_LINKS.linkedin,
+    icon: LinkedInIcon,
     variant: "secondary" as const,
     external: true,
   },

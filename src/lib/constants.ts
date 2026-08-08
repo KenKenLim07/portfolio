@@ -120,6 +120,7 @@ export const NAV_LINKS = [
 
 export const SOCIAL_LINKS = {
   github: "https://github.com/KenKenLim07",
+  linkedin: "https://www.linkedin.com/in/jose-marie-lim-dev/",
   facebook: "https://www.facebook.com/josemarie.lim",
 } as const;
 
@@ -276,33 +277,10 @@ export const PROCESS_STEPS = [
 ] as const;
 
 export const ABOUT = {
+  lead: "I enjoy building complete software systems, from intuitive user interfaces to backend services, automated data pipelines, and AI-powered features. I'm most motivated by projects that solve real-world problems and transform raw data into meaningful insights.",
   belief:
-    "I believe great software is more than clean code—it should be useful, scalable, and built around the needs of its users. Whether developing a business website, an automation tool, or an AI-driven application, my goal is to create products that are maintainable, impactful, and capable of delivering long-term value.",
-  title: "This is me.",
-  lead: "I am a Full-Stack Developer with a passion for building intelligent software that transforms data into practical solutions. My work spans modern web development, backend engineering, AI-powered applications, and workflow automation. I enjoy creating systems that solve real-world problems while delivering intuitive user experiences and reliable performance.",
+    "Great software isn't just built to work—it is built to solve real problems.",
   paragraphs: [
-    "I have developed projects ranging from an NLP-powered news intelligence platform and automated data collection pipelines to marketplace analytics tools and business websites. Working across the full software development lifecycle has allowed me to gain experience in frontend development, backend services, databases, web scraping, and data engineering using modern technologies.",
+    "My recent work includes an NLP-powered news intelligence platform, automated web scraping pipelines, marketplace analytics tools, and modern business websites. Every project has strengthened my experience across frontend, backend, databases, and data engineering.",
   ],
 } as const;
-
-export const ABOUT_HIGHLIGHTS = [
-  "Frontend engineering",
-  "Fullstack development",
-  "AI-powered systems",
-  "Modern UI/UX",
-  "Scalable backend architecture",
-  "Digital business modernization",
-  "Data Acquisition & Web Scraping",
-  "Business Intelligence Systems",
-  "Workflow Automation",
-] as const;
-
-export const ABOUT_EXPERIENCE = [
-  "Real-time systems",
-  "Analytics platforms",
-  "AI-assisted workflows",
-  "Business-focused web experiences",
-  "Data visualization systems",
-  "Scraping pipelines",
-  "Data Science",
-] as const;
