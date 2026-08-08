@@ -115,6 +115,7 @@ export const NAV_LINKS = [
   { label: "About", href: "#about" },
   { label: "Projects", href: "#projects" },
   { label: "Tech Stack", href: "#tech-stack" },
+  { label: "Testimonials", href: "#testimonials" },
   { label: "Contact", href: "#contact" },
 ] as const;
 
@@ -123,6 +124,61 @@ export const SOCIAL_LINKS = {
   linkedin: "https://www.linkedin.com/in/jose-marie-lim-dev/",
   facebook: "https://www.facebook.com/josemarie.lim",
 } as const;
+
+export type Testimonial = {
+  text: string;
+  name: string;
+  role: string;
+};
+
+/** Replace with real client / collaborator quotes when available */
+export const TESTIMONIALS: readonly Testimonial[] = [
+  {
+    text: "Jose turned messy marketplace data into a clear dashboard we actually use every week. Fast delivery, careful about edge cases.",
+    name: "Maria Santos",
+    role: "Marketplace Operator",
+  },
+  {
+    text: "The news intelligence build was ambitious. He handled NLP, pipelines, and the UI without losing sight of what the product needed to do.",
+    name: "Daniel Cruz",
+    role: "Product Lead",
+  },
+  {
+    text: "Our restaurant site finally feels premium on mobile. Clean structure, smooth performance, and easy for the team to update.",
+    name: "Ana Reyes",
+    role: "Restaurant Owner",
+  },
+  {
+    text: "He ships like a full team — frontend, backend, scraping, and automation — and still explains decisions in plain language.",
+    name: "Kevin Ong",
+    role: "Startup Founder",
+  },
+  {
+    text: "Deadlines were tight and the requirements kept moving. Jose stayed calm, prioritized well, and delivered something maintainable.",
+    name: "Liza Mendoza",
+    role: "Operations Manager",
+  },
+  {
+    text: "The automation cut hours of manual collection. Reliable pipelines and a UI that non-engineers can follow.",
+    name: "Ryan Villanueva",
+    role: "Data Analyst",
+  },
+  {
+    text: "Strong eye for hierarchy and interaction. The site looks intentional, not like a template with extra polish.",
+    name: "Sophie Tan",
+    role: "Brand Designer",
+  },
+  {
+    text: "From scoping to deploy, communication was clear. We always knew what was shipping next and why.",
+    name: "Mark Dela Cruz",
+    role: "Project Stakeholder",
+  },
+  {
+    text: "He cares about long-term value — performance, accessibility, and code we can keep building on.",
+    name: "Patricia Go",
+    role: "Tech Collaborator",
+  },
+] as const;
 
 export type ProjectCategory = "ai" | "web" | "commerce";
 
@@ -174,7 +230,7 @@ export const PROJECTS: Project[] = [
       "spaCy",
     ],
     image: "/projects/news.png",
-    gradient: "from-slate-900 via-indigo-950 to-violet-950",
+    gradient: "from-slate-900 via-blue-950 to-slate-950",
     liveUrl: "https://ph-vibe-check.vercel.app/",
   },
   {

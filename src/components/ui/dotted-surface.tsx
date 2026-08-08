@@ -408,7 +408,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const ambient = new THREE.AmbientLight(isDark ? 0x6b7280 : 0xa1a1aa, 0.55);
     const key = new THREE.DirectionalLight(isDark ? 0xcbd5e1 : 0xffffff, 0.85);
     key.position.set(420, 680, 320);
-    const rim = new THREE.DirectionalLight(isDark ? 0x818cf8 : 0x6366f1, 0.28);
+    const rim = new THREE.DirectionalLight(isDark ? 0x60a5fa : 0x2563eb, 0.28);
     rim.position.set(-380, -120, -520);
     scene.add(ambient, key, rim);
 

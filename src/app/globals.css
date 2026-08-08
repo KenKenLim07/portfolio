@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Slate studio — light (neutral canvas + indigo accent) */
+/* Slate studio — light (neutral canvas + blue accent) */
 :root {
   color-scheme: light;
   --background: #f4f4f5;
@@ -18,11 +18,11 @@
   --overlay: rgba(9, 9, 11, 0.42);
   --glass: rgba(255, 255, 255, 0.78);
   --glass-solid: rgba(255, 255, 255, 0.94);
-  --accent-from: #4f46e5;
-  --accent-to: #6366f1;
-  --hero-glow: rgba(99, 102, 241, 0.2);
+  --accent-from: #2563eb;
+  --accent-to: #3b82f6;
+  --hero-glow: rgba(37, 99, 235, 0.2);
   --form-surface: #ffffff;
-  --selection-bg: rgba(79, 70, 229, 0.22);
+  --selection-bg: rgba(37, 99, 235, 0.22);
   --selection-fg: #09090b;
   /* Mobile drawer — follows site theme */
   --menu-bg: var(--surface);
@@ -52,11 +52,11 @@
   --overlay: rgba(0, 0, 0, 0.55);
   --glass: rgba(24, 24, 27, 0.76);
   --glass-solid: rgba(9, 9, 11, 0.94);
-  --accent-from: #818cf8;
-  --accent-to: #a5b4fc;
-  --hero-glow: rgba(129, 140, 248, 0.22);
+  --accent-from: #60a5fa;
+  --accent-to: #93c5fd;
+  --hero-glow: rgba(96, 165, 250, 0.22);
   --form-surface: #18181b;
-  --selection-bg: rgba(129, 140, 248, 0.32);
+  --selection-bg: rgba(96, 165, 250, 0.32);
   --selection-fg: #fafafa;
   --menu-bg: var(--surface);
   --menu-fg: #fafafa;
@@ -451,7 +451,7 @@ body {
 .hero-aurora-a {
   background: radial-gradient(
     circle,
-    rgba(99, 102, 241, 0.22) 0%,
+    rgba(37, 99, 235, 0.22) 0%,
     transparent 70%
   );
   animation: aurora-drift-a 18s ease-in-out infinite;
@@ -460,7 +460,7 @@ body {
 .hero-aurora-b {
   background: radial-gradient(
     circle,
-    rgba(139, 92, 246, 0.14) 0%,
+    rgba(59, 130, 246, 0.14) 0%,
     transparent 70%
   );
   animation: aurora-drift-b 22s ease-in-out infinite;
@@ -601,11 +601,11 @@ body {
 @keyframes mesh-core-heartbeat {
   0%,
   100% {
-    box-shadow: 0 0 28px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 28px rgba(37, 99, 235, 0.3);
     transform: scale(1);
   }
   50% {
-    box-shadow: 0 0 52px rgba(129, 140, 248, 0.55);
+    box-shadow: 0 0 52px rgba(96, 165, 250, 0.55);
     transform: scale(1.05);
   }
 }
