@@ -1,9 +1,10 @@
 "use client";
 
 import { Fragment } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { TECH_STACK } from "@/lib/constants";
 import { TechBrandIcon } from "@/components/TechBrandIcon";
+import { useMarqueeInView } from "@/hooks/useMarqueeInView";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
 import { MegaTitleText } from "@/components/ui/SectionHeading";
@@ -23,7 +24,7 @@ function TechStackRow({
   duration: number;
   reverse?: boolean;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const { ref, shouldAnimate, prefersReducedMotion } = useMarqueeInView();
   // Short lists (e.g. AI) need more copies so the marquee fills the viewport
   const copyCount = prefersReducedMotion
     ? 1
@@ -31,23 +32,26 @@ function TechStackRow({
   const loop = Array.from({ length: copyCount }, (_, i) => i);
 
   return (
-    <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+    <div
+      ref={ref}
+      className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
+    >
       <motion.div
         animate={
-          prefersReducedMotion ? undefined : { x: reverse ? "0%" : "-50%" }
+          shouldAnimate ? { x: reverse ? "0%" : "-50%" } : false
         }
         initial={
           prefersReducedMotion ? undefined : { x: reverse ? "-50%" : "0%" }
         }
         transition={
-          prefersReducedMotion
-            ? undefined
-            : {
+          shouldAnimate
+            ? {
                 duration,
                 repeat: Infinity,
                 ease: "linear",
                 repeatType: "loop",
               }
+            : undefined
         }
         className="flex w-max gap-3 pr-3 md:gap-4 md:pr-4"
       >

@@ -1,8 +1,9 @@
 "use client";
 
 import { Fragment } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import type { Testimonial } from "@/lib/constants";
+import { useMarqueeInView } from "@/hooks/useMarqueeInView";
 import { cn } from "@/lib/utils";
 
 function TestimonialAvatar({ name }: { name: string }) {
@@ -35,32 +36,31 @@ export function TestimonialsRow({
   duration?: number;
   reverse?: boolean;
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const { ref, shouldAnimate, prefersReducedMotion } = useMarqueeInView();
   const loop = prefersReducedMotion ? [0] : [0, 1];
 
   return (
     <div
+      ref={ref}
       className={cn(
         "overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]",
         className,
       )}
     >
       <motion.div
-        animate={
-          prefersReducedMotion
-            ? undefined
-            : { x: reverse ? "0%" : "-50%" }
+        animate={shouldAnimate ? { x: reverse ? "0%" : "-50%" } : false}
+        initial={
+          prefersReducedMotion ? undefined : { x: reverse ? "-50%" : "0%" }
         }
-        initial={prefersReducedMotion ? undefined : { x: reverse ? "-50%" : "0%" }}
         transition={
-          prefersReducedMotion
-            ? undefined
-            : {
+          shouldAnimate
+            ? {
                 duration,
                 repeat: Infinity,
                 ease: "linear",
                 repeatType: "loop",
               }
+            : undefined
         }
         className="flex w-max gap-6 pr-6"
       >
