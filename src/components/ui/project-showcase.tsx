@@ -241,7 +241,6 @@ export function ProjectShowcase({
             </div>
           );
         })}
-        <div className="border-t border-border" />
       </div>
     </div>
   );
