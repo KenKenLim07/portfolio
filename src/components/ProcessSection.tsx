@@ -18,10 +18,6 @@ export function ProcessSection() {
           <h2 className="section-mega">
             <MegaTitleText title="How I Work" />
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
-            A minimal, repeatable process that keeps strategy, design, and
-            engineering aligned.
-          </p>
         </div>
 
         <div ref={trackRef} className="relative mx-auto max-w-5xl">
