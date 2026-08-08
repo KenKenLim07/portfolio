@@ -95,13 +95,9 @@ export function ContactSection() {
           <AnimatedSection variant="last" delay={0.1}>
             <AnimatedItem>
               <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
-                <h3 className="font-display mb-1 text-lg font-semibold text-foreground">
+                <h3 className="font-display mb-6 text-lg font-semibold text-foreground">
                   Send a message
                 </h3>
-                <p className="mb-6 text-sm text-muted">
-                  Share your project details and I&apos;ll respond as soon as
-                  possible.
-                </p>
                 <ContactForm />
               </div>
             </AnimatedItem>

@@ -38,11 +38,7 @@ export function ProjectsSection() {
 
   return (
     <Section id="projects">
-      <SectionHeading
-        label=""
-        title="Selected Projects"
-        description="AI platforms, production web apps, and commerce tooling — shipped and maintained."
-      />
+      <SectionHeading label="" title="Selected Projects" />
 
       <AnimatedSection variant="tail">
         <AnimatedItem>

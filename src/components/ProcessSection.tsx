@@ -8,12 +8,7 @@ import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
 export function ProcessSection() {
   return (
     <Section id="process">
-      <SectionHeading
-        label=""
-        title="How I Work"
-        description="A minimal, repeatable process that keeps strategy, design, and engineering aligned."
-        align="center"
-      />
+      <SectionHeading label="" title="How I Work" align="center" />
 
       <AnimatedSection className="relative" variant="tail">
         <AnimatedItem>

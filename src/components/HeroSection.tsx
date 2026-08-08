@@ -146,7 +146,7 @@ function HeroCopy({
           <span className="font-semibold text-foreground">
             {SITE.name}
           </span>
-          —{SITE.description}
+          , {SITE.description}
         </p>
       </HeroRevealItem>
     </>

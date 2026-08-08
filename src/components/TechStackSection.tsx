@@ -15,11 +15,7 @@ const groups = [
 export function TechStackSection() {
   return (
     <Section id="tech-stack">
-      <SectionHeading
-        label=""
-        title="My Stack"
-        description="Tools I use to build fast interfaces, reliable backends, and intelligent data products."
-      />
+      <SectionHeading label="" title="My Stack" />
 
       <AnimatedSection variant="tail">
         <AnimatedItem>

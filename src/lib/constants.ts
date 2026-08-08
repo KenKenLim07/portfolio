@@ -157,7 +157,7 @@ export type Project = {
 export const PROJECTS: Project[] = [
   {
     id: "news-intelligence",
-    title: "PH VibeCheck AI — Philippine News Intelligence",
+    title: "Philippine News Intelligence",
     category: "ai",
     featured: true,
     description:
@@ -179,7 +179,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "iphone-scraper",
-    title: "IAASE — Iloilo iPhone Deal Intelligence",
+    title: "Iloilo iPhone Deal Intelligence",
     category: "commerce",
     description:
       "Facebook Marketplace pipeline using GraphQL with Playwright fallback, dual accounts (discovery vs. monitoring), and Supabase storage. Benchmarks iPhone variants against Iloilo prices, then applies rule-based AI on titles and descriptions to flag red flags (no True Tone, no Face ID, broken/replaced screen, etc.) and deduct repair risk from estimated profit on the dashboard.",
@@ -279,7 +279,7 @@ export const PROCESS_STEPS = [
 export const ABOUT = {
   lead: "I enjoy building complete software systems, from intuitive user interfaces to backend services, automated data pipelines, and AI-powered features. I'm most motivated by projects that solve real-world problems and transform raw data into meaningful insights.",
   belief:
-    "Great software isn't just built to work—it is built to solve real problems.",
+    "Great software isn't just built to work. It should solve real problems.",
   paragraphs: [
     "My recent work includes an NLP-powered news intelligence platform, automated web scraping pipelines, marketplace analytics tools, and modern business websites. Every project has strengthened my experience across frontend, backend, databases, and data engineering.",
   ],

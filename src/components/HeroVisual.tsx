@@ -97,7 +97,7 @@ export function HeroVisual() {
           <h3 className="max-w-[18rem] font-display text-base font-semibold leading-snug tracking-tight text-zinc-100 sm:max-w-md sm:text-lg">
             {MY_BRAIN.previewTitle}
           </h3>
-          <p className="mt-1.5 max-w-[18rem] text-[11px] font-medium leading-snug text-indigo-300/90 sm:max-w-md sm:text-xs">
+          <p className="mt-1.5 max-w-[18rem] text-[11px] font-medium leading-snug text-sky-300/90 sm:max-w-md sm:text-xs">
             {MY_BRAIN.interactionHint}
           </p>
         </motion.div>
@@ -113,19 +113,19 @@ export function HeroVisual() {
             />
 
             <div
-              className={`pointer-events-none absolute left-1/2 top-1/2 h-[55%] w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+              className={`pointer-events-none absolute left-1/2 top-1/2 h-[55%] w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-600/10 blur-3xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
             />
             <div
-              className={`pointer-events-none absolute left-[30%] top-1/2 h-[45%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
+              className={`pointer-events-none absolute left-[30%] top-1/2 h-[45%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura-delayed" : ""}`}
             />
             <div
-              className={`pointer-events-none absolute left-[70%] top-1/2 h-[45%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
+              className={`pointer-events-none absolute left-[70%] top-1/2 h-[45%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/10 blur-2xl ${!prefersReducedMotion ? "mesh-glow-aura" : ""}`}
             />
 
             {!prefersReducedMotion && (
               <>
-                <div className="hero-brain-pulse pointer-events-none absolute left-1/2 top-1/2 h-[50%] w-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-indigo-400/25" />
-                <div className="hero-brain-pulse-delayed pointer-events-none absolute left-1/2 top-1/2 h-[38%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-400/15" />
+                <div className="hero-brain-pulse pointer-events-none absolute left-1/2 top-1/2 h-[50%] w-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/25" />
+                <div className="hero-brain-pulse-delayed pointer-events-none absolute left-1/2 top-1/2 h-[38%] w-[38%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-400/15" />
               </>
             )}
 
@@ -319,13 +319,13 @@ export function HeroVisual() {
             <div
               className={`relative flex h-[3.25rem] w-[3.25rem] items-center justify-center rounded-full border backdrop-blur-md transition-all duration-300 sm:h-14 sm:w-14 ${
                 activeId === "core" || !activeId
-                  ? `border-indigo-300/50 bg-indigo-500/25 shadow-[0_0_32px_rgba(99,102,241,0.35)] ${!prefersReducedMotion ? "mesh-core-heartbeat" : ""}`
+                  ? `border-blue-300/50 bg-blue-500/25 shadow-[0_0_32px_rgba(37,99,235,0.35)] ${!prefersReducedMotion ? "mesh-core-heartbeat" : ""}`
                   : "border-white/20 bg-zinc-950/80"
               }`}
             >
               <Brain
                 className={`h-6 w-6 sm:h-7 sm:w-7 ${
-                  activeId === "core" || !activeId ? "text-indigo-100" : "text-zinc-500"
+                  activeId === "core" || !activeId ? "text-blue-100" : "text-zinc-500"
                 }`}
                 strokeWidth={1.2}
               />
@@ -338,7 +338,7 @@ export function HeroVisual() {
           <motion.button
             key={node.id}
             type="button"
-            className="absolute z-20 flex -translate-x-1/2 -translate-y-1/2 cursor-default flex-col items-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-indigo-400/50"
+            className="absolute z-20 flex -translate-x-1/2 -translate-y-1/2 cursor-default flex-col items-center border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-blue-400/50"
             style={{ left: `${node.x}%`, top: `${node.y}%` }}
             initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.6 }}
             animate={
@@ -359,14 +359,14 @@ export function HeroVisual() {
             <span
               className={`mb-0.5 block h-1.5 w-1.5 rounded-full ring-2 ring-black/40 sm:h-2 sm:w-2 ${
                 activeId === node.id
-                  ? "bg-indigo-200 shadow-[0_0_8px_rgba(199,210,254,0.9)]"
-                  : "bg-indigo-400/70"
+                  ? "bg-blue-200 shadow-[0_0_8px_rgba(191,219,254,0.9)]"
+                  : "bg-blue-400/70"
               }`}
             />
             <span
               className={`radius-chip max-w-[3.75rem] truncate border px-1 py-px text-center text-[7px] font-medium leading-tight tracking-wide backdrop-blur-sm sm:max-w-[4.25rem] sm:px-1.5 sm:text-[8px] ${
                 activeId === node.id
-                  ? "border-indigo-300/50 bg-indigo-950/90 text-indigo-100"
+                  ? "border-blue-300/50 bg-blue-950/90 text-blue-100"
                   : "border-white/10 bg-zinc-950/85 text-zinc-400"
               }`}
             >
@@ -388,11 +388,11 @@ export function HeroVisual() {
           <p className="mt-2 font-display text-xs font-medium text-zinc-200 sm:text-sm">
             {MY_BRAIN.pipeline}
           </p>
-          <p className="mt-2.5 border-t border-white/10 pt-2.5 text-[10px] leading-relaxed text-indigo-200/80 sm:mt-3 sm:pt-3 sm:text-[11px]">
+          <p className="mt-2.5 border-t border-white/10 pt-2.5 text-[10px] leading-relaxed text-blue-200/80 sm:mt-3 sm:pt-3 sm:text-[11px]">
             {MY_BRAIN.preview3d}
           </p>
           <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/10 sm:mt-2.5">
-            <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-indigo-500/70 via-indigo-400/50 to-violet-500/40" />
+            <div className="h-full w-[82%] rounded-full bg-gradient-to-r from-blue-500/70 via-blue-400/50 to-sky-500/40" />
           </div>
         </div>
       </div>
