@@ -15,12 +15,15 @@ const FOG = {
 const CAMERA_BASE = { x: 0, y: 280, z: 1180 } as const;
 
 /** Max field lift at page bottom — keeps stars in frame (scroll indicator). */
-const INDICATOR_MAX_LIFT = 198;
+const INDICATOR_MAX_LIFT = 120;
 
-/** Camera dolly: progress-based depth + instant gesture zoom in/out. */
-const DOLLY_FROM_PROGRESS = 68;
-const DOLLY_GESTURE_IN = 158;
-const DOLLY_GESTURE_OUT = 142;
+/**
+ * Ship throttle: page scroll 0→1 drives deep travel into -Z.
+ * Gesture adds a short burst while actively scrolling.
+ */
+const DOLLY_FROM_PROGRESS = 1180;
+const DOLLY_GESTURE_IN = 260;
+const DOLLY_GESTURE_OUT = 200;
 const CAMERA_BASE_FOV = 60;
 
 /** Subtle asteroid idle bob (stars stay fixed — no surface wave). */
@@ -40,17 +43,33 @@ const SHOOTING = {
   speedMax: 2400,
 } as const;
 
-const STAR_COUNT = 580;
+const STAR_COUNT = 260;
 /** Side rocks — main asteroid field. */
-const ROCK_COUNT = 12;
+const ROCK_COUNT = 14;
 /**
  * Depth bands (camera sits around z ≈ 1180 looking toward -Z):
- * - stars: deep background plane (still in fog range so they read)
- * - asteroids: nearer mid-field (closer to POV, larger)
+ * - stars: deep backdrop (material.fog off — scene fog is for rocks only)
+ * - asteroids: corridor ahead of the camera; recycled as we pass them
  */
+/** XY span at star depth — must fill the camera frustum or stars read as a salt band. */
+const STAR_EXTENT = { x: 16000, y: 9000 } as const;
+/** Side / corridor rock placement bounds. */
 const FIELD = { x: 5600, y: 640, z: 6400 } as const;
-const STAR_Z = { near: -2100, far: -180 } as const;
-const ROCK_Z = { near: 220, far: 860 } as const;
+/**
+ * Stars live deep behind the asteroid corridor.
+ * Camera travels ~1180 in Z — this band stays thousands of units farther
+ * than any rock so pinpoints never read as nearby debris.
+ */
+const STAR_Z = { closest: -4200, farthest: -8200 } as const;
+/** How far ahead (-Z from camera) recycled rocks respawn. */
+const ROCK_RECYCLE = {
+  passMargin: 120,
+  /** Beyond fog near so rocks fade in instead of popping. */
+  aheadMin: 2600,
+  aheadMax: 4600,
+} as const;
+/** World scale when a rock respawns far ahead (perspective grows it later). */
+const ROCK_SPAWN_SCALE = { min: 22, max: 48 } as const;
 
 type ScrollState = {
   progress: { current: number; target: number };
@@ -77,6 +96,7 @@ type RockBody = {
   radius: number;
   /** 0 = almost no scroll warp, 1 = full warp. */
   warpInfluence: number;
+  baseScale: number;
 };
 
 type ShootingStar = {
@@ -130,54 +150,64 @@ function buildStarfield(isDark: boolean): {
   seeds: StarSeed[];
   positions: number[];
   colors: number[];
+  sizes: number[];
 } {
   const rng = createRng(STAR_SEED);
   const seeds: StarSeed[] = [];
   const positions: number[] = [];
   const colors: number[] = [];
+  const sizes: number[] = [];
 
   for (let i = 0; i < STAR_COUNT; i++) {
-    // Bias depth toward the far plane — keep stars behind rocks
-    const depthT = Math.pow(rng(), 0.65);
-    const z = lerp(STAR_Z.near, STAR_Z.far, depthT);
-    const x = (rng() - 0.5) * FIELD.x;
-    const y = (rng() - 0.5) * FIELD.y;
+    // Bias toward farthest depths — stars must stay behind the rock corridor
+    const depthT = Math.pow(rng(), 0.55);
+    const z = lerp(STAR_Z.closest, STAR_Z.farthest, depthT);
+    // Soft radial falloff so the field feels like a sky, not a packed rectangle
+    const angle = rng() * Math.PI * 2;
+    const radius = Math.sqrt(rng());
+    const x = Math.cos(angle) * radius * STAR_EXTENT.x * 0.5;
+    const y = Math.sin(angle) * radius * STAR_EXTENT.y * 0.5;
 
     const twinklePhase = rng() * Math.PI * 2;
-    const twinkleSpeed = randRange(rng, 0.35, 1.2);
+    const twinkleSpeed = randRange(rng, 0.25, 0.9);
+    // Power-law brightness: mostly dim, a few brighter anchors
+    const luminosity = Math.pow(rng(), 2.4);
     const baseAlpha = isDark
-      ? lerp(0.45, 0.95, depthT)
-      : lerp(0.32, 0.7, depthT);
+      ? lerp(0.28, 1, luminosity)
+      : lerp(0.22, 0.85, luminosity);
+    // Screen-space px — sparse large jewels + tiny dust, not uniform salt
+    const size = lerp(1.4, isDark ? 5.2 : 4.6, Math.pow(luminosity, 0.65));
 
     let r: number;
     let g: number;
     let b: number;
     if (isDark) {
       const cool = rng();
-      r = lerp(0.72, 0.95, cool);
-      g = lerp(0.76, 0.97, cool);
-      b = lerp(0.88, 1, cool);
+      r = lerp(0.78, 0.98, cool);
+      g = lerp(0.82, 0.98, cool);
+      b = lerp(0.9, 1, cool);
     } else {
       const cool = rng();
-      r = lerp(0.28, 0.42, cool);
-      g = lerp(0.32, 0.46, cool);
-      b = lerp(0.48, 0.62, cool);
+      r = lerp(0.22, 0.4, cool);
+      g = lerp(0.28, 0.46, cool);
+      b = lerp(0.48, 0.66, cool);
     }
 
     seeds.push({
       x,
       y,
       z,
-      size: lerp(2.2, 4.2, depthT),
+      size,
       twinklePhase,
       twinkleSpeed,
       baseAlpha,
     });
     positions.push(x, y, z);
     colors.push(r, g, b);
+    sizes.push(size);
   }
 
-  return { seeds, positions, colors };
+  return { seeds, positions, colors, sizes };
 }
 
 /** Irregular rock mesh — displaced icosahedron with crater-like dents. */
@@ -232,13 +262,13 @@ function createRockField(
   const geometries: THREE.BufferGeometry[] = [];
   const materials: THREE.Material[] = [];
 
-  // Side rocks stay on the flanks (mobile still visible, not center-clustered)
+  // Side rocks stay on the flanks, spread along a deep corridor ahead of the camera
   const xMin = isMobile ? 120 : 380;
   const xMax = isMobile ? 360 : FIELD.x * 0.38;
-  const zNear = isMobile ? 420 : ROCK_Z.near;
-  const zFar = isMobile ? 880 : ROCK_Z.far;
-  const scaleMin = isMobile ? 22 : 36;
-  const scaleMax = isMobile ? 52 : 110;
+  const scaleMin = isMobile ? 20 : 28;
+  const scaleMax = isMobile ? 48 : 96;
+  const aheadMin = isMobile ? 360 : 420;
+  const aheadMax = isMobile ? 2800 : 3800;
 
   const pushRock = (opts: {
     x: number;
@@ -309,18 +339,20 @@ function createRockField(
       home,
       radius: opts.scale * 1.15,
       warpInfluence: opts.warpInfluence,
+      baseScale: opts.scale,
     });
   };
 
-  // Side field
+  // Side field — scattered ahead in -Z so scrolling flies through them
   for (let i = 0; i < ROCK_COUNT; i++) {
-    const proximity = Math.pow(rng(), 0.7);
+    const depthT = Math.pow(rng(), 0.55);
     const side = i % 2 === 0 ? 1 : -1;
+    const ahead = lerp(aheadMin, aheadMax, depthT);
     pushRock({
       x: side * randRange(rng, xMin, xMax),
       y: randRange(rng, isMobile ? -100 : -160, isMobile ? 120 : 200),
-      z: lerp(zNear, zFar, proximity),
-      scale: lerp(scaleMin, scaleMax, proximity),
+      z: CAMERA_BASE.z - ahead,
+      scale: lerp(scaleMax, scaleMin, depthT),
       warpInfluence: 1,
     });
   }
@@ -329,14 +361,14 @@ function createRockField(
   pushRock({
     x: isMobile ? -110 : -220,
     y: isMobile ? 10 : 20,
-    z: isMobile ? 40 : -40,
+    z: CAMERA_BASE.z - (isMobile ? 420 : 520),
     scale: isMobile ? 24 : 36,
     warpInfluence: 0.18,
   });
   pushRock({
     x: isMobile ? 120 : 240,
     y: isMobile ? -20 : -10,
-    z: isMobile ? 80 : 20,
+    z: CAMERA_BASE.z - (isMobile ? 680 : 860),
     scale: isMobile ? 22 : 34,
     warpInfluence: 0.18,
   });
@@ -345,8 +377,8 @@ function createRockField(
   pushRock({
     x: isMobile ? 280 : 720,
     y: isMobile ? 160 : 260,
-    z: isMobile ? 520 : 680,
-    scale: isMobile ? 28 : 48,
+    z: CAMERA_BASE.z - (isMobile ? 1100 : 1500),
+    scale: isMobile ? 26 : 42,
     warpInfluence: 0.85,
   });
 
@@ -407,6 +439,7 @@ function createShootingStarPool(isDark: boolean, count: number) {
       transparent: true,
       opacity: isDark ? 0.95 : 0.75,
       depthWrite: false,
+      fog: false,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
     const line = new THREE.Line(geo, lineMat);
@@ -423,6 +456,7 @@ function createShootingStarPool(isDark: boolean, count: number) {
       opacity: isDark ? 0.95 : 0.7,
       depthWrite: false,
       sizeAttenuation: true,
+      fog: false,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
     const headPoints = new THREE.Points(headGeo, headMat);
@@ -472,7 +506,7 @@ function createShootingStarPool(isDark: boolean, count: number) {
     star.head.set(
       side * (900 + Math.random() * 1600),
       160 + Math.random() * 280,
-      lerp(STAR_Z.near + 280, STAR_Z.far - 120, Math.random()),
+      lerp(STAR_Z.closest - 200, STAR_Z.farthest + 400, Math.random()),
     );
     const speed =
       SHOOTING.speedMin +
@@ -614,16 +648,17 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     const isDark = theme === "dark";
     const isMobile = window.innerWidth < 768;
-    const { seeds, positions, colors } = buildStarfield(isDark);
+    const { seeds, positions, colors, sizes } = buildStarfield(isDark);
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(isDark ? FOG.dark : FOG.light, 2400, 8200);
+    // Fog hides far recycled rocks until they approach (no hard pop-in)
+    scene.fog = new THREE.Fog(isDark ? FOG.dark : FOG.light, 1400, 6200);
 
     const camera = new THREE.PerspectiveCamera(
       60,
       window.innerWidth / window.innerHeight,
       1,
-      10000,
+      14000,
     );
     camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
 
@@ -647,10 +682,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     const starPositions: number[] = [];
     const starColors: number[] = [];
+    const starSizes: number[] = [];
     seeds.forEach((seed, i) => {
       const base = i * 3;
       starPositions.push(positions[base], positions[base + 1], positions[base + 2]);
       starColors.push(colors[base], colors[base + 1], colors[base + 2]);
+      starSizes.push(sizes[i]);
     });
 
     const starGeo = new THREE.BufferGeometry();
@@ -662,14 +699,45 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       "color",
       new THREE.Float32BufferAttribute(starColors, 3),
     );
+    starGeo.setAttribute(
+      "size",
+      new THREE.Float32BufferAttribute(starSizes, 1),
+    );
 
-    const starMat = new THREE.PointsMaterial({
-      size: isDark ? 4.2 : 4.8,
-      vertexColors: true,
+    // Soft discs + per-star size — avoids the square "salt grain" PointsMaterial look
+    const starMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uPixelRatio: { value: renderer.getPixelRatio() },
+        uOpacity: { value: isDark ? 0.95 : 0.78 },
+      },
+      vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        uniform float uPixelRatio;
+        void main() {
+          vColor = color;
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+          gl_PointSize = size * uPixelRatio;
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        uniform float uOpacity;
+        void main() {
+          vec2 c = gl_PointCoord - vec2(0.5);
+          float d = length(c);
+          if (d > 0.5) discard;
+          float core = 1.0 - smoothstep(0.0, 0.22, d);
+          float halo = 1.0 - smoothstep(0.12, 0.5, d);
+          float alpha = (core * 0.85 + halo * 0.45) * uOpacity;
+          gl_FragColor = vec4(vColor, alpha);
+        }
+      `,
       transparent: true,
-      opacity: isDark ? 0.88 : 0.7,
-      sizeAttenuation: true,
       depthWrite: false,
+      fog: false,
       blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
     });
 
@@ -683,11 +751,13 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const shootingPool = reducedMotion
       ? null
       : createShootingStarPool(isDark, isMobile ? 1 : SHOOTING.poolSize);
-    const field = new THREE.Group();
-    field.add(stars);
-    field.add(rockGroup);
-    if (shootingPool) field.add(shootingPool.group);
-    scene.add(field);
+
+    // Backdrop drifts slowly; corridor rocks stay in world space for true fly-through
+    const backdrop = new THREE.Group();
+    backdrop.add(stars);
+    if (shootingPool) backdrop.add(shootingPool.group);
+    scene.add(backdrop);
+    scene.add(rockGroup);
 
     const starSeeds = seeds;
     const nextMeteorSpawn = {
@@ -695,6 +765,36 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         performance.now() / 1000 +
         SHOOTING.minGapSec * 0.4 +
         Math.random() * 2.5,
+    };
+
+    const spawnScale = isMobile
+      ? { min: 16, max: 34 }
+      : ROCK_SPAWN_SCALE;
+
+    const recycleRock = (rock: RockBody, camZ: number) => {
+      const side = Math.random() > 0.5 ? 1 : -1;
+      const xMin = isMobile ? 120 : 360;
+      const xMax = isMobile ? 340 : FIELD.x * 0.36;
+      const ahead =
+        ROCK_RECYCLE.aheadMin +
+        Math.random() * (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin);
+      rock.home.x = side * (xMin + Math.random() * (xMax - xMin));
+      rock.home.y = (Math.random() - 0.5) * (isMobile ? 220 : 320);
+      rock.home.z = camZ - ahead;
+      // Always small at spawn — perspective grows them as we approach
+      const depthT =
+        (ahead - ROCK_RECYCLE.aheadMin) /
+        (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin);
+      const scale = lerp(spawnScale.max, spawnScale.min, depthT);
+      rock.baseScale = scale;
+      rock.mesh.scale.setScalar(scale);
+      rock.radius = scale * 1.15;
+      rock.mesh.position.copy(rock.home);
+      rock.mesh.rotation.set(
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+        Math.random() * Math.PI * 2,
+      );
     };
 
     const timer = new THREE.Timer();
@@ -754,58 +854,61 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       const liftT = indicatorProgress(p);
       const indicatorLift = liftT * INDICATOR_MAX_LIFT;
 
-      const velBoost = Math.min(Math.abs(smoothedVelocity) * 0.45, 56);
-      const kickCap = 22;
+      const velBoost = Math.min(Math.abs(smoothedVelocity) * 0.55, 80);
+      const kickCap = 28;
       const kickTarget = Math.max(
         -kickCap,
-        Math.min(kickCap, smoothedVelocity * 0.5),
+        Math.min(kickCap, smoothedVelocity * 0.55),
       );
       velocityKick = expSmooth(velocityKick, kickTarget * active, 9, dt);
-      field.position.y = indicatorLift + velocityKick;
 
       const gestureDolly =
         zoomInAmt * (DOLLY_GESTURE_IN + velBoost) -
         zoomOutAmt * (DOLLY_GESTURE_OUT + velBoost);
 
-      const progressZ = p * 38;
-      const zGesture =
-        zoomInAmt * (72 + velBoost) - zoomOutAmt * (58 + velBoost);
-      const targetZ = progressZ + zGesture;
-      field.position.z = expSmooth(field.position.z, targetZ, 12, dt);
+      // Ship throttle: page depth is the main drive into space
+      const progressDolly = p * DOLLY_FROM_PROGRESS;
+      const targetCamZ = CAMERA_BASE.z - progressDolly - gestureDolly;
+      const cameraLift =
+        liftT * 24 + zoomInAmt * 36 - zoomOutAmt * 28 + velocityKick * 0.35;
 
-      field.rotation.z = expSmooth(
-        field.rotation.z,
-        Math.max(-0.05, Math.min(0.05, smoothedVelocity * 0.00014 * active)),
+      camera.position.y = expSmooth(
+        camera.position.y,
+        CAMERA_BASE.y + cameraLift,
+        11,
+        dt,
+      );
+      camera.position.z = expSmooth(camera.position.z, targetCamZ, 10, dt);
+
+      // Star backdrop: slow parallax only (not locked to ship speed)
+      backdrop.position.y = expSmooth(
+        backdrop.position.y,
+        indicatorLift * 0.35 + velocityKick * 0.15,
+        10,
+        dt,
+      );
+      backdrop.position.z = expSmooth(
+        backdrop.position.z,
+        p * 90 + zoomInAmt * 40 - zoomOutAmt * 30,
+        10,
+        dt,
+      );
+      backdrop.rotation.z = expSmooth(
+        backdrop.rotation.z,
+        Math.max(-0.04, Math.min(0.04, smoothedVelocity * 0.00012 * active)),
         9,
         dt,
       );
 
-      const cameraLift =
-        liftT * 32 + zoomInAmt * 48 - zoomOutAmt * 38;
-
-      const progressDolly = p * DOLLY_FROM_PROGRESS;
-      const targetCamZ = CAMERA_BASE.z - progressDolly - gestureDolly;
-      camera.position.y = expSmooth(
-        camera.position.y,
-        CAMERA_BASE.y + cameraLift,
-        12,
-        dt,
-      );
-      camera.position.z = expSmooth(camera.position.z, targetCamZ, 12, dt);
-
-      const tiltTarget = zoomOutAmt * 0.085 - zoomInAmt * 0.085;
+      const tiltTarget = zoomOutAmt * 0.06 - zoomInAmt * 0.07;
       camera.rotation.x = expSmooth(camera.rotation.x, tiltTarget, 10, dt);
 
       const targetFov =
-        CAMERA_BASE_FOV + zoomOutAmt * 8 - zoomInAmt * 7;
+        CAMERA_BASE_FOV + zoomOutAmt * 6 - zoomInAmt * 5 + active * 1.5;
       camera.fov = expSmooth(camera.fov, targetFov, 10, dt);
       if (Math.abs(camera.fov - targetFov) > 0.02) {
         camera.updateProjectionMatrix();
       }
-
-      const targetScale = 1 - zoomOutAmt * 0.06 + zoomInAmt * 0.09;
-      const scale = expSmooth(field.scale.x, targetScale, 10, dt);
-      field.scale.set(scale, scale, scale);
 
       if (!reducedMotion) {
         // Stars: fixed positions + soft twinkle only (distant backdrop)
@@ -827,7 +930,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
         shootingPool?.update(dt, nextMeteorSpawn, performance.now() / 1000);
 
-        // Asteroids: slow unique tumble + light idle bob
+        const camZ = camera.position.z;
+
+        // Asteroids: tumble, bob, grow via perspective, recycle when passed
         for (const rock of rocks) {
           rock.mesh.rotation.x += rock.spin.x * dt;
           rock.mesh.rotation.y += rock.spin.y * dt;
@@ -840,6 +945,21 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
           rock.mesh.position.x = rock.home.x;
           rock.mesh.position.y = rock.home.y + bob;
           rock.mesh.position.z = rock.home.z;
+
+          // Passed the ship — respawn far ahead as a "new" distant rock
+          if (rock.home.z > camZ - ROCK_RECYCLE.passMargin) {
+            recycleRock(rock, camZ);
+            continue;
+          }
+
+          // Scrolled back — pull rocks that drifted too far ahead into range
+          if (rock.home.z < camZ - ROCK_RECYCLE.aheadMax * 1.2) {
+            rock.home.z =
+              camZ -
+              (ROCK_RECYCLE.aheadMin +
+                Math.random() * (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) * 0.45);
+            rock.mesh.position.z = rock.home.z;
+          }
         }
 
         // Soft collision — push overlapping rocks apart so they don't clip
@@ -862,7 +982,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
             b.mesh.position.y -= dy * push;
             b.mesh.position.z -= dz * push;
 
-            // Nudge homes so they don't immediately re-overlap next frame
             a.home.x += dx * push * 0.35;
             a.home.y += dy * push * 0.35;
             a.home.z += dz * push * 0.35;
@@ -874,8 +993,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
         count += TWINKLE_SPEED;
       } else {
-        field.position.y = indicatorLift;
-        field.scale.set(1, 1, 1);
+        backdrop.position.set(0, indicatorLift * 0.35, 0);
+        backdrop.rotation.z = 0;
         camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
         camera.rotation.x = 0;
         camera.fov = CAMERA_BASE_FOV;
@@ -889,6 +1008,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      starMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     };
 
     window.addEventListener("resize", handleResize);
