@@ -137,18 +137,22 @@ export function ProjectShowcase({
           const isHovered = hoveredIndex === index;
 
           return (
-            <a
+            <div
               key={project.id}
-              href={project.href}
-              className="group block outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              onMouseEnter={() => handleMouseEnter(index)}
-              onMouseLeave={handleMouseLeave}
-              onClick={(e) => {
-                if (!onProjectClick) return;
-                e.preventDefault();
-                onProjectClick(project.id);
-              }}
+              data-scrub-reveal
+              className="gsap-reveal"
             >
+              <a
+                href={project.href}
+                className="group block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                onMouseEnter={() => handleMouseEnter(index)}
+                onMouseLeave={handleMouseLeave}
+                onClick={(e) => {
+                  if (!onProjectClick) return;
+                  e.preventDefault();
+                  onProjectClick(project.id);
+                }}
+              >
               {/* Mobile still shows a static image */}
               <div className="relative mt-8 aspect-[2/1] overflow-hidden rounded-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
                 <div
@@ -234,6 +238,7 @@ export function ProjectShowcase({
                 </div>
               </div>
             </a>
+            </div>
           );
         })}
         <div className="border-t border-border" />

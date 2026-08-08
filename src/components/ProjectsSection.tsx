@@ -3,9 +3,9 @@
 import { useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
+import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
+import { MegaTitleText } from "@/components/ui/SectionHeading";
 import {
   ProjectShowcase,
   type ProjectShowcaseItem,
@@ -13,6 +13,7 @@ import {
 
 export function ProjectsSection() {
   const router = useRouter();
+  const scopeRef = useScrubBlockReveal();
 
   const items = useMemo<ProjectShowcaseItem[]>(
     () =>
@@ -38,13 +39,15 @@ export function ProjectsSection() {
 
   return (
     <Section id="projects">
-      <SectionHeading label="" title="Selected Projects" />
+      <div ref={scopeRef}>
+        <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
+          <h2 className="section-mega">
+            <MegaTitleText title="Selected Projects" />
+          </h2>
+        </div>
 
-      <AnimatedSection variant="tail">
-        <AnimatedItem>
-          <ProjectShowcase projects={items} onProjectClick={openProject} />
-        </AnimatedItem>
-      </AnimatedSection>
+        <ProjectShowcase projects={items} onProjectClick={openProject} />
+      </div>
     </Section>
   );
 }

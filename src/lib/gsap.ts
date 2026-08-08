@@ -22,6 +22,12 @@ export const revealDefaults = {
   delay: 0,
   ease: "power3.out" as const,
   start: "clamp(top 90%)",
+  /**
+   * Per-block exit while still on screen. Use top/top (not bottom/%) so start
+   * is always before end regardless of block height — otherwise forward onLeave
+   * (exit upward while scrolling down) never visibly fires.
+   */
+  end: "clamp(top 22%)",
 };
 
 /** Hero / above-the-fold blocks — wider band for tail exit only */

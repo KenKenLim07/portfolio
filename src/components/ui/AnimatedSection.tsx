@@ -79,8 +79,8 @@ export function AnimatedSection({
         const resolvedEnd = isLast
           ? (end ?? lastSectionReveal.end)
           : tailBand
-            ? tailBand.end
-            : end;
+            ? (end ?? tailBand.end)
+            : (end ?? (exit ? revealDefaults.end : undefined));
         const resolvedScrollTrigger =
           scrollTrigger ?? tailBand?.scrollTrigger;
         const resolvedExitOpacity =
