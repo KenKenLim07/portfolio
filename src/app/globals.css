@@ -239,7 +239,7 @@ body {
   color: var(--menu-fg);
 }
 
-/* Burger blackhole — void + thin spinning rim at the event horizon */
+/* Burger blackhole — sharp void + soft steel-blue eclipse halo */
 .menu-trigger-icon {
   overflow: visible;
 }
@@ -262,47 +262,71 @@ body {
 .menu-trigger-vortex__rim,
 .menu-trigger-vortex__core {
   position: absolute;
-  inset: 26%;
   border-radius: 50%;
   pointer-events: none;
 }
 
 .menu-trigger-vortex__void {
+  inset: 28%;
   z-index: 1;
   background: #000;
 }
 
-/* 1px event-horizon rim — this is what spins (closest to the hole) */
+/* Soft corona — pale steel blue, brightest at the void edge */
 .menu-trigger-vortex__rim {
+  inset: 0;
   z-index: 2;
   box-sizing: border-box;
-  border: 1.5px solid transparent;
-  border-top-color: rgba(255, 230, 180, 1);
-  border-right-color: rgba(255, 140, 40, 0.75);
-  border-bottom-color: rgba(255, 90, 20, 0.15);
-  border-left-color: rgba(255, 160, 50, 0.45);
-  filter: drop-shadow(0 0 2px rgba(255, 140, 40, 0.65));
+  border: none;
+  background: radial-gradient(
+    circle,
+    transparent 30%,
+    color-mix(in oklab, #c5d4e8 72%, transparent) 36%,
+    color-mix(in oklab, #9eb6d4 42%, transparent) 44%,
+    color-mix(in oklab, #6b8cb8 18%, transparent) 54%,
+    transparent 68%
+  );
+  filter: none;
 }
 
 .menu-trigger-vortex__rim--counter {
-  border-top-color: rgba(255, 100, 20, 0.2);
-  border-right-color: rgba(255, 200, 120, 0.35);
-  border-bottom-color: rgba(255, 240, 200, 0.9);
-  border-left-color: rgba(255, 120, 30, 0.55);
-  filter: drop-shadow(0 0 1px rgba(255, 160, 60, 0.4));
+  background: radial-gradient(
+    circle,
+    transparent 32%,
+    color-mix(in oklab, #dbe7f5 55%, transparent) 38%,
+    color-mix(in oklab, #8aa4c4 22%, transparent) 48%,
+    transparent 62%
+  );
+  opacity: 0.85;
 }
 
-/* Pure void — rim is the spinning ring outside this fill */
+/* Crisp black disk — sits on top of the corona */
 .menu-trigger-vortex__core {
+  inset: 28%;
   z-index: 3;
-  inset: calc(26% + 1.5px);
+  background: #000;
+  box-shadow: none;
+}
+
+.dark .menu-trigger-vortex__rim {
   background: radial-gradient(
-    circle at 42% 36%,
-    #120a06 0%,
-    #050201 45%,
-    #000 100%
+    circle,
+    transparent 30%,
+    color-mix(in oklab, #b8cce6 78%, transparent) 36%,
+    color-mix(in oklab, #93b4d6 48%, transparent) 44%,
+    color-mix(in oklab, #5a7aa0 20%, transparent) 54%,
+    transparent 68%
   );
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 1);
+}
+
+.dark .menu-trigger-vortex__rim--counter {
+  background: radial-gradient(
+    circle,
+    transparent 32%,
+    color-mix(in oklab, #d2e0f2 60%, transparent) 38%,
+    color-mix(in oklab, #7e9ab8 24%, transparent) 48%,
+    transparent 62%
+  );
 }
 
 /* Close X — lands on the burger slot after the hole spit */

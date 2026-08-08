@@ -197,7 +197,7 @@ export function MenuBlackholeDisk({
   );
 }
 
-/** Core above content — void + thin spinning rim at the event horizon. */
+/** Core above content — black void + soft steel-blue eclipse halo. */
 export function MenuBlackholeCore({
   className,
 }: {
@@ -209,7 +209,6 @@ export function MenuBlackholeCore({
       data-burger-vortex-core
       aria-hidden
     >
-      {/* Bright arc on the 1px rim — closest to the hole, so it spins */}
       <span data-vortex-ring className="menu-trigger-vortex__rim" />
       <span
         data-vortex-ring

@@ -39,7 +39,12 @@ export function TestimonialsRow({
   const loop = prefersReducedMotion ? [0] : [0, 1];
 
   return (
-    <div className={cn("overflow-hidden", className)}>
+    <div
+      className={cn(
+        "overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]",
+        className,
+      )}
+    >
       <motion.div
         animate={
           prefersReducedMotion

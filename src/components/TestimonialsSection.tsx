@@ -21,7 +21,7 @@ export function TestimonialsSection() {
           </h2>
         </div>
 
-        <div className="flex flex-col gap-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+        <div className="flex flex-col gap-6">
           <div data-scrub-reveal className="gsap-reveal">
             <TestimonialsRow testimonials={firstRow} duration={42} />
           </div>

@@ -31,7 +31,7 @@ function TechStackRow({
   const loop = Array.from({ length: copyCount }, (_, i) => i);
 
   return (
-    <div className="overflow-hidden">
+    <div className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
       <motion.div
         animate={
           prefersReducedMotion ? undefined : { x: reverse ? "0%" : "-50%" }
@@ -83,7 +83,7 @@ export function TechStackSection() {
           </h2>
         </div>
 
-        <div className="flex flex-col gap-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] md:gap-8">
+        <div className="flex flex-col gap-6 md:gap-8">
           {rows.map((row) => (
             <div key={row.key} data-scrub-reveal className="gsap-reveal">
               <TechStackRow
