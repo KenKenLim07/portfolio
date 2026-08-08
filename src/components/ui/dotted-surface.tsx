@@ -23,17 +23,26 @@ const DOLLY_GESTURE_IN = 158;
 const DOLLY_GESTURE_OUT = 142;
 const CAMERA_BASE_FOV = 60;
 
-/** Warp motion: idle baseline vs boost while scrolling. */
-const WAVE_IDLE_AMP = 18;
-const WAVE_SCROLL_AMP = 78;
-const WAVE_IDLE_SPEED = 0.028;
-const WAVE_SCROLL_SPEED = 0.16;
+/** Subtle asteroid idle bob (stars stay fixed — no surface wave). */
+const ROCK_BOB_AMP = 4;
+const ROCK_BOB_SPEED = 0.22;
+const TWINKLE_SPEED = 0.032;
+
+/** Occasional meteors — sparse so they feel natural. */
+const SHOOTING = {
+  trailPoints: 28,
+  poolSize: 2,
+  minGapSec: 5,
+  maxGapSec: 14,
+  lifeMin: 0.9,
+  lifeMax: 1.55,
+  speedMin: 1500,
+  speedMax: 2400,
+} as const;
 
 const STAR_COUNT = 580;
 /** Side rocks — main asteroid field. */
 const ROCK_COUNT = 12;
-/** Distant center rocks — subtle mid-frame anchors (weak scroll warp). */
-const CENTER_ROCK_COUNT = 2;
 /**
  * Depth bands (camera sits around z ≈ 1180 looking toward -Z):
  * - stars: deep background plane (still in fog range so they read)
@@ -68,6 +77,20 @@ type RockBody = {
   radius: number;
   /** 0 = almost no scroll warp, 1 = full warp. */
   warpInfluence: number;
+};
+
+type ShootingStar = {
+  active: boolean;
+  age: number;
+  life: number;
+  head: THREE.Vector3;
+  vel: THREE.Vector3;
+  positions: Float32Array;
+  colors: Float32Array;
+  geo: THREE.BufferGeometry;
+  line: THREE.Line;
+  headGeo: THREE.BufferGeometry;
+  headPoints: THREE.Points;
 };
 
 function lerp(a: number, b: number, t: number) {
@@ -263,14 +286,26 @@ function createRockField(
       randRange(rng, 0, Math.PI * 2),
     );
 
+    // Unique tumble: one dominant axis, slow rate (rad/s)
+    const axis = new THREE.Vector3(
+      randRange(rng, -1, 1),
+      randRange(rng, -1, 1),
+      randRange(rng, -1, 1),
+    );
+    if (axis.lengthSq() < 0.001) axis.set(0.2, 1, 0.1);
+    axis.normalize();
+    const spinRate = randRange(rng, 0.025, 0.09);
+    const bias = rng();
+    if (bias < 0.33)
+      axis.set(axis.x * 1.8, axis.y * 0.35, axis.z * 0.45).normalize();
+    else if (bias < 0.66)
+      axis.set(axis.x * 0.4, axis.y * 1.8, axis.z * 0.4).normalize();
+    else axis.set(axis.x * 0.45, axis.y * 0.4, axis.z * 1.8).normalize();
+
     group.add(mesh);
     rocks.push({
       mesh,
-      spin: new THREE.Vector3(
-        randRange(rng, -0.25, 0.25),
-        randRange(rng, -0.35, 0.35),
-        randRange(rng, -0.2, 0.2),
-      ),
+      spin: axis.multiplyScalar(spinRate),
       home,
       radius: opts.scale * 1.15,
       warpInfluence: opts.warpInfluence,
@@ -290,16 +325,30 @@ function createRockField(
     });
   }
 
-  // 1–2 distant center rocks — far enough that scroll warp stays gentle
-  for (let i = 0; i < CENTER_ROCK_COUNT; i++) {
-    pushRock({
-      x: randRange(rng, isMobile ? -70 : -140, isMobile ? 70 : 140),
-      y: randRange(rng, -40, 80),
-      z: randRange(rng, isMobile ? -80 : -220, isMobile ? 140 : 60),
-      scale: randRange(rng, isMobile ? 18 : 28, isMobile ? 30 : 44),
-      warpInfluence: 0.18,
-    });
-  }
+  // Two center rocks — spaced left/right so they don't crowd mid-frame
+  pushRock({
+    x: isMobile ? -110 : -220,
+    y: isMobile ? 10 : 20,
+    z: isMobile ? 40 : -40,
+    scale: isMobile ? 24 : 36,
+    warpInfluence: 0.18,
+  });
+  pushRock({
+    x: isMobile ? 120 : 240,
+    y: isMobile ? -20 : -10,
+    z: isMobile ? 80 : 20,
+    scale: isMobile ? 22 : 34,
+    warpInfluence: 0.18,
+  });
+
+  // Far asteroid, top-right
+  pushRock({
+    x: isMobile ? 280 : 720,
+    y: isMobile ? 160 : 260,
+    z: isMobile ? 520 : 680,
+    scale: isMobile ? 28 : 48,
+    warpInfluence: 0.85,
+  });
 
   // Separate overlapping homes at spawn
   for (let pass = 0; pass < 8; pass++) {
@@ -328,6 +377,190 @@ function createRockField(
   }
 
   return { group, rocks, geometries, materials };
+}
+
+function createShootingStarPool(isDark: boolean, count: number) {
+  const group = new THREE.Group();
+  const stars: ShootingStar[] = [];
+  const disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
+
+  const headColor = isDark
+    ? new THREE.Color(0xdbeafe)
+    : new THREE.Color(0x1e3a8a);
+  const midColor = isDark
+    ? new THREE.Color(0x60a5fa)
+    : new THREE.Color(0x3b82f6);
+  const tailColor = isDark
+    ? new THREE.Color(0x000000)
+    : new THREE.Color(0xf4f4f5);
+
+  for (let i = 0; i < count; i++) {
+    const n = SHOOTING.trailPoints;
+    const positions = new Float32Array(n * 3);
+    const colors = new Float32Array(n * 3);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+
+    const lineMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: isDark ? 0.95 : 0.75,
+      depthWrite: false,
+      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+    });
+    const line = new THREE.Line(geo, lineMat);
+    line.visible = false;
+    line.frustumCulled = false;
+
+    const headPos = new Float32Array(3);
+    const headGeo = new THREE.BufferGeometry();
+    headGeo.setAttribute("position", new THREE.BufferAttribute(headPos, 3));
+    const headMat = new THREE.PointsMaterial({
+      color: isDark ? 0xf8fafc : 0x1d4ed8,
+      size: isDark ? 14 : 11,
+      transparent: true,
+      opacity: isDark ? 0.95 : 0.7,
+      depthWrite: false,
+      sizeAttenuation: true,
+      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+    });
+    const headPoints = new THREE.Points(headGeo, headMat);
+    headPoints.visible = false;
+    headPoints.frustumCulled = false;
+
+    group.add(line);
+    group.add(headPoints);
+    disposables.push(geo, lineMat, headGeo, headMat);
+
+    stars.push({
+      active: false,
+      age: 0,
+      life: 1,
+      head: new THREE.Vector3(),
+      vel: new THREE.Vector3(),
+      positions,
+      colors,
+      geo,
+      line,
+      headGeo,
+      headPoints,
+    });
+  }
+
+  const paintTrail = (star: ShootingStar, brightness: number) => {
+    const n = SHOOTING.trailPoints;
+    const tmp = new THREE.Color();
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      const falloff = Math.pow(1 - t, 1.65) * brightness;
+      if (t < 0.25) {
+        tmp.copy(headColor).lerp(midColor, t / 0.25);
+      } else {
+        tmp.copy(midColor).lerp(tailColor, (t - 0.25) / 0.75);
+      }
+      const ci = i * 3;
+      star.colors[ci] = tmp.r * falloff;
+      star.colors[ci + 1] = tmp.g * falloff;
+      star.colors[ci + 2] = tmp.b * falloff;
+    }
+    star.geo.attributes.color.needsUpdate = true;
+  };
+
+  const spawn = (star: ShootingStar) => {
+    const side = Math.random() > 0.5 ? 1 : -1;
+    star.head.set(
+      side * (900 + Math.random() * 1600),
+      160 + Math.random() * 280,
+      lerp(STAR_Z.near + 280, STAR_Z.far - 120, Math.random()),
+    );
+    const speed =
+      SHOOTING.speedMin +
+      Math.random() * (SHOOTING.speedMax - SHOOTING.speedMin);
+    star.vel.set(
+      -side * speed * (0.55 + Math.random() * 0.35),
+      -speed * (0.32 + Math.random() * 0.28),
+      speed * (Math.random() * 0.16 - 0.08),
+    );
+    star.life =
+      SHOOTING.lifeMin +
+      Math.random() * (SHOOTING.lifeMax - SHOOTING.lifeMin);
+    star.age = 0;
+    star.active = true;
+    star.line.visible = true;
+    star.headPoints.visible = true;
+
+    for (let i = 0; i < SHOOTING.trailPoints; i++) {
+      const pi = i * 3;
+      star.positions[pi] = star.head.x;
+      star.positions[pi + 1] = star.head.y;
+      star.positions[pi + 2] = star.head.z;
+    }
+    star.geo.attributes.position.needsUpdate = true;
+    paintTrail(star, 0);
+  };
+
+  const deactivate = (star: ShootingStar) => {
+    star.active = false;
+    star.line.visible = false;
+    star.headPoints.visible = false;
+  };
+
+  const update = (dt: number, nextSpawnAt: { t: number }, now: number) => {
+    if (now >= nextSpawnAt.t) {
+      const idle = stars.find((s) => !s.active);
+      if (idle) spawn(idle);
+      nextSpawnAt.t =
+        now +
+        SHOOTING.minGapSec +
+        Math.random() * (SHOOTING.maxGapSec - SHOOTING.minGapSec);
+    }
+
+    for (const star of stars) {
+      if (!star.active) continue;
+
+      star.age += dt;
+      const lifeT = star.age / star.life;
+      if (lifeT >= 1) {
+        deactivate(star);
+        continue;
+      }
+
+      star.head.addScaledVector(star.vel, dt);
+
+      // Stretch trail behind the head
+      for (let i = SHOOTING.trailPoints - 1; i > 0; i--) {
+        const to = i * 3;
+        const from = (i - 1) * 3;
+        star.positions[to] = star.positions[from];
+        star.positions[to + 1] = star.positions[from + 1];
+        star.positions[to + 2] = star.positions[from + 2];
+      }
+      star.positions[0] = star.head.x;
+      star.positions[1] = star.head.y;
+      star.positions[2] = star.head.z;
+      star.geo.attributes.position.needsUpdate = true;
+
+      const headAttr = star.headGeo.attributes.position.array as Float32Array;
+      headAttr[0] = star.head.x;
+      headAttr[1] = star.head.y;
+      headAttr[2] = star.head.z;
+      star.headGeo.attributes.position.needsUpdate = true;
+
+      // Ease in, hold, soft fade out
+      const brightness =
+        lifeT < 0.12
+          ? lifeT / 0.12
+          : lifeT > 0.65
+            ? 1 - (lifeT - 0.65) / 0.35
+            : 1;
+      paintTrail(star, Math.max(0, brightness));
+      const headMat = star.headPoints.material as THREE.PointsMaterial;
+      headMat.opacity = (isDark ? 0.95 : 0.7) * brightness;
+    }
+  };
+
+  return { group, stars, update, disposables };
 }
 
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
@@ -447,12 +680,22 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       geometries: rockGeometries,
       materials: rockMaterials,
     } = createRockField(isDark, isMobile);
+    const shootingPool = reducedMotion
+      ? null
+      : createShootingStarPool(isDark, isMobile ? 1 : SHOOTING.poolSize);
     const field = new THREE.Group();
     field.add(stars);
     field.add(rockGroup);
+    if (shootingPool) field.add(shootingPool.group);
     scene.add(field);
 
     const starSeeds = seeds;
+    const nextMeteorSpawn = {
+      t:
+        performance.now() / 1000 +
+        SHOOTING.minGapSec * 0.4 +
+        Math.random() * 2.5,
+    };
 
     const timer = new THREE.Timer();
     timer.connect(document);
@@ -565,58 +808,38 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       field.scale.set(scale, scale, scale);
 
       if (!reducedMotion) {
-        const waveAmp = lerp(WAVE_IDLE_AMP, WAVE_SCROLL_AMP, active);
-        const countSpeed = lerp(WAVE_IDLE_SPEED, WAVE_SCROLL_SPEED, active);
-        const scrollDir = dir === -1 ? -1 : 1;
-        const scrollPhase = p * 3.4 * active * scrollDir;
-        const warpZ = lerp(0.35, 2.4, active);
-
-        const pos = starGeo.attributes.position.array as Float32Array;
+        // Stars: fixed positions + soft twinkle only (distant backdrop)
         const col = starGeo.attributes.color.array as Float32Array;
 
         for (let i = 0; i < starSeeds.length; i++) {
           const seed = starSeeds[i];
           const index = i * 3;
-          const ripple =
-            Math.sin((seed.x * 0.002 + count + scrollPhase) * 0.9) * waveAmp +
-            Math.sin(
-              (seed.z * 0.0015 + count * 0.7 + scrollPhase * 0.7) * 1.1,
-            ) *
-              waveAmp *
-              0.65;
-
-          pos[index] = seed.x;
-          pos[index + 1] = seed.y + ripple;
-          pos[index + 2] = seed.z + ripple * warpZ * 0.35;
-
           const twinkle =
             seed.baseAlpha *
-            (0.72 +
-              0.28 * Math.sin(count * seed.twinkleSpeed + seed.twinklePhase));
+            (0.78 +
+              0.22 * Math.sin(count * seed.twinkleSpeed + seed.twinklePhase));
           col[index] = starColors[index] * twinkle;
           col[index + 1] = starColors[index + 1] * twinkle;
           col[index + 2] = starColors[index + 2] * twinkle;
         }
 
-        starGeo.attributes.position.needsUpdate = true;
         starGeo.attributes.color.needsUpdate = true;
 
-        // Tumbling rocks + subtle bob; center rocks warp much less
+        shootingPool?.update(dt, nextMeteorSpawn, performance.now() / 1000);
+
+        // Asteroids: slow unique tumble + light idle bob
         for (const rock of rocks) {
           rock.mesh.rotation.x += rock.spin.x * dt;
           rock.mesh.rotation.y += rock.spin.y * dt;
           rock.mesh.rotation.z += rock.spin.z * dt;
 
-          const influence = rock.warpInfluence;
           const bob =
-            Math.sin(count * 0.35 + rock.home.x * 0.001) *
-            waveAmp *
-            0.22 *
-            influence;
+            Math.sin(count * ROCK_BOB_SPEED + rock.home.x * 0.001) *
+            ROCK_BOB_AMP *
+            rock.warpInfluence;
           rock.mesh.position.x = rock.home.x;
           rock.mesh.position.y = rock.home.y + bob;
-          rock.mesh.position.z =
-            rock.home.z + bob * warpZ * 0.18 * (0.4 + active) * influence;
+          rock.mesh.position.z = rock.home.z;
         }
 
         // Soft collision — push overlapping rocks apart so they don't clip
@@ -649,7 +872,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
           }
         }
 
-        count += countSpeed;
+        count += TWINKLE_SPEED;
       } else {
         field.position.y = indicatorLift;
         field.scale.set(1, 1, 1);
@@ -679,6 +902,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       starMat.dispose();
       for (const geo of rockGeometries) geo.dispose();
       for (const mat of rockMaterials) mat.dispose();
+      if (shootingPool) {
+        for (const d of shootingPool.disposables) d.dispose();
+      }
       renderer.dispose();
 
       if (renderer.domElement.parentElement === container) {
