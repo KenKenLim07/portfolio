@@ -2,9 +2,9 @@
 
 import { TECH_STACK } from "@/lib/constants";
 import { TechBrandIcon } from "@/components/TechBrandIcon";
+import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
+import { MegaTitleText } from "@/components/ui/SectionHeading";
 
 const groups = [
   { key: "frontend" as const, label: "Frontend" },
@@ -13,18 +13,24 @@ const groups = [
 ];
 
 export function TechStackSection() {
+  const scopeRef = useScrubBlockReveal();
+
   return (
     <Section id="tech-stack">
-      <SectionHeading label="" title="My Stack" />
+      <div ref={scopeRef}>
+        <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
+          <h2 className="section-mega">
+            <MegaTitleText title="My Stack" />
+          </h2>
+        </div>
 
-      <AnimatedSection variant="tail">
-        <AnimatedItem>
-          <div className="grid gap-6 md:grid-cols-3">
-            {groups.map((group) => (
-              <div
-                key={group.key}
-                className="radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border"
-              >
+        <div className="grid gap-6 md:grid-cols-3">
+          {groups.map((group) => (
+            <div
+              key={group.key}
+              data-scrub-reveal
+              className="gsap-reveal radius-panel group h-full cursor-default border border-border bg-surface p-6 transition-colors duration-200 hover:border-border"
+            >
               <div className="mb-5 flex items-center gap-3">
                 <span
                   className="h-px w-14 bg-[color-mix(in_srgb,var(--accent-from)_42%,transparent)]"
@@ -45,11 +51,10 @@ export function TechStackSection() {
                   </div>
                 ))}
               </div>
-              </div>
-            ))}
-          </div>
-        </AnimatedItem>
-      </AnimatedSection>
+            </div>
+          ))}
+        </div>
+      </div>
     </Section>
   );
 }

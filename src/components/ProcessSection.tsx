@@ -1,17 +1,23 @@
 "use client";
 
 import { PROCESS_STEPS } from "@/lib/constants";
+import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
-import { AnimatedItem, AnimatedSection } from "@/components/ui/AnimatedSection";
+import { MegaTitleText } from "@/components/ui/SectionHeading";
 
 export function ProcessSection() {
+  const scopeRef = useScrubBlockReveal();
+
   return (
     <Section id="process">
-      <SectionHeading label="" title="How I Work" align="center" />
+      <div ref={scopeRef}>
+        <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20 text-center">
+          <h2 className="section-mega">
+            <MegaTitleText title="How I Work" />
+          </h2>
+        </div>
 
-      <AnimatedSection className="relative" variant="tail">
-        <AnimatedItem>
+        <div className="relative">
           <div
             className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
             aria-hidden
@@ -21,7 +27,8 @@ export function ProcessSection() {
             {PROCESS_STEPS.map((step, index) => (
               <div
                 key={step.title}
-                className={`relative flex flex-col gap-4 md:flex-row md:items-center md:gap-10 ${
+                data-scrub-reveal
+                className={`gsap-reveal relative flex flex-col gap-4 md:flex-row md:items-center md:gap-10 ${
                   index % 2 === 1 ? "lg:flex-row-reverse" : ""
                 }`}
               >
@@ -49,8 +56,8 @@ export function ProcessSection() {
               </div>
             ))}
           </div>
-        </AnimatedItem>
-      </AnimatedSection>
+        </div>
+      </div>
     </Section>
   );
 }

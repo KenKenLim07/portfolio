@@ -214,7 +214,7 @@ export function ProjectShowcase({
 
                     <p
                       className={cn(
-                        "mt-2 line-clamp-2 text-sm leading-relaxed text-muted transition-colors duration-300",
+                        "mt-2 hidden line-clamp-2 text-sm leading-relaxed text-muted transition-colors duration-300 lg:block",
                         isHovered && "text-foreground/70",
                       )}
                     >

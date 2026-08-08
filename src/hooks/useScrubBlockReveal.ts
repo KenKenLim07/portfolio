@@ -18,11 +18,13 @@ const SCRUB_REVEAL = {
 type UseScrubBlockRevealOptions = {
   /** Defaults to `[data-scrub-reveal]` */
   selector?: string;
+  /** Skip upward exit — useful for the last section (e.g. contact form). */
+  disableExit?: boolean;
 };
 
 /**
  * Per-block scrubbed reveal: enter from below → long readable hold → late
- * exit upward. Used by About, Projects, etc.
+ * exit upward. Used by About, Projects, Stack, Process, Contact, etc.
  */
 export function useScrubBlockReveal(
   options: UseScrubBlockRevealOptions = {},
@@ -30,6 +32,7 @@ export function useScrubBlockReveal(
   const scopeRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useGsapReducedMotion();
   const selector = options.selector ?? "[data-scrub-reveal]";
+  const disableExit = options.disableExit ?? false;
 
   useGSAP(
     () => {
@@ -70,15 +73,24 @@ export function useScrubBlockReveal(
               duration: SCRUB_REVEAL.enter,
               ease: "none",
             },
-          )
-            .to({}, { duration: SCRUB_REVEAL.hold })
-            .to(block, {
+          ).to(
+            {},
+            {
+              duration: disableExit
+                ? SCRUB_REVEAL.hold + SCRUB_REVEAL.exit
+                : SCRUB_REVEAL.hold,
+            },
+          );
+
+          if (!disableExit) {
+            tl.to(block, {
               opacity: 0,
               y: -SCRUB_REVEAL.y,
               force3D: true,
               duration: SCRUB_REVEAL.exit,
               ease: "none",
             });
+          }
         });
       }, root);
 
@@ -88,7 +100,7 @@ export function useScrubBlockReveal(
     },
     {
       scope: scopeRef,
-      dependencies: [prefersReducedMotion, selector],
+      dependencies: [prefersReducedMotion, selector, disableExit],
       revertOnUpdate: true,
     },
   );
