@@ -64,7 +64,7 @@ export function TestimonialsRow({
             {testimonials.map((item) => (
               <figure
                 key={`${copy}-${item.name}`}
-                className="glass radius-panel w-[min(100vw-3rem,20rem)] shrink-0 border border-border p-6 md:p-8"
+                className="glass radius-panel w-80 max-w-[min(100%,20rem)] shrink-0 border border-border p-6 md:p-8"
               >
                 <blockquote className="text-sm leading-relaxed text-muted">
                   {item.text}

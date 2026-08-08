@@ -13,26 +13,25 @@ export function TestimonialsSection() {
   const scopeRef = useScrubBlockReveal();
 
   return (
-    <Section id="testimonials" containerClassName="max-w-none px-0 md:px-0 lg:px-0">
+    <Section id="testimonials">
       <div ref={scopeRef}>
-        <div className="mx-auto mb-14 w-full max-w-7xl px-6 text-center md:mb-20 md:px-8 lg:px-12">
-          <div data-scrub-reveal className="gsap-reveal">
-            <h2 className="section-mega">
-              <MegaTitleText title="Kind Words" />
-            </h2>
-          </div>
+        <div data-scrub-reveal className="gsap-reveal mb-14 text-center md:mb-20">
+          <h2 className="section-mega">
+            <MegaTitleText title="Kind Words" />
+          </h2>
         </div>
 
-        <div
-          data-scrub-reveal
-          className="gsap-reveal flex flex-col gap-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
-        >
-          <TestimonialsRow testimonials={firstRow} duration={42} />
-          <TestimonialsRow
-            testimonials={secondRow}
-            duration={48}
-            reverse
-          />
+        <div className="flex flex-col gap-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+          <div data-scrub-reveal className="gsap-reveal">
+            <TestimonialsRow testimonials={firstRow} duration={42} />
+          </div>
+          <div data-scrub-reveal className="gsap-reveal">
+            <TestimonialsRow
+              testimonials={secondRow}
+              duration={48}
+              reverse
+            />
+          </div>
         </div>
       </div>
     </Section>

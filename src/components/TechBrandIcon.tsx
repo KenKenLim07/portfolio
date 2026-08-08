@@ -5,6 +5,7 @@ import { getTechBrandIcon } from "@/lib/tech-brand-icons";
 const fallbackIconMap: Record<string, LucideIcon> = {
   "VADER NLP": MessageSquare,
   "Sentiment Analysis": Brain,
+  Transformers: Brain,
 };
 
 type TechBrandIconProps = {

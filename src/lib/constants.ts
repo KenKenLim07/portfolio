@@ -287,7 +287,15 @@ export const TECH_STACK = {
     "PostgreSQL",
     "Python",
   ],
-  ai: ["DistilBERT", "VADER NLP", "spaCy"],
+  ai: [
+    "Transformers",
+    "Hugging Face",
+    "OpenAI",
+    "Anthropic",
+    "spaCy",
+    "DistilBERT",
+    "VADER NLP",
+  ],
 } as const;
 
 /** Deduped stack tags for hero panel (max 10) */
