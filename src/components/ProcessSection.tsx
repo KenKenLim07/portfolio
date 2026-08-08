@@ -1,58 +1,83 @@
 "use client";
 
 import { PROCESS_STEPS } from "@/lib/constants";
+import { useProcessRoadmap } from "@/hooks/useProcessRoadmap";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
 import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { cn } from "@/lib/utils";
 
 export function ProcessSection() {
   const scopeRef = useScrubBlockReveal();
+  const trackRef = useProcessRoadmap();
 
   return (
     <Section id="process">
       <div ref={scopeRef}>
-        <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20 text-center">
+        <div data-scrub-reveal className="gsap-reveal mb-14 text-center md:mb-20">
           <h2 className="section-mega">
             <MegaTitleText title="How I Work" />
           </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
+            A minimal, repeatable process that keeps strategy, design, and
+            engineering aligned.
+          </p>
         </div>
 
-        <div className="relative">
+        <div ref={trackRef} className="relative mx-auto max-w-5xl">
+          {/* Track + scroll-filled progress */}
           <div
-            className="absolute left-8 top-0 hidden h-full w-px bg-gradient-to-b from-[var(--accent-from)]/45 via-border to-transparent md:block lg:left-1/2 lg:-translate-x-px"
+            className="absolute bottom-4 left-[1.125rem] top-4 w-px md:left-1/2 md:-translate-x-px"
             aria-hidden
-          />
+          >
+            <div className="absolute inset-0 bg-border" />
+            <div
+              data-process-progress
+              className="absolute inset-0 origin-top scale-y-0 bg-[var(--accent-from)]"
+            />
+          </div>
 
-          <div className="grid gap-6 md:gap-8">
-            {PROCESS_STEPS.map((step, index) => (
-              <div
-                key={step.title}
-                data-scrub-reveal
-                className={`gsap-reveal relative flex flex-col gap-4 md:flex-row md:items-center md:gap-10 ${
-                  index % 2 === 1 ? "lg:flex-row-reverse" : ""
-                }`}
-              >
-                <div className="flex items-center gap-4 md:w-1/2 lg:justify-end lg:pr-12">
-                  <span className="font-display text-4xl font-light text-foreground/15 md:hidden lg:block lg:absolute lg:left-1/2 lg:-translate-x-1/2 lg:text-5xl">
+          <ol className="relative m-0 grid list-none gap-8 p-0 md:gap-12">
+            {PROCESS_STEPS.map((step, index) => {
+              const reverse = index % 2 === 1;
+
+              return (
+                <li
+                  key={step.title}
+                  data-scrub-reveal
+                  data-process-step
+                  className="gsap-reveal relative md:grid md:grid-cols-2 md:items-center md:gap-16"
+                >
+                  <span
+                    data-process-node
+                    data-active="false"
+                    className="process-node absolute left-0 top-1 z-10 flex h-9 w-9 items-center justify-center rounded-full font-mono text-[11px] font-medium tracking-wider shadow-[0_0_0_4px_var(--background)] md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+                    aria-hidden
+                  >
                     {step.step}
                   </span>
+
                   <div
-                    className={`glass radius-panel w-full p-6 md:p-8 ${
-                      index % 2 === 1 ? "lg:ml-auto" : "lg:mr-auto"
-                    } lg:max-w-md`}
+                    className={cn(
+                      "ml-14 md:ml-0",
+                      reverse
+                        ? "md:col-start-2"
+                        : "md:col-start-1 md:row-start-1 md:justify-self-end md:text-right",
+                    )}
                   >
-                    <h3 className="font-display text-xl font-semibold text-foreground">
-                      {step.title}
-                    </h3>
-                    <p className="mt-3 text-sm leading-relaxed text-muted">
-                      {step.description}
-                    </p>
+                    <article className="glass radius-panel p-6 md:max-w-md md:p-8">
+                      <h3 className="font-display text-xl font-semibold text-foreground">
+                        {step.title}
+                      </h3>
+                      <p className="mt-3 text-sm leading-relaxed text-muted">
+                        {step.description}
+                      </p>
+                    </article>
                   </div>
-                </div>
-                <div className="hidden md:block md:w-1/2" aria-hidden />
-              </div>
-            ))}
-          </div>
+                </li>
+              );
+            })}
+          </ol>
         </div>
       </div>
     </Section>
