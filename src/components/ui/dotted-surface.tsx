@@ -1,7 +1,6 @@
 "use client";
 
 import { useTheme } from "@/components/ThemeProvider";
-import { clearSunInkLit, updateSunInkLit } from "@/lib/sunInk";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
@@ -1274,57 +1273,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let smoothedGesture = 0;
     let flareAmt = 0;
 
-    /**
-     * Drive CSS ink contrast from the projected sun each frame so type tracks
-     * scroll-driven camera lift / flare (`.dark.sun` open-air copy).
-     */
-    const clearSunCss = () => {
-      const root = document.documentElement;
-      root.style.removeProperty("--sun-x");
-      root.style.removeProperty("--sun-y");
-      root.style.removeProperty("--sun-face");
-      root.style.removeProperty("--sun-flare");
-      root.style.removeProperty("--sun-wash");
-      clearSunInkLit();
-    };
-
-    const publishSunCss = (
-      faceAmt: number,
-      ndcX: number,
-      ndcY: number,
-      visible: boolean,
-      flare: number,
-    ) => {
-      const root = document.documentElement;
-      if (!root.classList.contains("sun") && root.dataset.theme !== "sun") {
-        clearSunCss();
-        return;
-      }
-      // Keep class in sync if React wiped it but data-theme says sun
-      if (root.dataset.theme === "sun") root.classList.add("sun");
-      if (!visible) {
-        // Dark space only — keep ink light across the viewport.
-        root.style.setProperty("--sun-x", "1.25");
-        root.style.setProperty("--sun-y", "0.5");
-        root.style.setProperty("--sun-flare", "0");
-        root.style.setProperty("--sun-wash", "0.06");
-        root.style.setProperty("--sun-face", "0");
-        updateSunInkLit(1.25, 0.5, 0);
-        return;
-      }
-      // Three NDC → CSS viewport (y flips: NDC +1 is top, CSS 0 is top).
-      const x = Math.max(-0.08, Math.min(1.08, (ndcX + 1) * 0.5));
-      const y = Math.max(-0.08, Math.min(1.08, (1 - ndcY) * 0.5));
-      const wash = 0.1 + flare * 0.22;
-      const flareClamped = Math.max(0, Math.min(1, flare));
-      root.style.setProperty("--sun-x", x.toFixed(4));
-      root.style.setProperty("--sun-y", y.toFixed(4));
-      root.style.setProperty("--sun-flare", flareClamped.toFixed(4));
-      root.style.setProperty("--sun-wash", wash.toFixed(4));
-      root.style.setProperty("--sun-face", faceAmt.toFixed(4));
-      updateSunInkLit(x, y, flareClamped);
-    };
-
     const updateSunVisuals = (face: number) => {
       sunWorldPosition(isMobile, sun.group.position);
       sun.group.quaternion.copy(camera.quaternion);
@@ -1339,7 +1287,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         sun.coronaMat.uniforms.uOpacity.value = 0;
         sun.outerMat.uniforms.uOpacity.value = 0;
         sunGlow.intensity = 0;
-        publishSunCss(0, 0, 0, false, 0);
         return;
       }
 
@@ -1357,7 +1304,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       sun.coronaMat.uniforms.uOpacity.value = face * (0.7 + flareAmt * 0.3);
       sun.outerMat.uniforms.uOpacity.value = face * (0.5 + flareAmt * 0.4);
       sunGlow.intensity = face * 2.6;
-      publishSunCss(face, ndc.x, ndc.y, inFront, flareAmt);
     };
 
     const animate = (timestamp: number) => {
@@ -1558,8 +1504,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         for (const d of shootingPool.disposables) d.dispose();
       }
       renderer.dispose();
-
-      clearSunCss();
 
       if (renderer.domElement.parentElement === container) {
         container.removeChild(renderer.domElement);

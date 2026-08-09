@@ -110,10 +110,7 @@ export function ContactSection() {
           </div>
 
           <div data-scrub-reveal className="gsap-reveal">
-            <div
-              data-sun-solid
-              className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8"
-            >
+            <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
               <h3 className="font-display mb-6 text-lg font-semibold text-foreground">
                 Send a message
               </h3>

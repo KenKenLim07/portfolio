@@ -41,7 +41,7 @@ function HeroAvailability({ className }: { className?: string }) {
         )}
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
       </span>
-      <span className="hero-sun-muted text-muted">{HERO_AVAILABILITY}</span>
+      <span className="text-muted">{HERO_AVAILABILITY}</span>
     </p>
   );
 }
@@ -127,19 +127,13 @@ function HeroCopy({
         aria-level={1}
       >
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega hero-sun-ink text-foreground">
-            Full-Stack
-          </span>
+          <span className="hero-mega text-foreground">Full-Stack</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega hero-sun-ink text-foreground">
-            Developer
-          </span>
+          <span className="hero-mega text-foreground">Developer</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega hero-mega-outline hero-sun-outline">
-            • AI Systems
-          </span>
+          <span className="hero-mega hero-mega-outline">• AI Systems</span>
         </HeroRevealItem>
       </div>
 
@@ -152,14 +146,14 @@ function HeroCopy({
       >
         <p
           className={cn(
-            "hero-sun-muted max-w-xl leading-relaxed text-muted",
+            "max-w-xl leading-relaxed text-muted",
             compact
               ? "line-clamp-3 text-sm"
               : "max-w-[36ch] text-[1.0625rem] leading-relaxed sm:max-w-xl sm:text-lg lg:max-w-xl lg:text-lg",
           )}
         >
           Hi, I&apos;m{" "}
-          <span className="hero-sun-ink font-semibold text-foreground">
+          <span className="font-semibold text-foreground">
             {SITE.name}
           </span>
           , {SITE.description}
