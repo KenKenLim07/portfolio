@@ -39,12 +39,13 @@ function subscribeToTheme(listener: () => void) {
 }
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark");
+  // UI stays dark cockpit — theme only drives space facing (forward vs hollow)
+  document.documentElement.classList.add("dark");
   localStorage.setItem("theme", theme);
 }
 
 function readTheme(): Theme {
-  if (document.documentElement.classList.contains("dark")) return "dark";
+  // Do not infer from `.dark` — that class is always on for the cockpit UI
   try {
     const stored = localStorage.getItem("theme") as Theme | null;
     if (stored === "light" || stored === "dark") return stored;

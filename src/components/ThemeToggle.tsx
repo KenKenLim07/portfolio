@@ -19,7 +19,11 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
         "cursor-pointer p-2 transition-colors duration-200",
         className ?? "text-muted hover:text-foreground",
       )}
-      aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={
+        theme === "dark"
+          ? "Turn toward the hollow"
+          : "Turn forward through space"
+      }
       suppressHydrationWarning
     >
       {theme === "dark" ? (

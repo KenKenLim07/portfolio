@@ -8,8 +8,7 @@ import * as THREE from "three";
 type DottedSurfaceProps = Omit<React.ComponentProps<"div">, "ref">;
 
 const FOG = {
-  light: 0xf4f4f5,
-  dark: 0x09090b,
+  space: 0x09090b,
 } as const;
 
 const CAMERA_BASE = { x: 0, y: 280, z: 1180 } as const;
@@ -18,13 +17,15 @@ const CAMERA_BASE = { x: 0, y: 280, z: 1180 } as const;
 const INDICATOR_MAX_LIFT = 120;
 
 /**
- * Ship throttle: page scroll 0→1 drives deep travel into -Z.
- * Gesture adds a short burst while actively scrolling.
+ * Ship throttle: page scroll drives corridor travel (asteroids) on both facings.
+ * The sun stays visually static by tracking the camera at a fixed offset.
  */
-const DOLLY_FROM_PROGRESS = 1180;
-const DOLLY_GESTURE_IN = 260;
-const DOLLY_GESTURE_OUT = 200;
+const DOLLY_FROM_PROGRESS = 2200;
+const DOLLY_GESTURE_IN = 420;
+const DOLLY_GESTURE_OUT = 340;
 const CAMERA_BASE_FOV = 60;
+/** How fast the ship yaws between forward corridor and reverse hollow (expSmooth λ). */
+const FACING_TURN_LAMBDA = 1.85;
 
 /** Subtle asteroid idle bob (stars stay fixed — no surface wave). */
 const ROCK_BOB_AMP = 4;
@@ -43,24 +44,33 @@ const SHOOTING = {
   speedMax: 2400,
 } as const;
 
-const STAR_COUNT = 260;
+const STAR_COUNT = 280;
 /** Side rocks — main asteroid field. */
 const ROCK_COUNT = 14;
 /**
  * Depth bands (camera sits around z ≈ 1180 looking toward -Z):
- * - stars: deep backdrop (material.fog off — scene fog is for rocks only)
- * - asteroids: corridor ahead of the camera; recycled as we pass them
+ * - stars: spherical shell so forward + reverse views both have sky
+ * - asteroids: corridor ahead of travel; recycled as we pass them
+ * - hollow: large eclipse behind the ship (+Z) for "light" facing
  */
-/** XY span at star depth — must fill the camera frustum or stars read as a salt band. */
-const STAR_EXTENT = { x: 16000, y: 9000 } as const;
 /** Side / corridor rock placement bounds. */
 const FIELD = { x: 5600, y: 640, z: 6400 } as const;
-/**
- * Stars live deep behind the asteroid corridor.
- * Camera travels ~1180 in Z — this band stays thousands of units farther
- * than any rock so pinpoints never read as nearby debris.
- */
-const STAR_Z = { closest: -4200, farthest: -8200 } as const;
+/** Spherical star shell centered near the travel mid-path. */
+const STAR_SHELL = {
+  centerZ: 400,
+  radiusMin: 5200,
+  radiusMax: 9400,
+  yScale: 0.72,
+} as const;
+/** Reverse hollow — distant sun/eclipse; glow must die before plane edges (no square cut). */
+const HOLLOW = {
+  ahead: 6200,
+  aheadMobile: 4800,
+  voidRadius: 640,
+  voidRadiusMobile: 440,
+  /** Glow plane multiplier — keep large so soft falloff never hits the border. */
+  glowSpan: 14,
+} as const;
 /** How far ahead (-Z from camera) recycled rocks respawn. */
 const ROCK_RECYCLE = {
   passMargin: 120,
@@ -86,6 +96,8 @@ type StarSeed = {
   twinklePhase: number;
   twinkleSpeed: number;
   baseAlpha: number;
+  /** Against the sun these read as tiny debris silhouettes. */
+  silhouette: boolean;
 };
 
 type RockBody = {
@@ -146,7 +158,7 @@ function randRange(rng: Rng, min: number, max: number) {
 const STAR_SEED = 0x51a7;
 const ROCK_SEED = 0xc0de;
 
-function buildStarfield(isDark: boolean): {
+function buildStarfield(): {
   seeds: StarSeed[];
   positions: number[];
   colors: number[];
@@ -159,39 +171,37 @@ function buildStarfield(isDark: boolean): {
   const sizes: number[] = [];
 
   for (let i = 0; i < STAR_COUNT; i++) {
-    // Bias toward farthest depths — stars must stay behind the rock corridor
-    const depthT = Math.pow(rng(), 0.55);
-    const z = lerp(STAR_Z.closest, STAR_Z.farthest, depthT);
-    // Soft radial falloff so the field feels like a sky, not a packed rectangle
-    const angle = rng() * Math.PI * 2;
-    const radius = Math.sqrt(rng());
-    const x = Math.cos(angle) * radius * STAR_EXTENT.x * 0.5;
-    const y = Math.sin(angle) * radius * STAR_EXTENT.y * 0.5;
+    // Spherical shell — stars remain when the ship yaws 180° toward the sun
+    const radius = lerp(
+      STAR_SHELL.radiusMin,
+      STAR_SHELL.radiusMax,
+      Math.pow(rng(), 0.65),
+    );
+    const u = rng();
+    const v = rng();
+    const theta = u * Math.PI * 2;
+    const phi = Math.acos(2 * v - 1);
+    const x = radius * Math.sin(phi) * Math.cos(theta);
+    const y =
+      CAMERA_BASE.y +
+      radius * Math.sin(phi) * Math.sin(theta) * STAR_SHELL.yScale;
+    const z = STAR_SHELL.centerZ + radius * Math.cos(phi);
 
     const twinklePhase = rng() * Math.PI * 2;
     const twinkleSpeed = randRange(rng, 0.25, 0.9);
-    // Power-law brightness: mostly dim, a few brighter anchors
     const luminosity = Math.pow(rng(), 2.4);
-    const baseAlpha = isDark
-      ? lerp(0.28, 1, luminosity)
-      : lerp(0.22, 0.85, luminosity);
-    // Screen-space px — sparse large jewels + tiny dust, not uniform salt
-    const size = lerp(1.4, isDark ? 5.2 : 4.6, Math.pow(luminosity, 0.65));
+    const baseAlpha = lerp(0.28, 1, luminosity);
+    // Prefer reverse-hemisphere dust as sun silhouettes
+    const towardSun = z > CAMERA_BASE.z - 400;
+    const silhouette = towardSun && rng() < 0.22;
+    const size = silhouette
+      ? lerp(2.2, 6.5, Math.pow(rng(), 0.55))
+      : lerp(1.4, 5.2, Math.pow(luminosity, 0.65));
 
-    let r: number;
-    let g: number;
-    let b: number;
-    if (isDark) {
-      const cool = rng();
-      r = lerp(0.78, 0.98, cool);
-      g = lerp(0.82, 0.98, cool);
-      b = lerp(0.9, 1, cool);
-    } else {
-      const cool = rng();
-      r = lerp(0.22, 0.4, cool);
-      g = lerp(0.28, 0.46, cool);
-      b = lerp(0.48, 0.66, cool);
-    }
+    const cool = rng();
+    const r = lerp(0.78, 0.98, cool);
+    const g = lerp(0.82, 0.98, cool);
+    const b = lerp(0.9, 1, cool);
 
     seeds.push({
       x,
@@ -201,6 +211,7 @@ function buildStarfield(isDark: boolean): {
       twinklePhase,
       twinkleSpeed,
       baseAlpha,
+      silhouette,
     });
     positions.push(x, y, z);
     colors.push(r, g, b);
@@ -208,6 +219,112 @@ function buildStarfield(isDark: boolean): {
   }
 
   return { seeds, positions, colors, sizes };
+}
+
+/** Distant sun — hot core + soft steel-blue corona (no black hole). */
+function createHollow(isMobile: boolean) {
+  const group = new THREE.Group();
+  const disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
+  const voidR = isMobile ? HOLLOW.voidRadiusMobile : HOLLOW.voidRadius;
+  const ahead = isMobile ? HOLLOW.aheadMobile : HOLLOW.ahead;
+  const glowSize = voidR * HOLLOW.glowSpan;
+
+  const coronaMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uOpacity: { value: 1 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform float uOpacity;
+      void main() {
+        vec2 c = vUv - vec2(0.5);
+        float d = length(c) * 2.0;
+        if (d > 0.92) discard;
+
+        // Bright solar disc + soft limb — solid sun, not a hollow
+        float core = exp(-d * d * 48.0);
+        float disc = exp(-d * d * 12.0);
+        float bloom = exp(-d * d * 3.2) * 0.55;
+        float haze = exp(-d * d * 1.05) * 0.28;
+        float alpha = (core * 0.95 + disc * 0.75 + bloom + haze) * uOpacity;
+        if (alpha < 0.004) discard;
+
+        vec3 hot = vec3(0.95, 0.97, 1.0);
+        vec3 warm = vec3(0.72, 0.84, 1.0);
+        vec3 cool = vec3(0.42, 0.58, 0.84);
+        vec3 col = mix(cool, warm, disc);
+        col = mix(col, hot, core);
+        gl_FragColor = vec4(col, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  disposables.push(coronaMat);
+
+  const coronaGeo = new THREE.PlaneGeometry(glowSize, glowSize);
+  disposables.push(coronaGeo);
+  const corona = new THREE.Mesh(coronaGeo, coronaMat);
+  corona.position.z = -8;
+  corona.frustumCulled = false;
+
+  const outerMat = new THREE.ShaderMaterial({
+    uniforms: {
+      uOpacity: { value: 1 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform float uOpacity;
+      void main() {
+        vec2 c = vUv - vec2(0.5);
+        float d = length(c) * 2.0;
+        if (d > 0.95) discard;
+        float soft = exp(-d * d * 2.4) * 0.42;
+        float alpha = soft * uOpacity;
+        if (alpha < 0.003) discard;
+        gl_FragColor = vec4(0.5, 0.66, 0.92, alpha);
+      }
+    `,
+    transparent: true,
+    depthWrite: false,
+    fog: false,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+  });
+  disposables.push(outerMat);
+  const outerGeo = new THREE.PlaneGeometry(glowSize * 1.15, glowSize * 1.15);
+  disposables.push(outerGeo);
+  const outer = new THREE.Mesh(outerGeo, outerMat);
+  outer.position.z = -16;
+  outer.frustumCulled = false;
+
+  group.add(outer);
+  group.add(corona);
+  group.position.set(0, CAMERA_BASE.y, CAMERA_BASE.z + ahead);
+
+  return {
+    group,
+    coronaMat,
+    outerMat,
+    disposables,
+  };
 }
 
 /** Irregular rock mesh — displaced icosahedron with crater-like dents. */
@@ -506,7 +623,9 @@ function createShootingStarPool(isDark: boolean, count: number) {
     star.head.set(
       side * (900 + Math.random() * 1600),
       160 + Math.random() * 280,
-      lerp(STAR_Z.closest - 200, STAR_Z.farthest + 400, Math.random()),
+      STAR_SHELL.centerZ +
+        (Math.random() > 0.5 ? -1 : 1) *
+          (STAR_SHELL.radiusMin * 0.35 + Math.random() * 1800),
     );
     const speed =
       SHOOTING.speedMin +
@@ -607,6 +726,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     scrollDir: 0,
   });
   const lastScrollYRef = useRef(0);
+  /** 0 = forward corridor, 1 = reverse hollow. Theme drives this without remounting WebGL. */
+  const facingTargetRef = useRef(theme === "light" ? 1 : 0);
+
+  useEffect(() => {
+    facingTargetRef.current = theme === "light" ? 1 : 0;
+  }, [theme]);
 
   useEffect(() => {
     const readScroll = () => {
@@ -646,13 +771,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    const isDark = theme === "dark";
     const isMobile = window.innerWidth < 768;
-    const { seeds, positions, colors, sizes } = buildStarfield(isDark);
+    const { seeds, positions, colors, sizes } = buildStarfield();
 
     const scene = new THREE.Scene();
     // Fog hides far recycled rocks until they approach (no hard pop-in)
-    scene.fog = new THREE.Fog(isDark ? FOG.dark : FOG.light, 1400, 6200);
+    scene.fog = new THREE.Fog(FOG.space, 1400, 6200);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -661,6 +785,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       14000,
     );
     camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
+    // Initial facing from stored theme (no flash on first frame)
+    let facingAmount = facingTargetRef.current;
+    camera.rotation.y = facingAmount * Math.PI;
 
     const renderer = new THREE.WebGLRenderer({
       alpha: true,
@@ -673,21 +800,31 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     container.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(isDark ? 0x6b7280 : 0xa1a1aa, 0.55);
-    const key = new THREE.DirectionalLight(isDark ? 0xcbd5e1 : 0xffffff, 0.85);
+    const ambient = new THREE.AmbientLight(0x6b7280, 0.55);
+    const key = new THREE.DirectionalLight(0xcbd5e1, 0.85);
     key.position.set(420, 680, 320);
-    const rim = new THREE.DirectionalLight(isDark ? 0x60a5fa : 0x2563eb, 0.28);
+    const rim = new THREE.DirectionalLight(0x60a5fa, 0.28);
     rim.position.set(-380, -120, -520);
     scene.add(ambient, key, rim);
 
     const starPositions: number[] = [];
     const starColors: number[] = [];
     const starSizes: number[] = [];
+    const silPositions: number[] = [];
+    const silSizes: number[] = [];
+    const brightSeeds: StarSeed[] = [];
+
     seeds.forEach((seed, i) => {
       const base = i * 3;
+      if (seed.silhouette) {
+        silPositions.push(positions[base], positions[base + 1], positions[base + 2]);
+        silSizes.push(sizes[i]);
+        return;
+      }
       starPositions.push(positions[base], positions[base + 1], positions[base + 2]);
       starColors.push(colors[base], colors[base + 1], colors[base + 2]);
       starSizes.push(sizes[i]);
+      brightSeeds.push(seed);
     });
 
     const starGeo = new THREE.BufferGeometry();
@@ -708,7 +845,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const starMat = new THREE.ShaderMaterial({
       uniforms: {
         uPixelRatio: { value: renderer.getPixelRatio() },
-        uOpacity: { value: isDark ? 0.95 : 0.78 },
+        uOpacity: { value: 0.95 },
       },
       vertexShader: `
         attribute float size;
@@ -738,28 +875,79 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       transparent: true,
       depthWrite: false,
       fog: false,
-      blending: isDark ? THREE.AdditiveBlending : THREE.NormalBlending,
+      blending: THREE.AdditiveBlending,
     });
 
     const stars = new THREE.Points(starGeo, starMat);
+
+    // Dark debris against the sun — NormalBlending so they read as real silhouettes
+    const silGeo = new THREE.BufferGeometry();
+    silGeo.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(silPositions, 3),
+    );
+    silGeo.setAttribute(
+      "size",
+      new THREE.Float32BufferAttribute(silSizes, 1),
+    );
+    const silMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uPixelRatio: { value: renderer.getPixelRatio() },
+        uOpacity: { value: 0 },
+      },
+      vertexShader: `
+        attribute float size;
+        uniform float uPixelRatio;
+        uniform float uOpacity;
+        void main() {
+          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+          gl_PointSize = size * uPixelRatio * (0.85 + uOpacity * 0.35);
+        }
+      `,
+      fragmentShader: `
+        uniform float uOpacity;
+        void main() {
+          vec2 c = gl_PointCoord - vec2(0.5);
+          float d = length(c);
+          if (d > 0.5) discard;
+          float soft = 1.0 - smoothstep(0.1, 0.5, d);
+          float alpha = soft * uOpacity;
+          if (alpha < 0.02) discard;
+          gl_FragColor = vec4(0.02, 0.025, 0.04, alpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: true,
+      fog: false,
+      blending: THREE.NormalBlending,
+    });
+    const silhouettes = new THREE.Points(silGeo, silMat);
+    silhouettes.renderOrder = 2;
     const {
       group: rockGroup,
       rocks,
       geometries: rockGeometries,
       materials: rockMaterials,
-    } = createRockField(isDark, isMobile);
+    } = createRockField(true, isMobile);
     const shootingPool = reducedMotion
       ? null
-      : createShootingStarPool(isDark, isMobile ? 1 : SHOOTING.poolSize);
+      : createShootingStarPool(true, isMobile ? 1 : SHOOTING.poolSize);
+
+    const hollow = createHollow(isMobile);
+    const hollowLight = new THREE.PointLight(0xb8cce6, 0, 9000, 2);
+    hollow.group.add(hollowLight);
 
     // Backdrop drifts slowly; corridor rocks stay in world space for true fly-through
     const backdrop = new THREE.Group();
     backdrop.add(stars);
+    backdrop.add(silhouettes);
     if (shootingPool) backdrop.add(shootingPool.group);
     scene.add(backdrop);
     scene.add(rockGroup);
+    scene.add(hollow.group);
 
-    const starSeeds = seeds;
+    const starSeeds = brightSeeds;
     const nextMeteorSpawn = {
       t:
         performance.now() / 1000 +
@@ -771,7 +959,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       ? { min: 16, max: 34 }
       : ROCK_SPAWN_SCALE;
 
-    const recycleRock = (rock: RockBody, camZ: number) => {
+    const recycleRock = (rock: RockBody, camZ: number, travelSign: number) => {
       const side = Math.random() > 0.5 ? 1 : -1;
       const xMin = isMobile ? 120 : 360;
       const xMax = isMobile ? 340 : FIELD.x * 0.36;
@@ -780,7 +968,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         Math.random() * (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin);
       rock.home.x = side * (xMin + Math.random() * (xMax - xMin));
       rock.home.y = (Math.random() - 0.5) * (isMobile ? 220 : 320);
-      rock.home.z = camZ - ahead;
+      // travelSign -1 = forward (-Z), +1 = reverse (+Z)
+      rock.home.z = camZ + travelSign * ahead;
       // Always small at spawn — perspective grows them as we approach
       const depthT =
         (ahead - ROCK_RECYCLE.aheadMin) /
@@ -866,9 +1055,26 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         zoomInAmt * (DOLLY_GESTURE_IN + velBoost) -
         zoomOutAmt * (DOLLY_GESTURE_OUT + velBoost);
 
-      // Ship throttle: page depth is the main drive into space
+      // 0 forward / 1 reverse hollow — smooth yaw, snap if reduced motion
+      const faceTarget = facingTargetRef.current;
+      facingAmount = reducedMotion
+        ? faceTarget
+        : expSmooth(facingAmount, faceTarget, FACING_TURN_LAMBDA, dt);
+      camera.rotation.y = facingAmount * Math.PI;
+
+      const hollowGlow = facingAmount;
+      hollow.coronaMat.uniforms.uOpacity.value = 0.35 + hollowGlow * 0.65;
+      hollow.outerMat.uniforms.uOpacity.value = 0.2 + hollowGlow * 0.8;
+      hollowLight.intensity = hollowGlow * 2.4;
+      // Debris silhouettes only read against the sun
+      silMat.uniforms.uOpacity.value = hollowGlow * 0.92;
+
+      // Full travel both ways — asteroids stream; sun is locked to the camera
       const progressDolly = p * DOLLY_FROM_PROGRESS;
-      const targetCamZ = CAMERA_BASE.z - progressDolly - gestureDolly;
+      const travel = progressDolly + gestureDolly;
+      const face = facingAmount;
+      const travelSign = lerp(-1, 1, face);
+      const targetCamZ = CAMERA_BASE.z + travelSign * travel;
       const cameraLift =
         liftT * 24 + zoomInAmt * 36 - zoomOutAmt * 28 + velocityKick * 0.35;
 
@@ -879,6 +1085,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         dt,
       );
       camera.position.z = expSmooth(camera.position.z, targetCamZ, 10, dt);
+
+      // Sun rides with the ship at fixed range — looks distant/static while rocks fly past
+      const sunAhead = isMobile ? HOLLOW.aheadMobile : HOLLOW.ahead;
+      hollow.group.position.x = camera.position.x;
+      hollow.group.position.y = camera.position.y;
+      hollow.group.position.z = camera.position.z + sunAhead;
 
       // Star backdrop: slow parallax only (not locked to ship speed)
       backdrop.position.y = expSmooth(
@@ -946,18 +1158,30 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
           rock.mesh.position.y = rock.home.y + bob;
           rock.mesh.position.z = rock.home.z;
 
-          // Passed the ship — respawn far ahead as a "new" distant rock
-          if (rock.home.z > camZ - ROCK_RECYCLE.passMargin) {
-            recycleRock(rock, camZ);
+          // Passed the ship — respawn far ahead along travel direction
+          const passed =
+            travelSign < 0
+              ? rock.home.z > camZ - ROCK_RECYCLE.passMargin
+              : rock.home.z < camZ + ROCK_RECYCLE.passMargin;
+          if (passed) {
+            recycleRock(rock, camZ, travelSign < 0 ? -1 : 1);
             continue;
           }
 
           // Scrolled back — pull rocks that drifted too far ahead into range
-          if (rock.home.z < camZ - ROCK_RECYCLE.aheadMax * 1.2) {
+          const tooFar =
+            travelSign < 0
+              ? rock.home.z < camZ - ROCK_RECYCLE.aheadMax * 1.2
+              : rock.home.z > camZ + ROCK_RECYCLE.aheadMax * 1.2;
+          if (tooFar) {
+            const pullSign = travelSign < 0 ? -1 : 1;
             rock.home.z =
-              camZ -
-              (ROCK_RECYCLE.aheadMin +
-                Math.random() * (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) * 0.45);
+              camZ +
+              pullSign *
+                (ROCK_RECYCLE.aheadMin +
+                  Math.random() *
+                    (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) *
+                    0.45);
             rock.mesh.position.z = rock.home.z;
           }
         }
@@ -997,8 +1221,13 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         backdrop.rotation.z = 0;
         camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
         camera.rotation.x = 0;
+        camera.rotation.y = facingAmount * Math.PI;
         camera.fov = CAMERA_BASE_FOV;
         camera.updateProjectionMatrix();
+        hollow.coronaMat.uniforms.uOpacity.value = 0.35 + facingAmount * 0.65;
+        hollow.outerMat.uniforms.uOpacity.value = 0.2 + facingAmount * 0.8;
+        hollowLight.intensity = facingAmount * 2.4;
+        silMat.uniforms.uOpacity.value = facingAmount * 0.92;
       }
 
       renderer.render(scene, camera);
@@ -1009,6 +1238,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       starMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
+      silMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     };
 
     window.addEventListener("resize", handleResize);
@@ -1020,8 +1250,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
       starGeo.dispose();
       starMat.dispose();
+      silGeo.dispose();
+      silMat.dispose();
       for (const geo of rockGeometries) geo.dispose();
       for (const mat of rockMaterials) mat.dispose();
+      for (const d of hollow.disposables) d.dispose();
       if (shootingPool) {
         for (const d of shootingPool.disposables) d.dispose();
       }
@@ -1031,7 +1264,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, [theme]);
+  }, []);
 
   return (
     <div

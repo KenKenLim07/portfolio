@@ -23,9 +23,8 @@ const spaceGrotesk = Space_Grotesk({
 const themeInitScript = `
 (function () {
   try {
-    var stored = localStorage.getItem("theme");
-    var dark = stored !== "light";
-    document.documentElement.classList.toggle("dark", dark);
+    // Always dark UI; localStorage "theme" still stores forward vs hollow facing
+    document.documentElement.classList.add("dark");
   } catch (e) {}
 })();
 `;
