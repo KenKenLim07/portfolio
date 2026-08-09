@@ -65,6 +65,54 @@
   --menu-overlay: rgba(0, 0, 0, 0.72);
 }
 
+/*
+ * Sun-facing space: bright wash behind the page — ink type + frosted panels
+ * so copy stays readable without leaving the space aesthetic.
+ */
+.dark.sun {
+  color-scheme: light;
+  --background: #0b1220;
+  --foreground: #0a1020;
+  --muted: #3d4a5f;
+  --foreground-subtle: #5a687c;
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-elevated: rgba(255, 255, 255, 0.9);
+  --image-well: #d7dee8;
+  --border: rgba(10, 16, 32, 0.16);
+  --fill-subtle: rgba(10, 16, 32, 0.05);
+  --fill-hover: rgba(10, 16, 32, 0.09);
+  --overlay: rgba(10, 16, 32, 0.35);
+  --glass: rgba(255, 255, 255, 0.62);
+  --glass-solid: rgba(255, 255, 255, 0.88);
+  --accent-from: #1d4ed8;
+  --accent-to: #3b82f6;
+  --hero-glow: rgba(37, 99, 235, 0.28);
+  --form-surface: rgba(255, 255, 255, 0.9);
+  --selection-bg: rgba(37, 99, 235, 0.22);
+  --selection-fg: #0a1020;
+  --menu-bg: rgba(255, 255, 255, 0.92);
+  --menu-fg: #0a1020;
+  --menu-muted: #3d4a5f;
+  --menu-border: rgba(10, 16, 32, 0.14);
+  --menu-overlay: rgba(10, 16, 32, 0.45);
+}
+
+.dark.sun .hero-mega-outline {
+  -webkit-text-stroke-color: color-mix(
+    in oklab,
+    var(--foreground) 55%,
+    transparent
+  );
+}
+
+.dark.sun .section-mega-outline {
+  -webkit-text-stroke-color: color-mix(
+    in oklab,
+    var(--foreground) 48%,
+    transparent
+  );
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

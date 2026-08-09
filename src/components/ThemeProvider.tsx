@@ -39,8 +39,9 @@ function subscribeToTheme(listener: () => void) {
 }
 
 function applyTheme(theme: Theme) {
-  // UI stays dark cockpit — theme only drives space facing (forward vs hollow)
+  // Always keep dark shell; `sun` flips type/chrome for the bright reverse view
   document.documentElement.classList.add("dark");
+  document.documentElement.classList.toggle("sun", theme === "light");
   localStorage.setItem("theme", theme);
 }
 

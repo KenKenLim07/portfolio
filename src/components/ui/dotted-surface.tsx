@@ -17,8 +17,8 @@ const CAMERA_BASE = { x: 0, y: 280, z: 1180 } as const;
 const INDICATOR_MAX_LIFT = 120;
 
 /**
- * Ship throttle: page scroll drives corridor travel (asteroids) on both facings.
- * The sun stays visually static by tracking the camera at a fixed offset.
+ * Ship throttle: forward scroll flies the corridor.
+ * Sun mode keeps the camera (and sun) nearly fixed — rocks stream past instead.
  */
 const DOLLY_FROM_PROGRESS = 2200;
 const DOLLY_GESTURE_IN = 420;
@@ -62,14 +62,21 @@ const STAR_SHELL = {
   radiusMax: 9400,
   yScale: 0.72,
 } as const;
-/** Reverse hollow — distant sun/eclipse; glow must die before plane edges (no square cut). */
+/** Distant sun — modest hot disc; wash must overshoot the viewport with no hard edge. */
 const HOLLOW = {
-  ahead: 6200,
-  aheadMobile: 4800,
-  voidRadius: 640,
-  voidRadiusMobile: 440,
-  /** Glow plane multiplier — keep large so soft falloff never hits the border. */
-  glowSpan: 14,
+  ahead: 8600,
+  aheadMobile: 6800,
+  /** Hot disc radius in world units. */
+  voidRadius: 520,
+  voidRadiusMobile: 360,
+  /** Plane around the disc core. */
+  discSpan: 5.5,
+  /**
+   * Wash plane — oversized vs FOV so soft falloff dies before the square border.
+   * At ~8600 ahead, half-FOV height ≈ D*tan(30°) ≈ 5k; plane needs ≫ that.
+   */
+  washSize: 28000,
+  washSizeMobile: 22000,
 } as const;
 /** How far ahead (-Z from camera) recycled rocks respawn. */
 const ROCK_RECYCLE = {
@@ -221,14 +228,16 @@ function buildStarfield(): {
   return { seeds, positions, colors, sizes };
 }
 
-/** Distant sun — hot core + soft steel-blue corona (no black hole). */
+/** Distant sun — brighter disc + oversized viewport wash (no square light border). */
 function createHollow(isMobile: boolean) {
   const group = new THREE.Group();
   const disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
-  const voidR = isMobile ? HOLLOW.voidRadiusMobile : HOLLOW.voidRadius;
+  const discR = isMobile ? HOLLOW.voidRadiusMobile : HOLLOW.voidRadius;
   const ahead = isMobile ? HOLLOW.aheadMobile : HOLLOW.ahead;
-  const glowSize = voidR * HOLLOW.glowSpan;
+  const discSize = discR * HOLLOW.discSpan;
+  const washSize = isMobile ? HOLLOW.washSizeMobile : HOLLOW.washSize;
 
+  // Compact bright sun disc
   const coronaMat = new THREE.ShaderMaterial({
     uniforms: {
       uOpacity: { value: 1 },
@@ -246,19 +255,17 @@ function createHollow(isMobile: boolean) {
       void main() {
         vec2 c = vUv - vec2(0.5);
         float d = length(c) * 2.0;
-        if (d > 0.92) discard;
+        if (d > 0.95) discard;
 
-        // Bright solar disc + soft limb — solid sun, not a hollow
-        float core = exp(-d * d * 48.0);
-        float disc = exp(-d * d * 12.0);
-        float bloom = exp(-d * d * 3.2) * 0.55;
-        float haze = exp(-d * d * 1.05) * 0.28;
-        float alpha = (core * 0.95 + disc * 0.75 + bloom + haze) * uOpacity;
+        float core = exp(-d * d * 55.0);
+        float disc = exp(-d * d * 16.0);
+        float limb = exp(-d * d * 5.5) * 0.7;
+        float alpha = (core * 1.05 + disc * 0.9 + limb * 0.5) * uOpacity;
         if (alpha < 0.004) discard;
 
-        vec3 hot = vec3(0.95, 0.97, 1.0);
-        vec3 warm = vec3(0.72, 0.84, 1.0);
-        vec3 cool = vec3(0.42, 0.58, 0.84);
+        vec3 hot = vec3(0.97, 0.98, 1.0);
+        vec3 warm = vec3(0.78, 0.88, 1.0);
+        vec3 cool = vec3(0.5, 0.66, 0.92);
         vec3 col = mix(cool, warm, disc);
         col = mix(col, hot, core);
         gl_FragColor = vec4(col, alpha);
@@ -272,12 +279,13 @@ function createHollow(isMobile: boolean) {
   });
   disposables.push(coronaMat);
 
-  const coronaGeo = new THREE.PlaneGeometry(glowSize, glowSize);
+  const coronaGeo = new THREE.PlaneGeometry(discSize, discSize);
   disposables.push(coronaGeo);
   const corona = new THREE.Mesh(coronaGeo, coronaMat);
-  corona.position.z = -8;
+  corona.position.z = -4;
   corona.frustumCulled = false;
 
+  // Oversized soft wash — alpha ≈ 0 well before the plane edge (kills the box border)
   const outerMat = new THREE.ShaderMaterial({
     uniforms: {
       uOpacity: { value: 1 },
@@ -294,12 +302,21 @@ function createHollow(isMobile: boolean) {
       uniform float uOpacity;
       void main() {
         vec2 c = vUv - vec2(0.5);
+        // Circular falloff in UV; plane is huge so visible frame never reaches the rim
         float d = length(c) * 2.0;
-        if (d > 0.95) discard;
-        float soft = exp(-d * d * 2.4) * 0.42;
-        float alpha = soft * uOpacity;
-        if (alpha < 0.003) discard;
-        gl_FragColor = vec4(0.5, 0.66, 0.92, alpha);
+        // Die out by ~0.55 — mid-edge of a square is d=1.0, corners ~1.41
+        if (d > 0.62) discard;
+
+        float bloom = exp(-d * d * 2.8) * 0.55;
+        float veil = exp(-d * d * 1.1) * 0.4;
+        float fill = exp(-d * d * 0.55) * 0.22;
+        float alpha = (bloom + veil + fill) * uOpacity;
+        // Extra edge safety — never paint near the geometric border
+        alpha *= 1.0 - smoothstep(0.48, 0.62, d);
+        if (alpha < 0.002) discard;
+
+        vec3 col = mix(vec3(0.3, 0.42, 0.64), vec3(0.7, 0.84, 1.0), bloom);
+        gl_FragColor = vec4(col, alpha);
       }
     `,
     transparent: true,
@@ -309,10 +326,10 @@ function createHollow(isMobile: boolean) {
     side: THREE.DoubleSide,
   });
   disposables.push(outerMat);
-  const outerGeo = new THREE.PlaneGeometry(glowSize * 1.15, glowSize * 1.15);
+  const outerGeo = new THREE.PlaneGeometry(washSize, washSize);
   disposables.push(outerGeo);
   const outer = new THREE.Mesh(outerGeo, outerMat);
-  outer.position.z = -16;
+  outer.position.z = -24;
   outer.frustumCulled = false;
 
   group.add(outer);
@@ -782,7 +799,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       60,
       window.innerWidth / window.innerHeight,
       1,
-      14000,
+      22000,
     );
     camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
     // Initial facing from stored theme (no flash on first frame)
@@ -935,7 +952,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       : createShootingStarPool(true, isMobile ? 1 : SHOOTING.poolSize);
 
     const hollow = createHollow(isMobile);
-    const hollowLight = new THREE.PointLight(0xb8cce6, 0, 9000, 2);
+    const hollowLight = new THREE.PointLight(0xb8cce6, 0, 14000, 2);
     hollow.group.add(hollowLight);
 
     // Backdrop drifts slowly; corridor rocks stay in world space for true fly-through
@@ -1063,20 +1080,21 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       camera.rotation.y = facingAmount * Math.PI;
 
       const hollowGlow = facingAmount;
-      hollow.coronaMat.uniforms.uOpacity.value = 0.35 + hollowGlow * 0.65;
-      hollow.outerMat.uniforms.uOpacity.value = 0.2 + hollowGlow * 0.8;
-      hollowLight.intensity = hollowGlow * 2.4;
+      hollow.coronaMat.uniforms.uOpacity.value = 0.45 + hollowGlow * 0.55;
+      hollow.outerMat.uniforms.uOpacity.value = 0.35 + hollowGlow * 0.75;
+      hollowLight.intensity = hollowGlow * 3.2;
       // Debris silhouettes only read against the sun
       silMat.uniforms.uOpacity.value = hollowGlow * 0.92;
 
-      // Full travel both ways — asteroids stream; sun is locked to the camera
+      // Forward: camera flies the corridor. Sun mode: camera stays put, rocks stream.
       const progressDolly = p * DOLLY_FROM_PROGRESS;
       const travel = progressDolly + gestureDolly;
       const face = facingAmount;
-      const travelSign = lerp(-1, 1, face);
-      const targetCamZ = CAMERA_BASE.z + travelSign * travel;
+      const sunStream = travel * face;
+      const targetCamZ = CAMERA_BASE.z - travel * (1 - face);
       const cameraLift =
-        liftT * 24 + zoomInAmt * 36 - zoomOutAmt * 28 + velocityKick * 0.35;
+        (liftT * 24 + zoomInAmt * 36 - zoomOutAmt * 28 + velocityKick * 0.35) *
+        (1 - face * 0.85);
 
       camera.position.y = expSmooth(
         camera.position.y,
@@ -1086,11 +1104,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       );
       camera.position.z = expSmooth(camera.position.z, targetCamZ, 10, dt);
 
-      // Sun rides with the ship at fixed range — looks distant/static while rocks fly past
+      // Sun fixed in world space — too far to rush toward the ship
       const sunAhead = isMobile ? HOLLOW.aheadMobile : HOLLOW.ahead;
-      hollow.group.position.x = camera.position.x;
-      hollow.group.position.y = camera.position.y;
-      hollow.group.position.z = camera.position.z + sunAhead;
+      hollow.group.position.set(0, CAMERA_BASE.y, CAMERA_BASE.z + sunAhead);
 
       // Star backdrop: slow parallax only (not locked to ship speed)
       backdrop.position.y = expSmooth(
@@ -1112,11 +1128,14 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         dt,
       );
 
-      const tiltTarget = zoomOutAmt * 0.06 - zoomInAmt * 0.07;
+      const tiltTarget =
+        (zoomOutAmt * 0.06 - zoomInAmt * 0.07) * (1 - face * 0.9);
       camera.rotation.x = expSmooth(camera.rotation.x, tiltTarget, 10, dt);
 
-      const targetFov =
-        CAMERA_BASE_FOV + zoomOutAmt * 6 - zoomInAmt * 5 + active * 1.5;
+      // Keep FOV stable in sun mode so the distant sun doesn't "zoom"
+      const fovKick =
+        (zoomOutAmt * 6 - zoomInAmt * 5 + active * 1.5) * (1 - face * 0.92);
+      const targetFov = CAMERA_BASE_FOV + fovKick;
       camera.fov = expSmooth(camera.fov, targetFov, 10, dt);
       if (Math.abs(camera.fov - targetFov) > 0.02) {
         camera.updateProjectionMatrix();
@@ -1143,8 +1162,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         shootingPool?.update(dt, nextMeteorSpawn, performance.now() / 1000);
 
         const camZ = camera.position.z;
+        const towardSun = face > 0.5;
 
-        // Asteroids: tumble, bob, grow via perspective, recycle when passed
+        // Asteroids: tumble, bob; sun mode streams them past a static camera
         for (const rock of rocks) {
           rock.mesh.rotation.x += rock.spin.x * dt;
           rock.mesh.rotation.y += rock.spin.y * dt;
@@ -1156,33 +1176,40 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
             rock.warpInfluence;
           rock.mesh.position.x = rock.home.x;
           rock.mesh.position.y = rock.home.y + bob;
-          rock.mesh.position.z = rock.home.z;
+          // sunStream pulls +Z rocks toward the ship without moving the sun
+          const viewZ = rock.home.z - sunStream;
+          rock.mesh.position.z = viewZ;
 
-          // Passed the ship — respawn far ahead along travel direction
-          const passed =
-            travelSign < 0
-              ? rock.home.z > camZ - ROCK_RECYCLE.passMargin
-              : rock.home.z < camZ + ROCK_RECYCLE.passMargin;
-          if (passed) {
-            recycleRock(rock, camZ, travelSign < 0 ? -1 : 1);
-            continue;
-          }
-
-          // Scrolled back — pull rocks that drifted too far ahead into range
-          const tooFar =
-            travelSign < 0
-              ? rock.home.z < camZ - ROCK_RECYCLE.aheadMax * 1.2
-              : rock.home.z > camZ + ROCK_RECYCLE.aheadMax * 1.2;
-          if (tooFar) {
-            const pullSign = travelSign < 0 ? -1 : 1;
-            rock.home.z =
-              camZ +
-              pullSign *
+          if (towardSun) {
+            if (viewZ < camZ + ROCK_RECYCLE.passMargin) {
+              recycleRock(rock, camZ + sunStream, 1);
+              rock.mesh.position.z = rock.home.z - sunStream;
+              continue;
+            }
+            if (viewZ > camZ + ROCK_RECYCLE.aheadMax * 1.2) {
+              rock.home.z =
+                camZ +
+                sunStream +
+                ROCK_RECYCLE.aheadMin +
+                Math.random() *
+                  (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) *
+                  0.45;
+              rock.mesh.position.z = rock.home.z - sunStream;
+            }
+          } else {
+            if (rock.home.z > camZ - ROCK_RECYCLE.passMargin) {
+              recycleRock(rock, camZ, -1);
+              continue;
+            }
+            if (rock.home.z < camZ - ROCK_RECYCLE.aheadMax * 1.2) {
+              rock.home.z =
+                camZ -
                 (ROCK_RECYCLE.aheadMin +
                   Math.random() *
                     (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) *
                     0.45);
-            rock.mesh.position.z = rock.home.z;
+              rock.mesh.position.z = rock.home.z;
+            }
           }
         }
 
@@ -1224,9 +1251,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         camera.rotation.y = facingAmount * Math.PI;
         camera.fov = CAMERA_BASE_FOV;
         camera.updateProjectionMatrix();
-        hollow.coronaMat.uniforms.uOpacity.value = 0.35 + facingAmount * 0.65;
-        hollow.outerMat.uniforms.uOpacity.value = 0.2 + facingAmount * 0.8;
-        hollowLight.intensity = facingAmount * 2.4;
+        hollow.coronaMat.uniforms.uOpacity.value = 0.45 + facingAmount * 0.55;
+        hollow.outerMat.uniforms.uOpacity.value = 0.35 + facingAmount * 0.75;
+        hollowLight.intensity = facingAmount * 3.2;
         silMat.uniforms.uOpacity.value = facingAmount * 0.92;
       }
 
