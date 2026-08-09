@@ -263,9 +263,10 @@ function createHollow(isMobile: boolean) {
         float alpha = (core * 1.05 + disc * 0.9 + limb * 0.5) * uOpacity;
         if (alpha < 0.004) discard;
 
-        vec3 hot = vec3(0.97, 0.98, 1.0);
-        vec3 warm = vec3(0.78, 0.88, 1.0);
-        vec3 cool = vec3(0.5, 0.66, 0.92);
+        // Space sunlight: white disc + cool corona (matches f657a9a / real vacuum look)
+        vec3 hot = vec3(0.95, 0.97, 1.0);
+        vec3 warm = vec3(0.72, 0.84, 1.0);
+        vec3 cool = vec3(0.42, 0.58, 0.84);
         vec3 col = mix(cool, warm, disc);
         col = mix(col, hot, core);
         gl_FragColor = vec4(col, alpha);
@@ -315,7 +316,8 @@ function createHollow(isMobile: boolean) {
         alpha *= 1.0 - smoothstep(0.48, 0.62, d);
         if (alpha < 0.002) discard;
 
-        vec3 col = mix(vec3(0.3, 0.42, 0.64), vec3(0.7, 0.84, 1.0), bloom);
+        // Pearly white / steel-blue wash (space corona, not earth-sky gold)
+        vec3 col = mix(vec3(0.42, 0.56, 0.78), vec3(0.78, 0.88, 1.0), bloom);
         gl_FragColor = vec4(col, alpha);
       }
     `,

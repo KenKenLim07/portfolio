@@ -11,7 +11,7 @@ type ButtonProps = {
 
 const variants = {
   primary:
-    "bg-foreground text-background hover:opacity-90 border border-transparent",
+    "bg-[var(--cta-bg)] text-[var(--cta-fg)] border border-[color:var(--cta-border)] hover:opacity-90",
   secondary:
     "bg-subtle text-foreground border border-border hover:bg-[var(--fill-hover)] hover:border-border",
   ghost: "text-muted hover:text-foreground bg-transparent",
