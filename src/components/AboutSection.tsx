@@ -39,7 +39,10 @@ export function AboutSection() {
         </AboutReveal>
 
         <AboutReveal className="mb-14 md:mb-20">
-          <blockquote className="relative max-w-3xl border border-border border-l-[3px] border-l-[var(--accent-from)] bg-subtle px-6 py-7 sm:px-8 sm:py-8 md:px-10 md:py-9">
+          <blockquote
+            data-sun-solid
+            className="relative max-w-3xl border border-border border-l-[3px] border-l-[var(--accent-from)] bg-subtle px-6 py-7 sm:px-8 sm:py-8 md:px-10 md:py-9"
+          >
             <span
               className="pointer-events-none absolute top-3 left-4 font-display text-5xl leading-none text-foreground/15 select-none sm:top-4 sm:left-5 sm:text-6xl"
               aria-hidden
@@ -57,7 +60,7 @@ export function AboutSection() {
             key={paragraph}
             className={index < ABOUT.paragraphs.length - 1 ? "mb-6" : undefined}
           >
-            <p className="max-w-3xl text-lg leading-relaxed text-muted">
+            <p className="max-w-3xl text-lg leading-relaxed text-muted italic">
               {paragraph}
             </p>
           </AboutReveal>

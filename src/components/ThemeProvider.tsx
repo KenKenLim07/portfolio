@@ -47,6 +47,12 @@ function applyTheme(theme: Theme) {
     "sun",
     ENABLE_SUN_MODE && next === "light",
   );
+  // data-attr survives React overwriting html className
+  if (ENABLE_SUN_MODE && next === "light") {
+    document.documentElement.dataset.theme = "sun";
+  } else {
+    document.documentElement.dataset.theme = "dark";
+  }
   localStorage.setItem("theme", next);
 }
 

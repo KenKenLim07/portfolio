@@ -25,7 +25,7 @@ const themeInitScript = `
   try {
     document.documentElement.classList.add("dark");
     document.documentElement.classList.remove("sun");
-    // Sun mode is feature-flagged off — always start in dark / forward space
+    document.documentElement.dataset.theme = "dark";
     localStorage.setItem("theme", "dark");
   } catch (e) {}
 })();

@@ -24,7 +24,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       )}
       aria-label={
         theme === "dark"
-          ? "Turn toward the hollow"
+          ? "Turn toward the sun"
           : "Turn forward through space"
       }
       suppressHydrationWarning

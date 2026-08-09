@@ -1,6 +1,7 @@
 "use client";
 
 import { useTheme } from "@/components/ThemeProvider";
+import { clearSunInkLit, updateSunInkLit } from "@/lib/sunInk";
 import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
@@ -18,14 +19,11 @@ const INDICATOR_MAX_LIFT = 120;
 
 /**
  * Ship throttle: forward scroll flies the corridor.
- * Sun mode keeps the camera (and sun) nearly fixed — rocks stream past instead.
  */
 const DOLLY_FROM_PROGRESS = 2200;
 const DOLLY_GESTURE_IN = 420;
 const DOLLY_GESTURE_OUT = 340;
 const CAMERA_BASE_FOV = 60;
-/** How fast the ship yaws between forward corridor and reverse hollow (expSmooth λ). */
-const FACING_TURN_LAMBDA = 1.85;
 
 /** Subtle asteroid idle bob (stars stay fixed — no surface wave). */
 const ROCK_BOB_AMP = 4;
@@ -45,13 +43,15 @@ const SHOOTING = {
 } as const;
 
 const STAR_COUNT = 280;
-/** Side rocks — main asteroid field. */
-const ROCK_COUNT = 14;
+/** Side rocks — forward corridor (dark / travel). */
+const ROCK_COUNT_FORWARD = 14;
+/** Side rocks — toward the sun (+Z), visible in light / sun-facing mode. */
+const ROCK_COUNT_SUNWARD = 10;
 /**
  * Depth bands (camera sits around z ≈ 1180 looking toward -Z):
- * - stars: spherical shell so forward + reverse views both have sky
- * - asteroids: corridor ahead of travel; recycled as we pass them
- * - hollow: large eclipse behind the ship (+Z) for "light" facing
+ * - stars: spherical shell (visible forward + when yawed toward the sun)
+ * - asteroids: fixed field in both directions (forward −Z + sunward +Z)
+ * - sun: behind the ship (+Z) — only shown in sun-facing mode
  */
 /** Side / corridor rock placement bounds. */
 const FIELD = { x: 5600, y: 640, z: 6400 } as const;
@@ -62,31 +62,26 @@ const STAR_SHELL = {
   radiusMax: 9400,
   yScale: 0.72,
 } as const;
-/** Distant sun — modest hot disc; wash must overshoot the viewport with no hard edge. */
-const HOLLOW = {
-  ahead: 8600,
-  aheadMobile: 6800,
-  /** Hot disc radius in world units. */
-  voidRadius: 520,
-  voidRadiusMobile: 360,
-  /** Plane around the disc core. */
+/**
+ * Distant sun for sun mode — sits behind the ship (+Z).
+ * Upper-right in the reverse view (screen-right = world −X after 180° yaw).
+ */
+const SUN = {
+  /** Distance behind (+Z) from camera base. */
+  ahead: 7200,
+  aheadMobile: 5600,
+  offsetX: 2200,
+  offsetY: 1200,
+  offsetXMobile: 1400,
+  offsetYMobile: 900,
+  voidRadius: 420,
+  voidRadiusMobile: 300,
   discSpan: 5.5,
-  /**
-   * Wash plane — oversized vs FOV so soft falloff dies before the square border.
-   * At ~8600 ahead, half-FOV height ≈ D*tan(30°) ≈ 5k; plane needs ≫ that.
-   */
-  washSize: 28000,
-  washSizeMobile: 22000,
+  washSize: 24000,
+  washSizeMobile: 18000,
 } as const;
-/** How far ahead (-Z from camera) recycled rocks respawn. */
-const ROCK_RECYCLE = {
-  passMargin: 120,
-  /** Beyond fog near so rocks fade in instead of popping. */
-  aheadMin: 2600,
-  aheadMax: 4600,
-} as const;
-/** World scale when a rock respawns far ahead (perspective grows it later). */
-const ROCK_SPAWN_SCALE = { min: 22, max: 48 } as const;
+/** How fast the ship yaws between forward corridor and sun-facing (expSmooth λ). */
+const FACING_TURN_LAMBDA = 1.85;
 
 type ScrollState = {
   progress: { current: number; target: number };
@@ -103,8 +98,6 @@ type StarSeed = {
   twinklePhase: number;
   twinkleSpeed: number;
   baseAlpha: number;
-  /** Against the sun these read as tiny debris silhouettes. */
-  silhouette: boolean;
 };
 
 type RockBody = {
@@ -178,7 +171,7 @@ function buildStarfield(): {
   const sizes: number[] = [];
 
   for (let i = 0; i < STAR_COUNT; i++) {
-    // Spherical shell — stars remain when the ship yaws 180° toward the sun
+    // Spherical shell backdrop
     const radius = lerp(
       STAR_SHELL.radiusMin,
       STAR_SHELL.radiusMax,
@@ -198,12 +191,7 @@ function buildStarfield(): {
     const twinkleSpeed = randRange(rng, 0.25, 0.9);
     const luminosity = Math.pow(rng(), 2.4);
     const baseAlpha = lerp(0.28, 1, luminosity);
-    // Prefer reverse-hemisphere dust as sun silhouettes
-    const towardSun = z > CAMERA_BASE.z - 400;
-    const silhouette = towardSun && rng() < 0.22;
-    const size = silhouette
-      ? lerp(2.2, 6.5, Math.pow(rng(), 0.55))
-      : lerp(1.4, 5.2, Math.pow(luminosity, 0.65));
+    const size = lerp(1.4, 5.2, Math.pow(luminosity, 0.65));
 
     const cool = rng();
     const r = lerp(0.78, 0.98, cool);
@@ -218,7 +206,6 @@ function buildStarfield(): {
       twinklePhase,
       twinkleSpeed,
       baseAlpha,
-      silhouette,
     });
     positions.push(x, y, z);
     colors.push(r, g, b);
@@ -228,16 +215,14 @@ function buildStarfield(): {
   return { seeds, positions, colors, sizes };
 }
 
-/** Distant sun — brighter disc + oversized viewport wash (no square light border). */
-function createHollow(isMobile: boolean) {
+/** Distant sun — bright disc + oversized corona wash (no square light border). */
+function createSun(isMobile: boolean) {
   const group = new THREE.Group();
   const disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
-  const discR = isMobile ? HOLLOW.voidRadiusMobile : HOLLOW.voidRadius;
-  const ahead = isMobile ? HOLLOW.aheadMobile : HOLLOW.ahead;
-  const discSize = discR * HOLLOW.discSpan;
-  const washSize = isMobile ? HOLLOW.washSizeMobile : HOLLOW.washSize;
+  const discR = isMobile ? SUN.voidRadiusMobile : SUN.voidRadius;
+  const discSize = discR * SUN.discSpan;
+  const washSize = isMobile ? SUN.washSizeMobile : SUN.washSize;
 
-  // Compact bright sun disc
   const coronaMat = new THREE.ShaderMaterial({
     uniforms: {
       uOpacity: { value: 1 },
@@ -263,7 +248,6 @@ function createHollow(isMobile: boolean) {
         float alpha = (core * 1.05 + disc * 0.9 + limb * 0.5) * uOpacity;
         if (alpha < 0.004) discard;
 
-        // Space sunlight: white disc + cool corona (matches f657a9a / real vacuum look)
         vec3 hot = vec3(0.95, 0.97, 1.0);
         vec3 warm = vec3(0.72, 0.84, 1.0);
         vec3 cool = vec3(0.42, 0.58, 0.84);
@@ -285,11 +269,11 @@ function createHollow(isMobile: boolean) {
   const corona = new THREE.Mesh(coronaGeo, coronaMat);
   corona.position.z = -4;
   corona.frustumCulled = false;
+  corona.renderOrder = 3;
 
-  // Oversized soft wash — alpha ≈ 0 well before the plane edge (kills the box border)
   const outerMat = new THREE.ShaderMaterial({
     uniforms: {
-      uOpacity: { value: 1 },
+      uOpacity: { value: 0.85 },
     },
     vertexShader: `
       varying vec2 vUv;
@@ -303,20 +287,16 @@ function createHollow(isMobile: boolean) {
       uniform float uOpacity;
       void main() {
         vec2 c = vUv - vec2(0.5);
-        // Circular falloff in UV; plane is huge so visible frame never reaches the rim
         float d = length(c) * 2.0;
-        // Die out by ~0.55 — mid-edge of a square is d=1.0, corners ~1.41
         if (d > 0.62) discard;
 
         float bloom = exp(-d * d * 2.8) * 0.55;
         float veil = exp(-d * d * 1.1) * 0.4;
         float fill = exp(-d * d * 0.55) * 0.22;
         float alpha = (bloom + veil + fill) * uOpacity;
-        // Extra edge safety — never paint near the geometric border
         alpha *= 1.0 - smoothstep(0.48, 0.62, d);
         if (alpha < 0.002) discard;
 
-        // Pearly white / steel-blue wash (space corona, not earth-sky gold)
         vec3 col = mix(vec3(0.42, 0.56, 0.78), vec3(0.78, 0.88, 1.0), bloom);
         gl_FragColor = vec4(col, alpha);
       }
@@ -333,10 +313,11 @@ function createHollow(isMobile: boolean) {
   const outer = new THREE.Mesh(outerGeo, outerMat);
   outer.position.z = -24;
   outer.frustumCulled = false;
+  outer.renderOrder = 2;
 
   group.add(outer);
   group.add(corona);
-  group.position.set(0, CAMERA_BASE.y, CAMERA_BASE.z + ahead);
+  sunWorldPosition(isMobile, group.position);
 
   return {
     group,
@@ -344,6 +325,131 @@ function createHollow(isMobile: boolean) {
     outerMat,
     disposables,
   };
+}
+
+/** Lightweight additive flare — streak + ghost orbs (no postprocessing). */
+function createSunFlare(isMobile: boolean) {
+  const group = new THREE.Group();
+  const disposables: Array<THREE.BufferGeometry | THREE.Material | THREE.Texture> =
+    [];
+  const mats: THREE.MeshBasicMaterial[] = [];
+
+  const makeDiscTexture = (soft = true) => {
+    const size = 64;
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d")!;
+    const g = ctx.createRadialGradient(
+      size / 2,
+      size / 2,
+      0,
+      size / 2,
+      size / 2,
+      size / 2,
+    );
+    if (soft) {
+      g.addColorStop(0, "rgba(220, 235, 255, 1)");
+      g.addColorStop(0.25, "rgba(140, 180, 255, 0.55)");
+      g.addColorStop(0.6, "rgba(80, 130, 220, 0.12)");
+      g.addColorStop(1, "rgba(0, 0, 0, 0)");
+    } else {
+      g.addColorStop(0, "rgba(255, 255, 255, 1)");
+      g.addColorStop(0.15, "rgba(200, 220, 255, 0.8)");
+      g.addColorStop(0.45, "rgba(100, 150, 255, 0.2)");
+      g.addColorStop(1, "rgba(0, 0, 0, 0)");
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, size, size);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.needsUpdate = true;
+    disposables.push(tex);
+    return tex;
+  };
+
+  const discTex = makeDiscTexture(true);
+  const streakTex = makeDiscTexture(false);
+
+  const addSprite = (
+    map: THREE.Texture,
+    w: number,
+    h: number,
+    x: number,
+    y: number,
+    z: number,
+    opacity: number,
+    color: number,
+  ) => {
+    const mat = new THREE.MeshBasicMaterial({
+      map,
+      color,
+      transparent: true,
+      opacity,
+      depthWrite: false,
+      depthTest: false,
+      fog: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    });
+    mats.push(mat);
+    disposables.push(mat);
+    const geo = new THREE.PlaneGeometry(w, h);
+    disposables.push(geo);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(x, y, z);
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 5;
+    group.add(mesh);
+    return mesh;
+  };
+
+  const scale = isMobile ? 0.7 : 1;
+  // Horizontal streak through the sun
+  addSprite(
+    streakTex,
+    5200 * scale,
+    180 * scale,
+    0,
+    0,
+    8,
+    0.35,
+    0xb8d4ff,
+  );
+  // Ghost orbs along a diagonal (screen-space feel once billboarded)
+  const ghosts: Array<[number, number, number, number, number]> = [
+    [0.55, -280, 160, 12, 0x7dd3fc],
+    [0.4, -620, 340, 18, 0x93c5fd],
+    [0.32, -980, 520, 24, 0x67e8f9],
+    [0.22, 420, -220, 14, 0xa5b4fc],
+  ];
+  for (const [op, x, y, z, col] of ghosts) {
+    const s = (220 + Math.abs(x) * 0.08) * scale;
+    addSprite(discTex, s, s, x * scale, y * scale, z, op, col);
+  }
+
+  const setIntensity = (amount: number) => {
+    const a = Math.max(0, Math.min(1, amount));
+    // Base opacities baked into construction order: streak then 4 ghosts
+    const bases = [0.35, 0.55, 0.4, 0.32, 0.22];
+    for (let i = 0; i < mats.length; i++) {
+      mats[i]!.opacity = (bases[i] ?? 0.25) * a;
+      mats[i]!.visible = a > 0.02;
+    }
+  };
+
+  return { group, setIntensity, disposables };
+}
+
+function sunWorldPosition(isMobile: boolean, out: THREE.Vector3) {
+  const ahead = isMobile ? SUN.aheadMobile : SUN.ahead;
+  const offsetX = isMobile ? SUN.offsetXMobile : SUN.offsetX;
+  const offsetY = isMobile ? SUN.offsetYMobile : SUN.offsetY;
+  // Behind ship (+Z). Negative X ⇒ upper-right after 180° yaw toward +Z.
+  return out.set(
+    -offsetX,
+    CAMERA_BASE.y + offsetY,
+    CAMERA_BASE.z + ahead,
+  );
 }
 
 /** Irregular rock mesh — displaced icosahedron with crater-like dents. */
@@ -356,31 +462,203 @@ function createAsteroidGeometry(
   const vertex = new THREE.Vector3();
   const scratch = new THREE.Vector3();
 
+  // IcosahedronGeometry is non-indexed (duplicate verts per face). Displacement
+  // MUST be deterministic from position/normal — any per-vertex random opens seams.
   for (let i = 0; i < pos.count; i++) {
     vertex.fromBufferAttribute(pos, i);
     const n = vertex.clone().normalize();
 
     const ridge =
-      0.18 * Math.sin(n.x * 7.3 + n.y * 3.1) +
-      0.14 * Math.sin(n.y * 5.7 - n.z * 4.2) +
-      0.1 * Math.sin(n.z * 9.1 + n.x * 2.4) +
-      0.08 * Math.sin(n.x * 13.0 + n.y * 11.0 + n.z * 8.0);
+      0.22 * Math.sin(n.x * 6.1 + n.y * 2.7) +
+      0.16 * Math.sin(n.y * 5.3 - n.z * 4.8) +
+      0.12 * Math.sin(n.z * 8.4 + n.x * 3.1) +
+      0.09 * Math.sin(n.x * 11.0 + n.y * 9.5 + n.z * 7.2) +
+      0.06 * Math.sin(n.x * 17.0 - n.y * 14.0);
 
     const craterSeed = Math.abs(Math.sin(n.x * 17.0) * Math.cos(n.y * 19.0));
-    const crater = craterSeed > 0.82 ? -0.22 * (craterSeed - 0.82) * 6 : 0;
+    const crater = craterSeed > 0.78 ? -0.28 * (craterSeed - 0.78) * 5 : 0;
 
-    const scale = 1 + ridge + crater + randRange(rng, -0.04, 0.04);
+    // Soft lobe stretch — keeps a closed shell, just less spherical
+    const lobe =
+      0.08 * n.x * n.y + 0.06 * n.y * n.z - 0.05 * n.z * n.x;
+
+    const scale = 1 + ridge + crater + lobe;
     scratch.copy(n).multiplyScalar(scale);
     pos.setXYZ(i, scratch.x, scratch.y, scratch.z);
   }
 
+  // Per-rock oblong shape (uniform transform — does not crack faces)
   geometry.scale(
-    randRange(rng, 0.85, 1.25),
-    randRange(rng, 0.7, 1.1),
-    randRange(rng, 0.8, 1.35),
+    randRange(rng, 0.75, 1.35),
+    randRange(rng, 0.65, 1.15),
+    randRange(rng, 0.7, 1.4),
   );
   geometry.computeVertexNormals();
   return geometry;
+}
+
+type RockSurfaceMaps = {
+  map: THREE.CanvasTexture;
+  normalMap: THREE.CanvasTexture;
+  roughnessMap: THREE.CanvasTexture;
+};
+
+function fade(t: number) {
+  return t * t * (3 - 2 * t);
+}
+
+function hash2(ix: number, iy: number, seed: number) {
+  let n = Math.imul(ix, 374761393) ^ Math.imul(iy, 668265263) ^ seed;
+  n = Math.imul(n ^ (n >>> 13), 1274126177);
+  return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+}
+
+function valueNoise2(x: number, y: number, seed: number) {
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const fx = fade(x - x0);
+  const fy = fade(y - y0);
+  const a = hash2(x0, y0, seed);
+  const b = hash2(x0 + 1, y0, seed);
+  const c = hash2(x0, y0 + 1, seed);
+  const d = hash2(x0 + 1, y0 + 1, seed);
+  return lerp(lerp(a, b, fx), lerp(c, d, fx), fy);
+}
+
+function fbm2(x: number, y: number, seed: number, octaves = 4) {
+  let amp = 0.5;
+  let freq = 1;
+  let sum = 0;
+  let norm = 0;
+  for (let i = 0; i < octaves; i++) {
+    sum += amp * valueNoise2(x * freq, y * freq, seed + i * 101);
+    norm += amp;
+    amp *= 0.5;
+    freq *= 2;
+  }
+  return sum / norm;
+}
+
+/**
+ * Shared procedural rock surfaces (albedo + normal + roughness).
+ * No image assets — generated once and reused across the field.
+ */
+function createRockSurfaceMaps(size: number, seed: number): RockSurfaceMaps {
+  const rng = createRng(seed);
+  const height = new Float32Array(size * size);
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const u = x / size;
+      const v = y / size;
+      let h = fbm2(u * 6, v * 6, seed, 5);
+      h = h * 0.72 + fbm2(u * 18, v * 18, seed + 7, 3) * 0.28;
+      height[y * size + x] = h;
+    }
+  }
+
+  const craterCount = 10 + Math.floor(rng() * 8);
+  for (let i = 0; i < craterCount; i++) {
+    const cx = rng() * size;
+    const cy = rng() * size;
+    const radius = size * randRange(rng, 0.035, 0.14);
+    const depth = randRange(rng, 0.25, 0.55);
+    const rim = randRange(rng, 0.04, 0.12);
+    const r2 = radius * radius;
+    const minX = Math.max(0, Math.floor(cx - radius - 2));
+    const maxX = Math.min(size - 1, Math.ceil(cx + radius + 2));
+    const minY = Math.max(0, Math.floor(cy - radius - 2));
+    const maxY = Math.min(size - 1, Math.ceil(cy + radius + 2));
+
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        const dx = x - cx;
+        const dy = y - cy;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > r2) continue;
+        const d = Math.sqrt(d2) / radius;
+        const bowl = (1 - d * d) * depth;
+        const rimLift = Math.exp(-Math.pow((d - 0.85) / 0.12, 2)) * rim;
+        const idx = y * size + x;
+        height[idx] = Math.max(0, Math.min(1, height[idx] - bowl + rimLift));
+      }
+    }
+  }
+
+  const albedo = document.createElement("canvas");
+  albedo.width = size;
+  albedo.height = size;
+  const albedoCtx = albedo.getContext("2d")!;
+  const albedoData = albedoCtx.createImageData(size, size);
+
+  const normal = document.createElement("canvas");
+  normal.width = size;
+  normal.height = size;
+  const normalCtx = normal.getContext("2d")!;
+  const normalData = normalCtx.createImageData(size, size);
+
+  const rough = document.createElement("canvas");
+  rough.width = size;
+  rough.height = size;
+  const roughCtx = rough.getContext("2d")!;
+  const roughData = roughCtx.createImageData(size, size);
+
+  const sampleH = (x: number, y: number) => {
+    const ix = ((x % size) + size) % size;
+    const iy = ((y % size) + size) % size;
+    return height[iy * size + ix];
+  };
+
+  const strength = 3.2;
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const i = (y * size + x) * 4;
+      const h = height[y * size + x];
+      const grit = fbm2((x / size) * 22, (y / size) * 22, seed + 19, 2);
+
+      const shade = 0.22 + h * 0.34 + grit * 0.1;
+      albedoData.data[i] = Math.floor(shade * 255 * 1.08);
+      albedoData.data[i + 1] = Math.floor(shade * 255 * 1.0);
+      albedoData.data[i + 2] = Math.floor(shade * 255 * 0.94);
+      albedoData.data[i + 3] = 255;
+
+      const dx = (sampleH(x + 1, y) - sampleH(x - 1, y)) * strength;
+      const dy = (sampleH(x, y + 1) - sampleH(x, y - 1)) * strength;
+      const nx = -dx;
+      const ny = -dy;
+      const nz = 1;
+      const len = Math.hypot(nx, ny, nz) || 1;
+      normalData.data[i] = Math.floor(((nx / len) * 0.5 + 0.5) * 255);
+      normalData.data[i + 1] = Math.floor(((ny / len) * 0.5 + 0.5) * 255);
+      normalData.data[i + 2] = Math.floor(((nz / len) * 0.5 + 0.5) * 255);
+      normalData.data[i + 3] = 255;
+
+      const roughV = Math.min(1, 0.72 + (1 - h) * 0.12 + grit * 0.22);
+      const rv = Math.floor(roughV * 255);
+      roughData.data[i] = rv;
+      roughData.data[i + 1] = rv;
+      roughData.data[i + 2] = rv;
+      roughData.data[i + 3] = 255;
+    }
+  }
+
+  albedoCtx.putImageData(albedoData, 0, 0);
+  normalCtx.putImageData(normalData, 0, 0);
+  roughCtx.putImageData(roughData, 0, 0);
+
+  const map = new THREE.CanvasTexture(albedo);
+  const normalMap = new THREE.CanvasTexture(normal);
+  const roughnessMap = new THREE.CanvasTexture(rough);
+
+  for (const tex of [map, normalMap, roughnessMap]) {
+    tex.wrapS = THREE.RepeatWrapping;
+    tex.wrapT = THREE.RepeatWrapping;
+    tex.colorSpace = tex === map ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    tex.anisotropy = 4;
+    tex.needsUpdate = true;
+  }
+
+  return { map, normalMap, roughnessMap };
 }
 
 function createRockField(
@@ -391,12 +669,25 @@ function createRockField(
   rocks: RockBody[];
   geometries: THREE.BufferGeometry[];
   materials: THREE.Material[];
+  textures: THREE.Texture[];
 } {
   const rng = createRng(ROCK_SEED);
   const group = new THREE.Group();
   const rocks: RockBody[] = [];
   const geometries: THREE.BufferGeometry[] = [];
   const materials: THREE.Material[] = [];
+  const textures: THREE.Texture[] = [];
+
+  // Shared surface packs — detail without N unique GPU uploads of source pixels
+  const mapSize = isMobile ? 128 : 256;
+  const surfacePacks: RockSurfaceMaps[] = [
+    createRockSurfaceMaps(mapSize, 0xa11e1),
+    createRockSurfaceMaps(mapSize, 0xb0a57),
+    createRockSurfaceMaps(mapSize, 0xc4a7e),
+  ];
+  for (const pack of surfacePacks) {
+    textures.push(pack.map, pack.normalMap, pack.roughnessMap);
+  }
 
   // Side rocks stay on the flanks, spread along a deep corridor ahead of the camera
   const xMin = isMobile ? 120 : 380;
@@ -413,32 +704,51 @@ function createRockField(
     scale: number;
     warpInfluence: number;
   }) => {
-    const geometry = createAsteroidGeometry(rng, rng() > 0.45 ? 2 : 1);
+    const geometry = createAsteroidGeometry(rng, rng() > 0.3 ? 2 : 1);
     geometries.push(geometry);
 
+    const pack = surfacePacks[Math.floor(rng() * surfacePacks.length)]!;
+    const repeat = randRange(rng, 1.6, 2.8);
     const tone = rng();
+    // Tint multiplies the albedo map
     const color = isDark
       ? new THREE.Color().setRGB(
-          lerp(0.22, 0.38, tone),
-          lerp(0.2, 0.34, tone),
-          lerp(0.2, 0.32, tone),
+          lerp(0.75, 1.05, tone),
+          lerp(0.72, 1.0, tone),
+          lerp(0.68, 0.95, tone),
         )
       : new THREE.Color().setRGB(
-          lerp(0.42, 0.55, tone),
-          lerp(0.4, 0.52, tone),
-          lerp(0.44, 0.56, tone),
+          lerp(0.7, 0.95, tone),
+          lerp(0.68, 0.92, tone),
+          lerp(0.64, 0.88, tone),
         );
+
+    const map = pack.map.clone();
+    const normalMap = pack.normalMap.clone();
+    const roughnessMap = pack.roughnessMap.clone();
+    map.repeat.set(repeat, repeat);
+    normalMap.repeat.set(repeat, repeat);
+    roughnessMap.repeat.set(repeat, repeat);
+    const ox = rng();
+    const oy = rng();
+    map.offset.set(ox, oy);
+    normalMap.offset.set(ox, oy);
+    roughnessMap.offset.set(ox, oy);
+    textures.push(map, normalMap, roughnessMap);
 
     const material = new THREE.MeshStandardMaterial({
       color,
-      roughness: randRange(rng, 0.78, 0.96),
-      metalness: randRange(rng, 0.02, 0.12),
-      flatShading: rng() > 0.55,
-      transparent: true,
-      opacity: isDark
-        ? randRange(rng, 0.55, 0.78)
-        : randRange(rng, 0.4, 0.58),
-      depthWrite: true,
+      map,
+      normalMap,
+      normalScale: new THREE.Vector2(
+        randRange(rng, 1.1, 1.7),
+        randRange(rng, 1.1, 1.7),
+      ),
+      roughnessMap,
+      roughness: randRange(rng, 0.88, 1),
+      metalness: 0,
+      // Smooth base so crater/normal maps can show micro-relief
+      flatShading: false,
     });
     materials.push(material);
 
@@ -479,8 +789,8 @@ function createRockField(
     });
   };
 
-  // Side field — scattered ahead in -Z so scrolling flies through them
-  for (let i = 0; i < ROCK_COUNT; i++) {
+  // Forward field (−Z) — dark / travel mode flies through these
+  for (let i = 0; i < ROCK_COUNT_FORWARD; i++) {
     const depthT = Math.pow(rng(), 0.55);
     const side = i % 2 === 0 ? 1 : -1;
     const ahead = lerp(aheadMin, aheadMax, depthT);
@@ -509,13 +819,43 @@ function createRockField(
     warpInfluence: 0.18,
   });
 
-  // Far asteroid, top-right
+  // Far asteroid, top-right (forward)
   pushRock({
     x: isMobile ? 280 : 720,
     y: isMobile ? 160 : 260,
     z: CAMERA_BASE.z - (isMobile ? 1100 : 1500),
     scale: isMobile ? 26 : 42,
     warpInfluence: 0.85,
+  });
+
+  // Sunward field (+Z) — light / sun-facing mode looks this way
+  for (let i = 0; i < ROCK_COUNT_SUNWARD; i++) {
+    const depthT = Math.pow(rng(), 0.55);
+    const side = i % 2 === 0 ? 1 : -1;
+    const ahead = lerp(aheadMin, aheadMax, depthT);
+    pushRock({
+      x: side * randRange(rng, xMin, xMax),
+      y: randRange(rng, isMobile ? -100 : -160, isMobile ? 120 : 200),
+      z: CAMERA_BASE.z + ahead,
+      scale: lerp(scaleMax, scaleMin, depthT),
+      warpInfluence: 1,
+    });
+  }
+
+  // Near sunward accents (readable when yawed toward the sun)
+  pushRock({
+    x: isMobile ? 130 : 260,
+    y: isMobile ? 40 : 80,
+    z: CAMERA_BASE.z + (isMobile ? 480 : 620),
+    scale: isMobile ? 22 : 34,
+    warpInfluence: 0.25,
+  });
+  pushRock({
+    x: isMobile ? -150 : -300,
+    y: isMobile ? -30 : -40,
+    z: CAMERA_BASE.z + (isMobile ? 720 : 980),
+    scale: isMobile ? 24 : 38,
+    warpInfluence: 0.35,
   });
 
   // Separate overlapping homes at spawn
@@ -544,7 +884,7 @@ function createRockField(
     }
   }
 
-  return { group, rocks, geometries, materials };
+  return { group, rocks, geometries, materials, textures };
 }
 
 function createShootingStarPool(isDark: boolean, count: number) {
@@ -735,6 +1075,7 @@ function createShootingStarPool(isDark: boolean, count: number) {
   return { group, stars, update, disposables };
 }
 
+
 export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -745,7 +1086,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     scrollDir: 0,
   });
   const lastScrollYRef = useRef(0);
-  /** 0 = forward corridor, 1 = reverse hollow. Theme drives this without remounting WebGL. */
+  /** 0 = forward corridor, 1 = sun-facing. Theme drives this without remounting WebGL. */
   const facingTargetRef = useRef(theme === "light" ? 1 : 0);
 
   useEffect(() => {
@@ -794,8 +1135,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const { seeds, positions, colors, sizes } = buildStarfield();
 
     const scene = new THREE.Scene();
-    // Fog hides far recycled rocks until they approach (no hard pop-in)
-    scene.fog = new THREE.Fog(FOG.space, 1400, 6200);
+    scene.fog = new THREE.Fog(FOG.space, 2800, 7200);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -804,7 +1144,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       22000,
     );
     camera.position.set(CAMERA_BASE.x, CAMERA_BASE.y, CAMERA_BASE.z);
-    // Initial facing from stored theme (no flash on first frame)
     let facingAmount = facingTargetRef.current;
     camera.rotation.y = facingAmount * Math.PI;
 
@@ -819,48 +1158,36 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     container.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0x6b7280, 0.55);
-    const key = new THREE.DirectionalLight(0xcbd5e1, 0.85);
-    key.position.set(420, 680, 320);
-    const rim = new THREE.DirectionalLight(0x60a5fa, 0.28);
+    const forwardKeyPos = new THREE.Vector3(420, 680, 320);
+    const focus = new THREE.Vector3(0, CAMERA_BASE.y, CAMERA_BASE.z - 900);
+    const sunPos = sunWorldPosition(isMobile, new THREE.Vector3());
+
+    const ambient = new THREE.AmbientLight(0x9ca3af, 0.55);
+    const key = new THREE.DirectionalLight(0xe2e8f0, 1.2);
+    key.position.copy(forwardKeyPos);
+    key.target.position.copy(focus);
+    scene.add(key.target);
+    const fill = new THREE.DirectionalLight(0x94a3b8, 0.32);
+    fill.position.set(-280, 200, 480);
+    const rim = new THREE.DirectionalLight(0x60a5fa, 0.22);
     rim.position.set(-380, -120, -520);
-    scene.add(ambient, key, rim);
-
-    const starPositions: number[] = [];
-    const starColors: number[] = [];
-    const starSizes: number[] = [];
-    const silPositions: number[] = [];
-    const silSizes: number[] = [];
-    const brightSeeds: StarSeed[] = [];
-
-    seeds.forEach((seed, i) => {
-      const base = i * 3;
-      if (seed.silhouette) {
-        silPositions.push(positions[base], positions[base + 1], positions[base + 2]);
-        silSizes.push(sizes[i]);
-        return;
-      }
-      starPositions.push(positions[base], positions[base + 1], positions[base + 2]);
-      starColors.push(colors[base], colors[base + 1], colors[base + 2]);
-      starSizes.push(sizes[i]);
-      brightSeeds.push(seed);
-    });
+    scene.add(ambient, key, fill, rim);
 
     const starGeo = new THREE.BufferGeometry();
     starGeo.setAttribute(
       "position",
-      new THREE.Float32BufferAttribute(starPositions, 3),
+      new THREE.Float32BufferAttribute(positions, 3),
     );
     starGeo.setAttribute(
       "color",
-      new THREE.Float32BufferAttribute(starColors, 3),
+      new THREE.Float32BufferAttribute(colors, 3),
     );
     starGeo.setAttribute(
       "size",
-      new THREE.Float32BufferAttribute(starSizes, 1),
+      new THREE.Float32BufferAttribute(sizes, 1),
     );
+    const starColors = colors.slice();
 
-    // Soft discs + per-star size — avoids the square "salt grain" PointsMaterial look
     const starMat = new THREE.ShaderMaterial({
       uniforms: {
         uPixelRatio: { value: renderer.getPixelRatio() },
@@ -899,74 +1226,35 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
 
     const stars = new THREE.Points(starGeo, starMat);
 
-    // Dark debris against the sun — NormalBlending so they read as real silhouettes
-    const silGeo = new THREE.BufferGeometry();
-    silGeo.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute(silPositions, 3),
-    );
-    silGeo.setAttribute(
-      "size",
-      new THREE.Float32BufferAttribute(silSizes, 1),
-    );
-    const silMat = new THREE.ShaderMaterial({
-      uniforms: {
-        uPixelRatio: { value: renderer.getPixelRatio() },
-        uOpacity: { value: 0 },
-      },
-      vertexShader: `
-        attribute float size;
-        uniform float uPixelRatio;
-        uniform float uOpacity;
-        void main() {
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
-          gl_PointSize = size * uPixelRatio * (0.85 + uOpacity * 0.35);
-        }
-      `,
-      fragmentShader: `
-        uniform float uOpacity;
-        void main() {
-          vec2 c = gl_PointCoord - vec2(0.5);
-          float d = length(c);
-          if (d > 0.5) discard;
-          float soft = 1.0 - smoothstep(0.1, 0.5, d);
-          float alpha = soft * uOpacity;
-          if (alpha < 0.02) discard;
-          gl_FragColor = vec4(0.02, 0.025, 0.04, alpha);
-        }
-      `,
-      transparent: true,
-      depthWrite: true,
-      fog: false,
-      blending: THREE.NormalBlending,
-    });
-    const silhouettes = new THREE.Points(silGeo, silMat);
-    silhouettes.renderOrder = 2;
     const {
       group: rockGroup,
       rocks,
       geometries: rockGeometries,
       materials: rockMaterials,
+      textures: rockTextures,
     } = createRockField(true, isMobile);
     const shootingPool = reducedMotion
       ? null
       : createShootingStarPool(true, isMobile ? 1 : SHOOTING.poolSize);
 
-    const hollow = createHollow(isMobile);
-    const hollowLight = new THREE.PointLight(0xb8cce6, 0, 14000, 2);
-    hollow.group.add(hollowLight);
+    const sun = createSun(isMobile);
+    const flare = createSunFlare(isMobile);
+    const sunGlow = new THREE.PointLight(0xb8d4ff, 0, 16000, 2);
+    sun.group.add(sunGlow);
+    // Hidden in forward mode until the ship yaws toward it
+    sun.coronaMat.uniforms.uOpacity.value = 0;
+    sun.outerMat.uniforms.uOpacity.value = 0;
+    flare.setIntensity(0);
 
-    // Backdrop drifts slowly; corridor rocks stay in world space for true fly-through
     const backdrop = new THREE.Group();
     backdrop.add(stars);
-    backdrop.add(silhouettes);
     if (shootingPool) backdrop.add(shootingPool.group);
     scene.add(backdrop);
     scene.add(rockGroup);
-    scene.add(hollow.group);
+    scene.add(sun.group);
+    scene.add(flare.group);
 
-    const starSeeds = brightSeeds;
+    const starSeeds = seeds;
     const nextMeteorSpawn = {
       t:
         performance.now() / 1000 +
@@ -974,37 +1262,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         Math.random() * 2.5,
     };
 
-    const spawnScale = isMobile
-      ? { min: 16, max: 34 }
-      : ROCK_SPAWN_SCALE;
-
-    const recycleRock = (rock: RockBody, camZ: number, travelSign: number) => {
-      const side = Math.random() > 0.5 ? 1 : -1;
-      const xMin = isMobile ? 120 : 360;
-      const xMax = isMobile ? 340 : FIELD.x * 0.36;
-      const ahead =
-        ROCK_RECYCLE.aheadMin +
-        Math.random() * (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin);
-      rock.home.x = side * (xMin + Math.random() * (xMax - xMin));
-      rock.home.y = (Math.random() - 0.5) * (isMobile ? 220 : 320);
-      // travelSign -1 = forward (-Z), +1 = reverse (+Z)
-      rock.home.z = camZ + travelSign * ahead;
-      // Always small at spawn — perspective grows them as we approach
-      const depthT =
-        (ahead - ROCK_RECYCLE.aheadMin) /
-        (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin);
-      const scale = lerp(spawnScale.max, spawnScale.min, depthT);
-      rock.baseScale = scale;
-      rock.mesh.scale.setScalar(scale);
-      rock.radius = scale * 1.15;
-      rock.mesh.position.copy(rock.home);
-      rock.mesh.rotation.set(
-        Math.random() * Math.PI * 2,
-        Math.random() * Math.PI * 2,
-        Math.random() * Math.PI * 2,
-      );
-    };
-
+    const ndc = new THREE.Vector3();
     const timer = new THREE.Timer();
     timer.connect(document);
 
@@ -1013,8 +1271,94 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let velocityKick = 0;
     let smoothedActivity = 0;
     let smoothedVelocity = 0;
-    /** Continuous zoom gesture (-1 scroll up, +1 scroll down) — avoids settle snap. */
     let smoothedGesture = 0;
+    let flareAmt = 0;
+
+    /**
+     * Drive CSS ink contrast from the projected sun each frame so type tracks
+     * scroll-driven camera lift / flare (`.dark.sun` open-air copy).
+     */
+    const clearSunCss = () => {
+      const root = document.documentElement;
+      root.style.removeProperty("--sun-x");
+      root.style.removeProperty("--sun-y");
+      root.style.removeProperty("--sun-face");
+      root.style.removeProperty("--sun-flare");
+      root.style.removeProperty("--sun-wash");
+      clearSunInkLit();
+    };
+
+    const publishSunCss = (
+      faceAmt: number,
+      ndcX: number,
+      ndcY: number,
+      visible: boolean,
+      flare: number,
+    ) => {
+      const root = document.documentElement;
+      if (!root.classList.contains("sun") && root.dataset.theme !== "sun") {
+        clearSunCss();
+        return;
+      }
+      // Keep class in sync if React wiped it but data-theme says sun
+      if (root.dataset.theme === "sun") root.classList.add("sun");
+      if (!visible) {
+        // Dark space only — keep ink light across the viewport.
+        root.style.setProperty("--sun-x", "1.25");
+        root.style.setProperty("--sun-y", "0.5");
+        root.style.setProperty("--sun-flare", "0");
+        root.style.setProperty("--sun-wash", "0.06");
+        root.style.setProperty("--sun-face", "0");
+        updateSunInkLit(1.25, 0.5, 0);
+        return;
+      }
+      // Three NDC → CSS viewport (y flips: NDC +1 is top, CSS 0 is top).
+      const x = Math.max(-0.08, Math.min(1.08, (ndcX + 1) * 0.5));
+      const y = Math.max(-0.08, Math.min(1.08, (1 - ndcY) * 0.5));
+      const wash = 0.1 + flare * 0.22;
+      const flareClamped = Math.max(0, Math.min(1, flare));
+      root.style.setProperty("--sun-x", x.toFixed(4));
+      root.style.setProperty("--sun-y", y.toFixed(4));
+      root.style.setProperty("--sun-flare", flareClamped.toFixed(4));
+      root.style.setProperty("--sun-wash", wash.toFixed(4));
+      root.style.setProperty("--sun-face", faceAmt.toFixed(4));
+      updateSunInkLit(x, y, flareClamped);
+    };
+
+    const updateSunVisuals = (face: number) => {
+      sunWorldPosition(isMobile, sun.group.position);
+      sun.group.quaternion.copy(camera.quaternion);
+      flare.group.position.copy(sun.group.position);
+      flare.group.quaternion.copy(camera.quaternion);
+
+      const show = face > 0.02;
+      sun.group.visible = show;
+      flare.group.visible = show;
+      if (!show) {
+        flare.setIntensity(0);
+        sun.coronaMat.uniforms.uOpacity.value = 0;
+        sun.outerMat.uniforms.uOpacity.value = 0;
+        sunGlow.intensity = 0;
+        publishSunCss(0, 0, 0, false, 0);
+        return;
+      }
+
+      ndc.copy(sun.group.position).project(camera);
+      const inFront = ndc.z < 1;
+      const cx = Math.max(-1.4, Math.min(1.4, ndc.x));
+      const cy = Math.max(-1.4, Math.min(1.4, ndc.y));
+      const edge = Math.max(Math.abs(cx), Math.abs(cy));
+      const edgeFade = 1 - smoothstep(0.75, 1.25, edge);
+      const target = !inFront
+        ? 0
+        : (reducedMotion ? 0.22 : 0.9) * edgeFade * face;
+      flareAmt = lerp(flareAmt, target, 0.14);
+      flare.setIntensity(flareAmt);
+      sun.coronaMat.uniforms.uOpacity.value = face * (0.7 + flareAmt * 0.3);
+      sun.outerMat.uniforms.uOpacity.value = face * (0.5 + flareAmt * 0.4);
+      sunGlow.intensity = face * 2.6;
+      publishSunCss(face, ndc.x, ndc.y, inFront, flareAmt);
+    };
 
     const animate = (timestamp: number) => {
       animationId = requestAnimationFrame(animate);
@@ -1028,7 +1372,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       const goingDown =
         scroll.progress.target > scroll.progress.current + 0.0005;
 
-      // Same follow rate both ways — asymmetric catch-up caused settle jitter on scroll-up
       const progressFollow = goingUp || goingDown ? 0.1 : 0.085;
       scroll.progress.current = lerp(
         scroll.progress.current,
@@ -1051,14 +1394,12 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         scroll.scrollDir = 0;
       }
 
-      // Soft gesture envelope — decay to 0 smoothly instead of flipping lift/zoom curves
       const gestureTarget =
         dir === 1 ? active : dir === -1 ? -active : 0;
       smoothedGesture = expSmooth(smoothedGesture, gestureTarget, 7, dt);
       const zoomInAmt = Math.max(0, smoothedGesture);
       const zoomOutAmt = Math.max(0, -smoothedGesture);
 
-      // Same lift curve always (scroll-up used a different formula → snap on stop mid-page)
       const liftT = indicatorProgress(p);
       const indicatorLift = liftT * INDICATOR_MAX_LIFT;
 
@@ -1074,24 +1415,15 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         zoomInAmt * (DOLLY_GESTURE_IN + velBoost) -
         zoomOutAmt * (DOLLY_GESTURE_OUT + velBoost);
 
-      // 0 forward / 1 reverse hollow — smooth yaw, snap if reduced motion
       const faceTarget = facingTargetRef.current;
       facingAmount = reducedMotion
         ? faceTarget
         : expSmooth(facingAmount, faceTarget, FACING_TURN_LAMBDA, dt);
       camera.rotation.y = facingAmount * Math.PI;
+      const face = facingAmount;
 
-      const hollowGlow = facingAmount;
-      hollow.coronaMat.uniforms.uOpacity.value = 0.45 + hollowGlow * 0.55;
-      hollow.outerMat.uniforms.uOpacity.value = 0.35 + hollowGlow * 0.75;
-      hollowLight.intensity = hollowGlow * 3.2;
-      // Debris silhouettes only read against the sun
-      silMat.uniforms.uOpacity.value = hollowGlow * 0.92;
-
-      // Forward: camera flies the corridor. Sun mode: camera stays put, rocks stream.
       const progressDolly = p * DOLLY_FROM_PROGRESS;
       const travel = progressDolly + gestureDolly;
-      const face = facingAmount;
       const sunStream = travel * face;
       const targetCamZ = CAMERA_BASE.z - travel * (1 - face);
       const cameraLift =
@@ -1106,11 +1438,20 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       );
       camera.position.z = expSmooth(camera.position.z, targetCamZ, 10, dt);
 
-      // Sun fixed in world space — too far to rush toward the ship
-      const sunAhead = isMobile ? HOLLOW.aheadMobile : HOLLOW.ahead;
-      hollow.group.position.set(0, CAMERA_BASE.y, CAMERA_BASE.z + sunAhead);
+      // Lights: corridor fill forward → sun key when facing the sun
+      sunWorldPosition(isMobile, sunPos);
+      key.position.lerpVectors(forwardKeyPos, sunPos, face);
+      key.intensity = lerp(1.2, 1.55, face);
+      ambient.intensity = lerp(0.55, 0.36, face);
+      if (face > 0.5) {
+        focus.set(0, camera.position.y, camera.position.z + 900);
+      } else {
+        focus.set(0, camera.position.y, camera.position.z - 900);
+      }
+      key.target.position.copy(focus);
 
-      // Star backdrop: slow parallax only (not locked to ship speed)
+      updateSunVisuals(face);
+
       backdrop.position.y = expSmooth(
         backdrop.position.y,
         indicatorLift * 0.35 + velocityKick * 0.15,
@@ -1134,7 +1475,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         (zoomOutAmt * 0.06 - zoomInAmt * 0.07) * (1 - face * 0.9);
       camera.rotation.x = expSmooth(camera.rotation.x, tiltTarget, 10, dt);
 
-      // Keep FOV stable in sun mode so the distant sun doesn't "zoom"
       const fovKick =
         (zoomOutAmt * 6 - zoomInAmt * 5 + active * 1.5) * (1 - face * 0.92);
       const targetFov = CAMERA_BASE_FOV + fovKick;
@@ -1144,29 +1484,26 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       }
 
       if (!reducedMotion) {
-        // Stars: fixed positions + soft twinkle only (distant backdrop)
         const col = starGeo.attributes.color.array as Float32Array;
 
         for (let i = 0; i < starSeeds.length; i++) {
-          const seed = starSeeds[i];
+          const seed = starSeeds[i]!;
           const index = i * 3;
           const twinkle =
             seed.baseAlpha *
             (0.78 +
               0.22 * Math.sin(count * seed.twinkleSpeed + seed.twinklePhase));
-          col[index] = starColors[index] * twinkle;
-          col[index + 1] = starColors[index + 1] * twinkle;
-          col[index + 2] = starColors[index + 2] * twinkle;
+          col[index] = starColors[index]! * twinkle;
+          col[index + 1] = starColors[index + 1]! * twinkle;
+          col[index + 2] = starColors[index + 2]! * twinkle;
         }
 
         starGeo.attributes.color.needsUpdate = true;
 
         shootingPool?.update(dt, nextMeteorSpawn, performance.now() / 1000);
 
-        const camZ = camera.position.z;
-        const towardSun = face > 0.5;
-
-        // Asteroids: tumble, bob; sun mode streams them past a static camera
+        // Fixed asteroid field — camera travels through; scroll-back restores
+        // the same rocks (no recycle / home drift).
         for (const rock of rocks) {
           rock.mesh.rotation.x += rock.spin.x * dt;
           rock.mesh.rotation.y += rock.spin.y * dt;
@@ -1178,70 +1515,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
             rock.warpInfluence;
           rock.mesh.position.x = rock.home.x;
           rock.mesh.position.y = rock.home.y + bob;
-          // sunStream pulls +Z rocks toward the ship without moving the sun
-          const viewZ = rock.home.z - sunStream;
-          rock.mesh.position.z = viewZ;
-
-          if (towardSun) {
-            if (viewZ < camZ + ROCK_RECYCLE.passMargin) {
-              recycleRock(rock, camZ + sunStream, 1);
-              rock.mesh.position.z = rock.home.z - sunStream;
-              continue;
-            }
-            if (viewZ > camZ + ROCK_RECYCLE.aheadMax * 1.2) {
-              rock.home.z =
-                camZ +
-                sunStream +
-                ROCK_RECYCLE.aheadMin +
-                Math.random() *
-                  (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) *
-                  0.45;
-              rock.mesh.position.z = rock.home.z - sunStream;
-            }
-          } else {
-            if (rock.home.z > camZ - ROCK_RECYCLE.passMargin) {
-              recycleRock(rock, camZ, -1);
-              continue;
-            }
-            if (rock.home.z < camZ - ROCK_RECYCLE.aheadMax * 1.2) {
-              rock.home.z =
-                camZ -
-                (ROCK_RECYCLE.aheadMin +
-                  Math.random() *
-                    (ROCK_RECYCLE.aheadMax - ROCK_RECYCLE.aheadMin) *
-                    0.45);
-              rock.mesh.position.z = rock.home.z;
-            }
-          }
-        }
-
-        // Soft collision — push overlapping rocks apart so they don't clip
-        for (let i = 0; i < rocks.length; i++) {
-          for (let j = i + 1; j < rocks.length; j++) {
-            const a = rocks[i];
-            const b = rocks[j];
-            const dx = a.mesh.position.x - b.mesh.position.x;
-            const dy = a.mesh.position.y - b.mesh.position.y;
-            const dz = a.mesh.position.z - b.mesh.position.z;
-            const dist = Math.sqrt(dx * dx + dy * dy + dz * dz) || 0.001;
-            const minDist = a.radius + b.radius;
-            if (dist >= minDist) continue;
-
-            const push = ((minDist - dist) / dist) * 0.5;
-            a.mesh.position.x += dx * push;
-            a.mesh.position.y += dy * push;
-            a.mesh.position.z += dz * push;
-            b.mesh.position.x -= dx * push;
-            b.mesh.position.y -= dy * push;
-            b.mesh.position.z -= dz * push;
-
-            a.home.x += dx * push * 0.35;
-            a.home.y += dy * push * 0.35;
-            a.home.z += dz * push * 0.35;
-            b.home.x -= dx * push * 0.35;
-            b.home.y -= dy * push * 0.35;
-            b.home.z -= dz * push * 0.35;
-          }
+          rock.mesh.position.z = rock.home.z - sunStream;
         }
 
         count += TWINKLE_SPEED;
@@ -1253,10 +1527,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         camera.rotation.y = facingAmount * Math.PI;
         camera.fov = CAMERA_BASE_FOV;
         camera.updateProjectionMatrix();
-        hollow.coronaMat.uniforms.uOpacity.value = 0.45 + facingAmount * 0.55;
-        hollow.outerMat.uniforms.uOpacity.value = 0.35 + facingAmount * 0.75;
-        hollowLight.intensity = facingAmount * 3.2;
-        silMat.uniforms.uOpacity.value = facingAmount * 0.92;
+        updateSunVisuals(facingAmount);
       }
 
       renderer.render(scene, camera);
@@ -1267,7 +1538,6 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
       starMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
-      silMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     };
 
     window.addEventListener("resize", handleResize);
@@ -1276,18 +1546,20 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     return () => {
       window.removeEventListener("resize", handleResize);
       cancelAnimationFrame(animationId);
-
+      timer.dispose();
       starGeo.dispose();
       starMat.dispose();
-      silGeo.dispose();
-      silMat.dispose();
       for (const geo of rockGeometries) geo.dispose();
       for (const mat of rockMaterials) mat.dispose();
-      for (const d of hollow.disposables) d.dispose();
+      for (const tex of rockTextures) tex.dispose();
+      for (const d of sun.disposables) d.dispose();
+      for (const d of flare.disposables) d.dispose();
       if (shootingPool) {
         for (const d of shootingPool.disposables) d.dispose();
       }
       renderer.dispose();
+
+      clearSunCss();
 
       if (renderer.domElement.parentElement === container) {
         container.removeChild(renderer.domElement);
@@ -1303,4 +1575,9 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       {...props}
     />
   );
+}
+
+function smoothstep(edge0: number, edge1: number, x: number) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
 }

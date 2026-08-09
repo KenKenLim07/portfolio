@@ -188,11 +188,11 @@ export function ProjectShowcase({
                 <div className="relative flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     <div className="inline-flex items-center gap-2">
-                      <h3 className="font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                      <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
                         <span className="font-mono text-[0.85em] font-medium tracking-[0.12em] text-muted">
                           {String(index + 1).padStart(2, "0")}
                         </span>{" "}
-                        <span className="relative">
+                        <span className="relative text-foreground">
                           {project.title}
                           <span
                             className={cn(

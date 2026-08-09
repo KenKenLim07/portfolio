@@ -29,7 +29,7 @@ export function HeroRotatingText() {
 
   if (prefersReducedMotion) {
     return (
-      <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted sm:text-sm sm:tracking-[0.22em]">
+      <span className="hero-sun-muted text-xs font-medium uppercase tracking-[0.2em] text-muted sm:text-sm sm:tracking-[0.22em]">
         {roles[0]}
       </span>
     );
@@ -51,7 +51,7 @@ export function HeroRotatingText() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -12, opacity: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="col-start-1 row-start-1 whitespace-nowrap leading-none"
+          className="hero-sun-muted col-start-1 row-start-1 whitespace-nowrap leading-none"
         >
           {roles[index]}
         </motion.span>

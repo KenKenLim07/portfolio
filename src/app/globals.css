@@ -71,8 +71,9 @@
 /*
  * Sun-facing space: ink type on the bright wash; CTAs stay high-contrast
  * (dark fill + light label — not foreground/background swapped blindly).
+ * `data-theme="sun"` survives React overwriting html className.
  */
-.dark.sun {
+.dark:is(.sun, [data-theme="sun"]) {
   color-scheme: light;
   --background: #0b1220;
   --foreground: #0a1020;
@@ -101,9 +102,13 @@
   --menu-muted: #3d4a5f;
   --menu-border: rgba(10, 16, 32, 0.14);
   --menu-overlay: rgba(10, 16, 32, 0.45);
+  --sun-ink-light: #f8fafc;
+  --sun-ink-dark: #0a1020;
+  --sun-muted-light: #d0d8e6;
+  --sun-muted-dark: #3d4a5f;
 }
 
-.dark.sun .hero-mega-outline {
+.dark:is(.sun, [data-theme="sun"]) .hero-mega-outline {
   -webkit-text-stroke-color: color-mix(
     in oklab,
     var(--foreground) 55%,
@@ -111,12 +116,212 @@
   );
 }
 
-.dark.sun .section-mega-outline {
+.dark:is(.sun, [data-theme="sun"]) .section-mega-outline {
   -webkit-text-stroke-color: color-mix(
     in oklab,
     var(--foreground) 48%,
     transparent
   );
+}
+
+/*
+ * Open-air ink: WebGL sets data-sun-lit each frame from projected sun
+ * (0 = shadow → light type, 1 = wash → dark type, mixed → light + halo).
+ */
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .text-foreground,
+  .hero-sun-ink,
+  .hero-mega:not(.hero-mega-outline)
+):not(svg):not(:has(> svg)) {
+  color: var(--sun-ink-light) !important;
+  -webkit-text-fill-color: var(--sun-ink-light) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .text-muted,
+  .hero-sun-muted
+):not(svg):not(:has(> svg)) {
+  color: var(--sun-muted-light) !important;
+  -webkit-text-fill-color: var(--sun-muted-light) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .section-mega-outline,
+  .hero-mega-outline,
+  .hero-sun-outline
+) {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke-width: 0.028em;
+  -webkit-text-stroke-color: var(--sun-ink-light) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .text-foreground,
+  .hero-sun-ink,
+  .hero-mega:not(.hero-mega-outline)
+)[data-sun-lit="1"] {
+  color: var(--sun-ink-dark) !important;
+  -webkit-text-fill-color: var(--sun-ink-dark) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .text-muted,
+  .hero-sun-muted
+)[data-sun-lit="1"] {
+  color: var(--sun-muted-dark) !important;
+  -webkit-text-fill-color: var(--sun-muted-dark) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .section-mega-outline,
+  .hero-mega-outline,
+  .hero-sun-outline
+)[data-sun-lit="1"] {
+  -webkit-text-stroke-color: var(--sun-ink-dark) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .text-foreground,
+  .text-muted,
+  .hero-sun-ink,
+  .hero-sun-muted,
+  .hero-mega:not(.hero-mega-outline)
+)[data-sun-lit="mixed"] {
+  color: var(--sun-ink-light) !important;
+  -webkit-text-fill-color: var(--sun-ink-light) !important;
+  text-shadow:
+    0 0 14px rgba(8, 12, 24, 0.95),
+    0 1px 3px rgba(8, 12, 24, 0.85);
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .text-muted,
+  .hero-sun-muted
+)[data-sun-lit="mixed"] {
+  color: var(--sun-muted-light) !important;
+  -webkit-text-fill-color: var(--sun-muted-light) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"]) :is(main, footer, aside) :is(
+  .section-mega-outline,
+  .hero-mega-outline,
+  .hero-sun-outline
+)[data-sun-lit="mixed"] {
+  -webkit-text-stroke-color: var(--sun-ink-light) !important;
+  text-shadow:
+    0 0 14px rgba(8, 12, 24, 0.95),
+    0 1px 3px rgba(8, 12, 24, 0.85);
+}
+
+.dark:is(.sun, [data-theme="sun"])
+  :is(
+    [data-sun-solid],
+    .glass,
+    .bg-surface,
+    .bg-subtle,
+    nav,
+    .mobile-menu-panel,
+    [data-hero-cta-panel]
+  )
+  :is(
+    .text-foreground,
+    .text-muted,
+    .hero-sun-ink,
+    .hero-sun-muted,
+    .hero-sun-outline,
+    .hero-mega-outline,
+    .section-mega-outline,
+    .hero-mega
+  ),
+.dark:is(.sun, [data-theme="sun"])
+  :is([data-sun-solid], .glass, .bg-surface, .bg-subtle):is(
+    .text-foreground,
+    .text-muted,
+    .hero-sun-ink,
+    .hero-sun-muted,
+    .hero-sun-outline,
+    .hero-mega-outline,
+    .section-mega-outline,
+    .hero-mega
+  ) {
+  text-shadow: none !important;
+}
+
+.dark:is(.sun, [data-theme="sun"])
+  :is(
+    [data-sun-solid],
+    .glass,
+    .bg-surface,
+    .bg-subtle,
+    nav,
+    .mobile-menu-panel,
+    [data-hero-cta-panel]
+  )
+  :is(.text-foreground, .hero-sun-ink, .hero-mega:not(.hero-mega-outline)),
+.dark:is(.sun, [data-theme="sun"])
+  :is([data-sun-solid], .glass, .bg-surface, .bg-subtle):is(
+    .text-foreground,
+    .hero-sun-ink,
+    .hero-mega:not(.hero-mega-outline)
+  ) {
+  color: var(--foreground) !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"])
+  :is(
+    [data-sun-solid],
+    .glass,
+    .bg-surface,
+    .bg-subtle,
+    nav,
+    .mobile-menu-panel,
+    [data-hero-cta-panel]
+  )
+  :is(.text-muted, .hero-sun-muted),
+.dark:is(.sun, [data-theme="sun"])
+  :is([data-sun-solid], .glass, .bg-surface, .bg-subtle):is(
+    .text-muted,
+    .hero-sun-muted
+  ) {
+  color: var(--muted) !important;
+  -webkit-text-fill-color: var(--muted) !important;
+}
+
+.dark:is(.sun, [data-theme="sun"])
+  :is(
+    [data-sun-solid],
+    .glass,
+    .bg-surface,
+    .bg-subtle,
+    nav,
+    .mobile-menu-panel,
+    [data-hero-cta-panel]
+  )
+  :is(.hero-mega-outline, .section-mega-outline, .hero-sun-outline),
+.dark:is(.sun, [data-theme="sun"])
+  :is([data-sun-solid], .glass, .bg-surface, .bg-subtle):is(
+    .hero-mega-outline,
+    .section-mega-outline,
+    .hero-sun-outline
+  ) {
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke-width: 0.03em;
+  -webkit-text-stroke-color: color-mix(
+    in oklab,
+    var(--foreground) 48%,
+    transparent
+  );
+}
+
+.dark:is(.sun, [data-theme="sun"]) aside a:has(> svg) {
+  color: var(--sun-ink-light);
+}
+
+.dark:is(.sun, [data-theme="sun"]) aside a:has(> svg):hover {
+  color: #ffffff;
 }
 
 @theme inline {
