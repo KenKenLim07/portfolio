@@ -6,6 +6,7 @@ import {
   useContext,
   useSyncExternalStore,
 } from "react";
+import { ENABLE_SUN_MODE } from "@/lib/constants";
 
 export type Theme = "light" | "dark";
 
@@ -39,13 +40,18 @@ function subscribeToTheme(listener: () => void) {
 }
 
 function applyTheme(theme: Theme) {
+  const next = ENABLE_SUN_MODE ? theme : "dark";
   // Always keep dark shell; `sun` flips type/chrome for the bright reverse view
   document.documentElement.classList.add("dark");
-  document.documentElement.classList.toggle("sun", theme === "light");
-  localStorage.setItem("theme", theme);
+  document.documentElement.classList.toggle(
+    "sun",
+    ENABLE_SUN_MODE && next === "light",
+  );
+  localStorage.setItem("theme", next);
 }
 
 function readTheme(): Theme {
+  if (!ENABLE_SUN_MODE) return "dark";
   // Do not infer from `.dark` — that class is always on for the cockpit UI
   try {
     const stored = localStorage.getItem("theme") as Theme | null;
@@ -71,6 +77,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
+    if (!ENABLE_SUN_MODE) return;
     const next: Theme = readTheme() === "dark" ? "light" : "dark";
     applyTheme(next);
     notifyThemeListeners();

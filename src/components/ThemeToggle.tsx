@@ -1,6 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
+import { ENABLE_SUN_MODE } from "@/lib/constants";
 import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,8 @@ type ThemeToggleProps = {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { theme, toggleTheme } = useTheme();
+
+  if (!ENABLE_SUN_MODE) return null;
 
   return (
     <button

@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Mail } from "lucide-react";
+import { FileText, Mail } from "lucide-react";
 import {
   FacebookIcon,
   GitHubIcon,
@@ -28,6 +28,13 @@ const links: {
     href: `mailto:${SITE.email}`,
     icon: Mail,
     variant: "secondary" as const,
+  },
+  {
+    label: "Resume",
+    href: SITE.resumeUrl,
+    icon: FileText,
+    variant: "secondary" as const,
+    external: true,
   },
   {
     label: "GitHub",

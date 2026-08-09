@@ -6,10 +6,15 @@ export const SITE = {
   description:
     "a Full-Stack Developer who builds modern web applications, intelligent automation, and AI-powered systems that transform data into practical solutions.",
   url: "https://portfolio.example.com",
+  /** Drop the PDF at `public/resume/Jose-Marie-Lim-Resume.pdf` */
+  resumeUrl: "/resume/Jose-Marie-Lim-Resume.pdf",
 } as const;
 
 /** Set true to restore the interactive knowledge-graph hero panel */
 export const ENABLE_HERO_BRAIN = false;
+
+/** Set true to show theme toggle + sun-facing space mode */
+export const ENABLE_SUN_MODE = false;
 
 /** Temporary layout debug — colored borders on hero regions. Set false before shipping. */
 export const HERO_LAYOUT_DEBUG = false;

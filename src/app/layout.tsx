@@ -24,8 +24,9 @@ const themeInitScript = `
 (function () {
   try {
     document.documentElement.classList.add("dark");
-    var stored = localStorage.getItem("theme");
-    document.documentElement.classList.toggle("sun", stored === "light");
+    document.documentElement.classList.remove("sun");
+    // Sun mode is feature-flagged off — always start in dark / forward space
+    localStorage.setItem("theme", "dark");
   } catch (e) {}
 })();
 `;

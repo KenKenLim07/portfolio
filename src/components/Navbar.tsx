@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { NAV_LINKS } from "@/lib/constants";
+import { NAV_LINKS, ENABLE_SUN_MODE, SITE } from "@/lib/constants";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
@@ -78,6 +78,17 @@ export function Navbar() {
                 </Link>
               </li>
             ))}
+            <li>
+              <a
+                href={SITE.resumeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View resume (PDF)"
+                className={linkClass}
+              >
+                Resume
+              </a>
+            </li>
           </ul>
         </nav>
       </header>
@@ -133,12 +144,14 @@ export function Navbar() {
         aria-hidden={!mobileOpen}
         className="mobile-menu-panel fixed top-0 right-0 z-50 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden sm:w-[min(88vw,20rem)] lg:hidden"
       >
-        <div
-          className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20"
-          data-menu-chrome
-        >
-          <ThemeToggle className="mobile-menu-chrome text-[var(--menu-fg)] hover:text-[var(--menu-muted)]" />
-        </div>
+        {ENABLE_SUN_MODE ? (
+          <div
+            className="absolute left-6 top-[max(1rem,env(safe-area-inset-top))] z-20"
+            data-menu-chrome
+          >
+            <ThemeToggle className="mobile-menu-chrome text-[var(--menu-fg)] hover:text-[var(--menu-muted)]" />
+          </div>
+        ) : null}
 
         <ul className="flex list-none flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(6.5rem,env(safe-area-inset-top))]">
           {NAV_LINKS.map((link) => (
@@ -153,6 +166,19 @@ export function Navbar() {
               </Link>
             </li>
           ))}
+          <li data-menu-link className="list-none">
+            <a
+              href={SITE.resumeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="View resume (PDF)"
+              className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-[var(--menu-fg)] transition-colors duration-300 hover:text-[var(--menu-muted)] sm:py-4 sm:text-[2rem]"
+              onClick={closeMenu}
+              tabIndex={mobileOpen ? 0 : -1}
+            >
+              Resume
+            </a>
+          </li>
         </ul>
       </aside>
     </>

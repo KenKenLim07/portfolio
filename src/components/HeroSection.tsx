@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, FileText } from "lucide-react";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
@@ -83,6 +83,16 @@ function HeroCtas({ className }: { className?: string }) {
         >
           Get in touch
         </Link>
+        <a
+          href={SITE.resumeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="View resume (PDF)"
+          className="radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 border border-border bg-subtle px-4 py-2.5 text-sm font-medium text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)] lg:px-5 lg:py-3"
+        >
+          Resume
+          <FileText className="h-4 w-4 shrink-0 transition-opacity duration-200 group-hover:opacity-80" />
+        </a>
       </div>
     </div>
   );
