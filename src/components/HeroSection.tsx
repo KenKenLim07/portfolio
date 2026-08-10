@@ -67,7 +67,7 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("projects");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-4 py-2.5 text-sm font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-colors duration-200 hover:opacity-90 lg:px-5 lg:py-3"
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-4 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-colors duration-200 hover:opacity-90 lg:px-5 lg:py-3"
         >
           View projects
         </Link>
@@ -77,7 +77,7 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("contact");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-4 py-2.5 text-sm font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)] lg:px-5 lg:py-3"
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-4 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)] lg:px-5 lg:py-3"
         >
           Get in touch
         </Link>

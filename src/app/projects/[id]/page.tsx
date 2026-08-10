@@ -28,7 +28,7 @@ export default async function ProjectDetailsPage({ params }: PageProps) {
       <div className="flex items-center gap-3">
         <Link
           href="/#projects"
-          className="radius-control inline-flex items-center gap-2 border border-border bg-subtle px-4 py-2 text-sm font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
+          className="radius-control inline-flex items-center gap-2 border border-border bg-subtle px-4 py-2 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back
@@ -90,7 +90,7 @@ export default async function ProjectDetailsPage({ params }: PageProps) {
                     href={project.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-sm font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
+                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
                   >
                     Live Demo
                     <ExternalLink className="h-4 w-4" aria-hidden />
@@ -101,7 +101,7 @@ export default async function ProjectDetailsPage({ params }: PageProps) {
                     href={project.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-sm font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
+                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
                   >
                     GitHub
                     <GitHubIcon />
