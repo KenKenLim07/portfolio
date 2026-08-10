@@ -106,7 +106,7 @@ export const HERO_AVAILABILITY = "Open to new projects" as const;
 export const HERO_METRICS = [
   { value: "7+", label: "Projects Built" },
   { value: "35K+", label: "News Articles Processed" },
-  { value: "1K+", label: "Facebook Marketplace Listings Collected" },
+  { value: "1K+", label: "Facebook Marketplace Listings" },
 ] as const;
 
 /** @deprecated Use HERO_METRICS */

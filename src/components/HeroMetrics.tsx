@@ -46,12 +46,10 @@ export function HeroMetrics({
               "min-w-0",
               stacked
                 ? i > 0 && "border-t border-border pt-3.5 lg:pt-4"
-                : compact
-                  ? undefined
-                  : cn(
-                      "lg:flex-1 lg:basis-auto",
-                      i > 0 && "lg:border-l lg:border-border lg:pl-8",
-                    ),
+                : cn(
+                    i > 0 && "border-l border-border pl-2.5 sm:pl-3",
+                    !compact && "lg:flex-1 lg:basis-auto lg:pl-8",
+                  ),
             )}
           >
             <p
