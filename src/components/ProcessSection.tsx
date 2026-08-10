@@ -14,7 +14,7 @@ export function ProcessSection() {
   return (
     <Section id="process">
       <div ref={scopeRef}>
-        <div data-scrub-reveal className="gsap-reveal mb-14 text-center md:mb-20">
+        <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
           <h2 className="section-mega">
             <MegaTitleText title="How I Work" />
           </h2>
