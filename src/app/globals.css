@@ -69,8 +69,7 @@
 }
 
 /*
- * Sun-facing space: ink type on the bright wash; CTAs stay high-contrast
- * (dark fill + light label — not foreground/background swapped blindly).
+ * Sun-facing space: static “in the wash” ink (dark type on the bright sky).
  * `data-theme="sun"` survives React overwriting html className.
  */
 .dark:is(.sun, [data-theme="sun"]) {

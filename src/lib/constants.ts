@@ -14,7 +14,7 @@ export const SITE = {
 export const ENABLE_HERO_BRAIN = false;
 
 /** Set true to show theme toggle + sun-facing space mode */
-export const ENABLE_SUN_MODE = true;
+export const ENABLE_SUN_MODE = false;
 
 /** Temporary layout debug — colored borders on hero regions. Set false before shipping. */
 export const HERO_LAYOUT_DEBUG = false;

@@ -43,17 +43,19 @@ const SHOOTING = {
 
 const STAR_COUNT = 280;
 /** Side rocks — forward corridor (dark / travel). */
-const ROCK_COUNT_FORWARD = 14;
+const ROCK_COUNT_FORWARD = 20;
+/** Extra deep-belt rocks past full-page dolly so the bottom still has asteroids ahead. */
+const ROCK_COUNT_FORWARD_FAR = 14;
 /** Side rocks — toward the sun (+Z), visible in light / sun-facing mode. */
 const ROCK_COUNT_SUNWARD = 10;
 /**
  * Depth bands (camera sits around z ≈ 1180 looking toward -Z):
  * - stars: spherical shell (visible forward + when yawed toward the sun)
- * - asteroids: fixed field in both directions (forward −Z + sunward +Z)
+ * - asteroids: fixed field in both directions (forward −Z deep past dolly + sunward +Z)
  * - sun: behind the ship (+Z) — only shown in sun-facing mode
  */
 /** Side / corridor rock placement bounds. */
-const FIELD = { x: 5600, y: 640, z: 6400 } as const;
+const FIELD = { x: 5600, y: 640, z: 9600 } as const;
 /** Spherical star shell centered near the travel mid-path. */
 const STAR_SHELL = {
   centerZ: 400,
@@ -152,6 +154,45 @@ type Rng = () => number;
 
 function randRange(rng: Rng, min: number, max: number) {
   return min + rng() * (max - min);
+}
+
+/**
+ * Asteroid size mix — many small debris, fewer medium, rare giants.
+ * (Avoids the old depth-linked lerp that made most rocks read the same on screen.)
+ */
+function pickRockScale(rng: Rng, isMobile: boolean): number {
+  const roll = rng();
+  if (isMobile) {
+    if (roll < 0.5) return randRange(rng, 10, 24);
+    if (roll < 0.78) return randRange(rng, 24, 46);
+    if (roll < 0.93) return randRange(rng, 46, 82);
+    return randRange(rng, 82, 130);
+  }
+  if (roll < 0.46) return randRange(rng, 14, 34);
+  if (roll < 0.74) return randRange(rng, 34, 70);
+  if (roll < 0.91) return randRange(rng, 70, 128);
+  return randRange(rng, 128, 220);
+}
+
+/**
+ * Lateral scatter — mostly near the viewport edges (flanks), not mid-frame.
+ * Random side + depth jitter avoids the old dual-column look without
+ * dumping rocks in the center.
+ */
+function pickRockX(
+  rng: Rng,
+  isMobile: boolean,
+  xMin: number,
+  xMax: number,
+): number {
+  const side = rng() < 0.5 ? -1 : 1;
+  // Bias hard toward the outer edge of the allowed band
+  const t = Math.pow(rng(), 0.35);
+  const inner = xMin * (isMobile ? 0.95 : 0.85);
+  const outer = xMax * (isMobile ? 1.55 : 1.25);
+  const absX = lerp(inner, outer, t);
+  // Small jitter only — keep them on the flank, not drifting to center
+  return side * absX + randRange(rng, isMobile ? -22 : -50, isMobile ? 22 : 50);
 }
 
 const STAR_SEED = 0x51a7;
@@ -488,9 +529,9 @@ function createAsteroidGeometry(
 
   // Per-rock oblong shape (uniform transform — does not crack faces)
   geometry.scale(
-    randRange(rng, 0.75, 1.35),
-    randRange(rng, 0.65, 1.15),
-    randRange(rng, 0.7, 1.4),
+    randRange(rng, 0.55, 1.55),
+    randRange(rng, 0.5, 1.25),
+    randRange(rng, 0.6, 1.6),
   );
   geometry.computeVertexNormals();
   return geometry;
@@ -688,13 +729,17 @@ function createRockField(
     textures.push(pack.map, pack.normalMap, pack.roughnessMap);
   }
 
-  // Side rocks stay on the flanks, spread along a deep corridor ahead of the camera
-  const xMin = isMobile ? 120 : 380;
-  const xMax = isMobile ? 360 : FIELD.x * 0.38;
-  const scaleMin = isMobile ? 20 : 28;
-  const scaleMax = isMobile ? 48 : 96;
+  // Side rocks stay on the flanks / near viewport edges
+  const xMin = isMobile ? 140 : 420;
+  const xMax = isMobile ? 520 : FIELD.x * 0.42;
   const aheadMin = isMobile ? 360 : 420;
-  const aheadMax = isMobile ? 2800 : 3800;
+  // Past DOLLY_FROM_PROGRESS (2200) so rocks remain ahead at page bottom
+  const aheadMax = isMobile ? 4800 : 6200;
+  // Keep rocks in the lower ~15–20% of frame (camera eye ≈ y 280)
+  const yMin = isMobile ? -300 : -380;
+  const yMax = isMobile ? -50 : -70;
+  const yMinFar = isMobile ? -340 : -440;
+  const yMaxFar = isMobile ? -60 : -90;
 
   const pushRock = (opts: {
     x: number;
@@ -703,7 +748,9 @@ function createRockField(
     scale: number;
     warpInfluence: number;
   }) => {
-    const geometry = createAsteroidGeometry(rng, rng() > 0.3 ? 2 : 1);
+    // Heavier meshes get a bit more geo detail
+    const detail = opts.scale > (isMobile ? 70 : 110) ? 2 : rng() > 0.35 ? 2 : 1;
+    const geometry = createAsteroidGeometry(rng, detail);
     geometries.push(geometry);
 
     const pack = surfacePacks[Math.floor(rng() * surfacePacks.length)]!;
@@ -761,7 +808,7 @@ function createRockField(
       randRange(rng, 0, Math.PI * 2),
     );
 
-    // Unique tumble: one dominant axis, slow rate (rad/s)
+    // Unique tumble: one dominant axis; larger rocks spin slower
     const axis = new THREE.Vector3(
       randRange(rng, -1, 1),
       randRange(rng, -1, 1),
@@ -769,7 +816,9 @@ function createRockField(
     );
     if (axis.lengthSq() < 0.001) axis.set(0.2, 1, 0.1);
     axis.normalize();
-    const spinRate = randRange(rng, 0.025, 0.09);
+    const mass = Math.max(opts.scale, 16);
+    const spinRate =
+      randRange(rng, 0.018, 0.08) * (48 / mass);
     const bias = rng();
     if (bias < 0.33)
       axis.set(axis.x * 1.8, axis.y * 0.35, axis.z * 0.45).normalize();
@@ -791,67 +840,116 @@ function createRockField(
   // Forward field (−Z) — dark / travel mode flies through these
   for (let i = 0; i < ROCK_COUNT_FORWARD; i++) {
     const depthT = Math.pow(rng(), 0.55);
-    const side = i % 2 === 0 ? 1 : -1;
     const ahead = lerp(aheadMin, aheadMax, depthT);
+    // Nudge giants slightly farther so they don't swallow the hero
+    let scale = pickRockScale(rng, isMobile);
+    if (scale > (isMobile ? 70 : 120) && ahead < (isMobile ? 900 : 1200)) {
+      scale *= randRange(rng, 0.45, 0.65);
+    }
     pushRock({
-      x: side * randRange(rng, xMin, xMax),
-      y: randRange(rng, isMobile ? -100 : -160, isMobile ? 120 : 200),
+      x: pickRockX(rng, isMobile, xMin, xMax),
+      y: randRange(rng, yMin, yMax),
       z: CAMERA_BASE.z - ahead,
-      scale: lerp(scaleMax, scaleMin, depthT),
+      scale,
       warpInfluence: 1,
     });
   }
 
-  // Two center rocks — spaced left/right so they don't crowd mid-frame
+  // Deep belt — beyond full scroll travel so the page bottom still has rocks ahead
+  const farMin = isMobile ? 3200 : 4200;
+  const farMax = isMobile ? 7200 : 9200;
+  for (let i = 0; i < ROCK_COUNT_FORWARD_FAR; i++) {
+    const depthT = Math.pow(rng(), 0.7);
+    const ahead = lerp(farMin, farMax, depthT);
+    // Bias far belt toward medium–large so distant rocks still read
+    let scale = pickRockScale(rng, isMobile);
+    if (rng() < 0.45) scale = Math.max(scale, pickRockScale(rng, isMobile));
+    scale *= randRange(rng, 1.05, 1.4);
+    pushRock({
+      x: pickRockX(rng, isMobile, xMin, xMax),
+      y: randRange(rng, yMinFar, yMaxFar),
+      z: CAMERA_BASE.z - ahead,
+      scale,
+      warpInfluence: 1,
+    });
+  }
+
+  // Two flank rocks — near, but kept off-center so the mid view stays clear
   pushRock({
-    x: isMobile ? -110 : -220,
-    y: isMobile ? 10 : 20,
+    x: isMobile ? -200 : -480,
+    y: isMobile ? -90 : -120,
     z: CAMERA_BASE.z - (isMobile ? 420 : 520),
     scale: isMobile ? 24 : 36,
     warpInfluence: 0.18,
   });
   pushRock({
-    x: isMobile ? 120 : 240,
-    y: isMobile ? -20 : -10,
+    x: isMobile ? 220 : 520,
+    y: isMobile ? -110 : -140,
     z: CAMERA_BASE.z - (isMobile ? 680 : 860),
     scale: isMobile ? 22 : 34,
     warpInfluence: 0.18,
   });
 
-  // Far asteroid, top-right (forward)
+  // Far asteroid, lower-right edge (forward)
   pushRock({
-    x: isMobile ? 280 : 720,
-    y: isMobile ? 160 : 260,
+    x: isMobile ? 340 : 920,
+    y: isMobile ? -40 : -55,
     z: CAMERA_BASE.z - (isMobile ? 1100 : 1500),
     scale: isMobile ? 26 : 42,
     warpInfluence: 0.85,
   });
 
+  // Mid-deep anchors — intentional size steps (medium → large → giant), on flanks
+  pushRock({
+    x: isMobile ? -300 : -780,
+    y: isMobile ? -70 : -100,
+    z: CAMERA_BASE.z - (isMobile ? 2400 : 3200),
+    scale: isMobile ? 52 : 96,
+    warpInfluence: 0.9,
+  });
+  pushRock({
+    x: isMobile ? 360 : 980,
+    y: isMobile ? -130 : -180,
+    z: CAMERA_BASE.z - (isMobile ? 3600 : 4800),
+    scale: isMobile ? 72 : 145,
+    warpInfluence: 0.95,
+  });
+  pushRock({
+    x: isMobile ? -280 : -720,
+    y: isMobile ? -160 : -220,
+    z: CAMERA_BASE.z - (isMobile ? 5200 : 6800),
+    scale: isMobile ? 95 : 195,
+    warpInfluence: 1,
+  });
+
   // Sunward field (+Z) — light / sun-facing mode looks this way
   for (let i = 0; i < ROCK_COUNT_SUNWARD; i++) {
     const depthT = Math.pow(rng(), 0.55);
-    const side = i % 2 === 0 ? 1 : -1;
     const ahead = lerp(aheadMin, aheadMax, depthT);
+    let scale = pickRockScale(rng, isMobile);
+    if (scale > (isMobile ? 70 : 120) && ahead < (isMobile ? 900 : 1200)) {
+      scale *= randRange(rng, 0.45, 0.65);
+    }
     pushRock({
-      x: side * randRange(rng, xMin, xMax),
-      y: randRange(rng, isMobile ? -100 : -160, isMobile ? 120 : 200),
+      x: pickRockX(rng, isMobile, xMin, xMax),
+      y: randRange(rng, yMin, yMax),
       z: CAMERA_BASE.z + ahead,
-      scale: lerp(scaleMax, scaleMin, depthT),
+      scale,
       warpInfluence: 1,
     });
   }
 
-  // Near sunward accents (readable when yawed toward the sun)
+  // Near sunward accents — kept on the flanks
   pushRock({
-    x: isMobile ? 130 : 260,
-    y: isMobile ? 40 : 80,
+    x: isMobile ? 240 : 520,
+    y: isMobile ? -80 : -110,
     z: CAMERA_BASE.z + (isMobile ? 480 : 620),
     scale: isMobile ? 22 : 34,
     warpInfluence: 0.25,
   });
   pushRock({
-    x: isMobile ? -150 : -300,
-    y: isMobile ? -30 : -40,
+    x: isMobile ? -260 : -560,
+    y: isMobile ? -100 : -130,
     z: CAMERA_BASE.z + (isMobile ? 720 : 980),
     scale: isMobile ? 24 : 38,
     warpInfluence: 0.35,
@@ -1134,7 +1232,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     const { seeds, positions, colors, sizes } = buildStarfield();
 
     const scene = new THREE.Scene();
-    scene.fog = new THREE.Fog(FOG.space, 2800, 7200);
+    scene.fog = new THREE.Fog(FOG.space, 3200, 9800);
 
     const camera = new THREE.PerspectiveCamera(
       60,
@@ -1278,6 +1376,11 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       sun.group.quaternion.copy(camera.quaternion);
       flare.group.position.copy(sun.group.position);
       flare.group.quaternion.copy(camera.quaternion);
+
+      // Keep class in sync if React wiped it but data-theme says sun
+      if (document.documentElement.dataset.theme === "sun") {
+        document.documentElement.classList.add("sun");
+      }
 
       const show = face > 0.02;
       sun.group.visible = show;

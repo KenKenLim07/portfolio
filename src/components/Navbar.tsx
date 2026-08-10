@@ -69,7 +69,7 @@ export function Navbar() {
           className="mx-auto flex h-16 max-w-7xl items-center justify-end gap-5 px-12 xl:gap-8"
           aria-label="Main navigation"
         >
-          <ThemeToggle />
+          {ENABLE_SUN_MODE ? <ThemeToggle /> : null}
           <ul className="flex items-center gap-7 xl:gap-9">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
