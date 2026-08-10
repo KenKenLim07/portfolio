@@ -18,10 +18,12 @@ const INDICATOR_MAX_LIFT = 120;
 
 /**
  * Ship throttle: forward scroll flies the corridor.
+ * Tuned to the deep rock belt so mid→bottom scroll still feels like travel
+ * (field reaches ~6–9k ahead; keep dolly a solid fraction of that).
  */
-const DOLLY_FROM_PROGRESS = 2200;
-const DOLLY_GESTURE_IN = 420;
-const DOLLY_GESTURE_OUT = 340;
+const DOLLY_FROM_PROGRESS = 3800;
+const DOLLY_GESTURE_IN = 520;
+const DOLLY_GESTURE_OUT = 420;
 const CAMERA_BASE_FOV = 60;
 
 /** Subtle asteroid idle bob (stars stay fixed — no surface wave). */
@@ -733,7 +735,7 @@ function createRockField(
   const xMin = isMobile ? 140 : 420;
   const xMax = isMobile ? 520 : FIELD.x * 0.42;
   const aheadMin = isMobile ? 360 : 420;
-  // Past DOLLY_FROM_PROGRESS (2200) so rocks remain ahead at page bottom
+  // Past DOLLY_FROM_PROGRESS so rocks remain ahead at page bottom
   const aheadMax = isMobile ? 4800 : 6200;
   // Keep rocks in the lower ~15–20% of frame (camera eye ≈ y 280)
   const yMin = isMobile ? -300 : -380;
