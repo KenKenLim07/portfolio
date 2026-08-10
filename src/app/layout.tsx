@@ -1,22 +1,22 @@
 import type { Metadata } from "next";
-import { Archivo, Space_Grotesk } from "next/font/google";
+import { IBM_Plex_Sans, Syncopate } from "next/font/google";
 import { GsapProvider } from "@/components/GsapProvider";
 import { SiteBackground } from "@/components/SiteBackground";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
 
-const archivo = Archivo({
-  variable: "--font-archivo",
+const syncopate = Syncopate({
+  variable: "--font-syncopate",
   subsets: ["latin"],
+  weight: ["400", "700"],
   display: "swap",
-  // Enables font-stretch / wdth so hero mega type can go wider
-  axes: ["wdth"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-ibm-plex-sans",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -74,7 +74,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${spaceGrotesk.variable} dark h-full scroll-smooth`}
+      className={`${syncopate.variable} ${ibmPlexSans.variable} dark h-full scroll-smooth`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

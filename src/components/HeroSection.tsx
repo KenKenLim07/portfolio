@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowDown } from "lucide-react";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
@@ -46,13 +45,7 @@ function HeroAvailability({ className }: { className?: string }) {
   );
 }
 
-function HeroCtas({
-  className,
-  align = "start",
-}: {
-  className?: string;
-  align?: "start" | "center";
-}) {
+function HeroCtas({ className }: { className?: string }) {
   return (
     <div
       data-hero-cta-panel
@@ -65,7 +58,6 @@ function HeroCtas({
       <div
         className={cn(
           "flex flex-row flex-wrap items-center gap-2.5 sm:gap-3",
-          align === "center" && "justify-center",
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
       >
@@ -75,10 +67,9 @@ function HeroCtas({
             e.preventDefault();
             scrollToSection("projects");
           }}
-          className="radius-control group relative z-10 inline-flex cursor-pointer items-center justify-center gap-2 border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-4 py-2.5 text-sm font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-colors duration-200 hover:opacity-90 lg:px-5 lg:py-3"
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-4 py-2.5 text-sm font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-colors duration-200 hover:opacity-90 lg:px-5 lg:py-3"
         >
           View projects
-          <ArrowDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:translate-y-0.5" />
         </Link>
         <Link
           href="#contact"
@@ -98,21 +89,17 @@ function HeroCtas({
 function HeroCopy({
   introClassName,
   compact = false,
-  align = "start",
 }: {
   introClassName?: string;
   compact?: boolean;
-  align?: "start" | "center";
 }) {
-  const centered = align === "center";
-
   return (
-    <div className={cn(centered && "flex flex-col items-center text-center")}>
+    <>
       <HeroRevealItem
         group="copy"
         className={cn(compact ? "mb-3" : "mb-4 sm:mb-5")}
       >
-        <HeroAvailability className={centered ? "justify-center" : undefined} />
+        <HeroAvailability />
       </HeroRevealItem>
 
       <HeroRevealItem
@@ -151,7 +138,6 @@ function HeroCopy({
             compact
               ? "line-clamp-3 text-sm"
               : "max-w-[36ch] text-[1.0625rem] leading-relaxed sm:max-w-xl sm:text-lg lg:max-w-xl lg:text-lg",
-            centered && "mx-auto",
           )}
         >
           Hi, I&apos;m{" "}
@@ -161,7 +147,7 @@ function HeroCopy({
           , {SITE.description}
         </p>
       </HeroRevealItem>
-    </div>
+    </>
   );
 }
 
@@ -243,17 +229,17 @@ export function HeroSection() {
                 "rounded-sm border-2 border-dashed border-lime-400 bg-lime-400/5 p-1",
             )}
           >
-            <HeroCopy align="center" />
+            <HeroCopy />
           </div>
 
           <div
             className={cn(
-              "relative mt-auto flex w-full flex-col items-center gap-6 pt-8 pb-12 sm:gap-7 sm:pt-9 sm:pb-14",
+              "relative mt-auto flex w-full flex-col gap-6 pt-8 pb-12 sm:gap-7 sm:pt-9 sm:pb-14",
               HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
             )}
           >
-            <HeroCtas align="center" />
-            <HeroMetrics variant="row" className="w-full text-center" />
+            <HeroCtas />
+            <HeroMetrics variant="row" />
             {!prefersReducedMotion && (
               <HeroScrollCue className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2" />
             )}
