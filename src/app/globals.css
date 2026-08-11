@@ -491,6 +491,101 @@ body {
     0 0 0 5px color-mix(in oklab, var(--accent-from) 35%, transparent);
 }
 
+/* Process cards — accent rim + one-shot blob when the step node fills */
+.process-card {
+  overflow: hidden;
+  border-radius: calc(var(--radius-panel) + 4px);
+  padding: 3px;
+  background: transparent;
+  transition: background 0.45s ease, box-shadow 0.45s ease;
+}
+
+.process-card-face {
+  border-color: var(--border) !important;
+  box-shadow: none;
+  transition:
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+.process-card-blob {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  width: 170px;
+  height: 170px;
+  margin: -85px 0 0 -85px;
+  border-radius: 9999px;
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(12px);
+  background: linear-gradient(
+    135deg,
+    var(--accent-from),
+    var(--accent-to),
+    color-mix(in oklab, var(--accent-from) 50%, white)
+  );
+  transform: translate(-100%, -100%);
+  will-change: transform, opacity;
+}
+
+/* Accent rim + border while this step is active */
+[data-process-step][data-active="true"] .process-card {
+  background: linear-gradient(
+    135deg,
+    var(--accent-from),
+    var(--accent-to),
+    var(--accent-from)
+  );
+  box-shadow: 0 0 28px color-mix(in oklab, var(--accent-from) 35%, transparent);
+}
+
+[data-process-step][data-active="true"] .process-card-face {
+  border-color: color-mix(in oklab, var(--accent-from) 65%, var(--border)) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--accent-from) 40%, transparent),
+    inset 0 0 24px color-mix(in oklab, var(--accent-from) 8%, transparent);
+}
+
+/* One-shot blob — fires once when data-glow is set */
+[data-process-step][data-glow="true"] .process-card-blob {
+  animation: process-card-blob-once 1.5s linear 1 forwards;
+}
+
+@keyframes process-card-blob-once {
+  0% {
+    opacity: 1;
+    transform: translate(-100%, -100%);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(0%, -100%);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(0%, 0%);
+  }
+  75% {
+    opacity: 1;
+    transform: translate(-100%, 0%);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-100%, -100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-card-blob {
+    display: none;
+  }
+
+  [data-process-step][data-active="true"] .process-card {
+    background: var(--accent-from);
+  }
+}
+
 .text-gradient {
   background: linear-gradient(
     135deg,

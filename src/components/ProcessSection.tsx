@@ -5,6 +5,7 @@ import { useProcessRoadmap } from "@/hooks/useProcessRoadmap";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
 import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { ProcessStepCard } from "@/components/ui/process-step-card";
 import { cn } from "@/lib/utils";
 
 export function ProcessSection() {
@@ -61,14 +62,14 @@ export function ProcessSection() {
                         : "md:col-start-1 md:row-start-1 md:justify-self-end md:text-right",
                     )}
                   >
-                    <article className="glass radius-panel p-6 md:max-w-md md:p-8">
+                    <ProcessStepCard>
                       <h3 className="font-display text-xl font-semibold text-foreground">
                         {step.title}
                       </h3>
                       <p className="mt-3 text-sm leading-relaxed text-muted">
                         {step.description}
                       </p>
-                    </article>
+                    </ProcessStepCard>
                   </div>
                 </li>
               );

@@ -6,8 +6,9 @@ import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
 
 /**
- * Roadmap execution: spine fills with accent as you scroll the process track,
- * and each numbered node lights up when its step reaches the viewport center.
+ * Roadmap execution: spine fills toward each numbered node; a node lights up
+ * when the fill reaches it (never the other way around). Uses live layout so
+ * scrub-reveal transforms on steps stay in sync with the fixed spine.
  */
 export function useProcessRoadmap() {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -20,6 +21,7 @@ export function useProcessRoadmap() {
       if (!track) return;
 
       const progress = track.querySelector<HTMLElement>("[data-process-progress]");
+      const spine = progress?.parentElement;
       const steps = gsap.utils.toArray<HTMLElement>(
         track.querySelectorAll("[data-process-step]"),
       );
@@ -27,11 +29,49 @@ export function useProcessRoadmap() {
         track.querySelectorAll("[data-process-node]"),
       );
 
-      if (!progress || steps.length === 0) return;
+      if (!progress || !spine || nodes.length === 0) return;
 
       const setActive = (activeIndex: number) => {
         nodes.forEach((node, i) => {
           node.dataset.active = i <= activeIndex ? "true" : "false";
+        });
+        steps.forEach((step, i) => {
+          const on = i <= activeIndex;
+          step.dataset.active = on ? "true" : "false";
+          // Fire the card glow once the first time this step fills — never again.
+          if (on && step.dataset.glow !== "true") {
+            step.dataset.glow = "true";
+          }
+        });
+      };
+
+      const nodeCenterInSpine = (node: HTMLElement) => {
+        const spineRect = spine.getBoundingClientRect();
+        const nodeRect = node.getBoundingClientRect();
+        return nodeRect.top + nodeRect.height / 2 - spineRect.top;
+      };
+
+      const syncRoadmap = (scrollProgress: number) => {
+        const spineHeight = spine.offsetHeight || 1;
+        let fillPx = scrollProgress * spineHeight;
+
+        // Nodes the fill has reached (uses transformed layout from scrub reveal).
+        let activeIndex = -1;
+        for (let i = 0; i < nodes.length; i++) {
+          if (fillPx >= nodeCenterInSpine(nodes[i]!)) activeIndex = i;
+        }
+
+        // Before a node is active, don't paint the spine past that node.
+        if (activeIndex < 0 && nodes[0]) {
+          fillPx = Math.min(fillPx, nodeCenterInSpine(nodes[0]));
+        } else if (activeIndex >= 0) {
+          // Keep the tip at or below the latest active node center.
+          fillPx = Math.max(fillPx, nodeCenterInSpine(nodes[activeIndex]!));
+        }
+
+        setActive(activeIndex);
+        gsap.set(progress, {
+          scaleY: Math.max(0, Math.min(1, fillPx / spineHeight)),
         });
       };
 
@@ -51,21 +91,7 @@ export function useProcessRoadmap() {
           end: "bottom 45%",
           scrub: 0.6,
           invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            gsap.set(progress, { scaleY: self.progress });
-          },
-        });
-
-        steps.forEach((step, index) => {
-          ScrollTrigger.create({
-            trigger: step,
-            start: "top 58%",
-            end: "bottom 42%",
-            invalidateOnRefresh: true,
-            onEnter: () => setActive(index),
-            onEnterBack: () => setActive(index),
-            onLeaveBack: () => setActive(index - 1),
-          });
+          onUpdate: (self) => syncRoadmap(self.progress),
         });
       }, track);
 
