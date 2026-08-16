@@ -6,39 +6,37 @@ import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
 
 /**
- * Scrub timeline weights (relative). Exit is weighted heavier than enter so
- * the leave reads as clearly as the bottom enter — previously equal weights +
- * `end: top top` made top exits almost invisible.
+ * Scrub timeline weights (relative). Exit sits between the old equal-weight
+ * leave and the stronger hero-like pass — readable, not dramatic.
  */
 const SCRUB_WEIGHTS = {
   enter: 0.75,
-  hold: 1.85,
-  exit: 1.35,
+  hold: 2.1,
+  exit: 1.0,
   scrub: 1.1,
 } as const;
 
-/** Mobile — exit finishes while block is still on screen (hero-like). */
+/** Mobile — exit finishes mid-way between `top top` and the strong on-screen leave. */
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 92%)",
-  /** Was `top top` — exit completed as content left; too late to notice. */
-  end: "clamp(top 22%)",
+  end: "clamp(top 12%)",
   y: 48,
-  exitY: 64,
+  exitY: 56,
   enterScale: 0.97,
   exitScale: 0.94,
 } as const;
 
 /**
- * Desktop — taller viewport; stronger exit travel + earlier end so the top
- * leave matches the bottom enter.
+ * Desktop — taller viewport; moderated exit travel + end between the old
+ * `top top` and the stronger `top 18%` pass.
  */
 const SCRUB_DESKTOP = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 88%)",
-  end: "clamp(top 18%)",
+  end: "clamp(top 10%)",
   y: 68,
-  exitY: 96,
+  exitY: 82,
   enterScale: 0.97,
   exitScale: 0.94,
 } as const;
