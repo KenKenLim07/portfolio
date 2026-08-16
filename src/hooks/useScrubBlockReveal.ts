@@ -5,33 +5,40 @@ import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
 
-/** Shared scrub timeline weights (relative durations inside the scrub range). */
+/**
+ * Scrub timeline weights (relative). Exit is weighted heavier than enter so
+ * the leave reads as clearly as the bottom enter — previously equal weights +
+ * `end: top top` made top exits almost invisible.
+ */
 const SCRUB_WEIGHTS = {
-  enter: 0.7,
-  hold: 2.4,
-  exit: 0.7,
+  enter: 0.75,
+  hold: 1.85,
+  exit: 1.35,
   scrub: 1.1,
 } as const;
 
-/** Mobile — shorter viewport; smaller rise, shared enter/exit scale. */
+/** Mobile — exit finishes while block is still on screen (hero-like). */
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 92%)",
-  end: "clamp(top top)",
+  /** Was `top top` — exit completed as content left; too late to notice. */
+  end: "clamp(top 22%)",
   y: 48,
+  exitY: 64,
   enterScale: 0.97,
   exitScale: 0.94,
 } as const;
 
 /**
- * Desktop — taller viewport stretches scrub, so bump travel and start a
- * touch earlier so the enter reads clearly. Same enter/exit scale as mobile.
+ * Desktop — taller viewport; stronger exit travel + earlier end so the top
+ * leave matches the bottom enter.
  */
 const SCRUB_DESKTOP = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 88%)",
-  end: "clamp(top top)",
+  end: "clamp(top 18%)",
   y: 68,
+  exitY: 96,
   enterScale: 0.97,
   exitScale: 0.94,
 } as const;
@@ -101,7 +108,7 @@ function bindScrubBlocks(
     if (!disableExit) {
       tl.to(block, {
         opacity: 0,
-        y: -config.y,
+        y: -config.exitY,
         scale: config.exitScale,
         force3D: true,
         duration: config.exit,
@@ -112,9 +119,8 @@ function bindScrubBlocks(
 }
 
 /**
- * Per-block scrubbed reveal: enter from below → long readable hold → late
- * exit upward. Used by About, Projects, Stack, Process, Contact, etc.
- * Desktop gets a stronger rise + light scale via gsap.matchMedia.
+ * Per-block scrubbed reveal: enter from below → readable hold → exit upward
+ * while still on screen. Used by About, Projects, Stack, Process, Contact, etc.
  */
 export function useScrubBlockReveal(
   options: UseScrubBlockRevealOptions = {},
