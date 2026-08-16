@@ -125,7 +125,7 @@ function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
   if (!items.length) return;
 
   markBound(items);
-  gsap.set(items, { opacity: 1, y: 0, force3D: true });
+  gsap.set(items, { opacity: 1, y: 0, scale: 1, force3D: true });
   items.forEach((el) => {
     if (el.hasAttribute("data-hero-cta-panel")) {
       el.style.pointerEvents = "auto";
@@ -142,34 +142,42 @@ function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
 
   if (!copy.length && !tail.length && !cue.length && !ctaPanel) return null;
 
-  const { y, duration, stagger, ease } = heroScrollReveal;
+  const { y, duration, stagger, ease, enterScale } = heroScrollReveal;
   const all = flattenExitLayers(
     getHeroExitLayers(root, window.matchMedia(LG_QUERY).matches),
   );
   const withCta = ctaPanel ? [...all, ctaPanel] : all;
 
   markBound(withCta);
-  gsap.set(withCta, { opacity: 0, y, force3D: true });
+  gsap.set(withCta, {
+    opacity: 0,
+    y,
+    scale: enterScale,
+    force3D: true,
+    transformOrigin: "center center",
+  });
   if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
+
+  const enter = {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    stagger,
+    duration,
+    ease,
+    force3D: true,
+  } as const;
 
   const tl = gsap.timeline();
   if (copy.length) {
-    tl.to(
-      copy,
-      { opacity: 1, y: 0, stagger, duration, ease, force3D: true },
-      0.04,
-    );
+    tl.to(copy, { ...enter }, 0.04);
   }
   const bandTargets = ctaPanel ? [...tail, ctaPanel] : tail;
   if (bandTargets.length) {
-    tl.to(
-      bandTargets,
-      { opacity: 1, y: 0, stagger, duration, ease, force3D: true },
-      0.16,
-    );
+    tl.to(bandTargets, { ...enter }, 0.16);
   }
   if (cue.length) {
-    tl.to(cue, { opacity: 1, y: 0, duration, ease, force3D: true }, 0.3);
+    tl.to(cue, { opacity: 1, y: 0, scale: 1, duration, ease, force3D: true }, 0.3);
   }
 
   return tl;
@@ -260,7 +268,9 @@ export function useHeroScrollReveal(
         gsap.set(scrubTargets, {
           opacity: 0,
           y: heroScrollReveal.y,
+          scale: heroScrollReveal.enterScale,
           force3D: true,
+          transformOrigin: "center center",
         });
         markBound(scrubTargets);
         const ctaPanel = getCtaPanel(root);
@@ -268,7 +278,9 @@ export function useHeroScrollReveal(
           gsap.set(ctaPanel, {
             opacity: 0,
             y: heroScrollReveal.y,
+            scale: heroScrollReveal.enterScale,
             force3D: true,
+            transformOrigin: "center center",
           });
           markBound([ctaPanel]);
           ctaPanel.style.pointerEvents = "auto";

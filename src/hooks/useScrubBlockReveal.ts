@@ -13,25 +13,27 @@ const SCRUB_WEIGHTS = {
   scrub: 1.1,
 } as const;
 
-/** Mobile — shorter viewport; same light scale as desktop, smaller rise. */
+/** Mobile — shorter viewport; smaller rise, shared enter/exit scale. */
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 92%)",
   end: "clamp(top top)",
   y: 48,
-  scale: 0.97,
+  enterScale: 0.97,
+  exitScale: 0.94,
 } as const;
 
 /**
- * Desktop — taller viewport stretches scrub, so bump travel, add a light
- * scale, and start a touch earlier so the enter reads clearly.
+ * Desktop — taller viewport stretches scrub, so bump travel and start a
+ * touch earlier so the enter reads clearly. Same enter/exit scale as mobile.
  */
 const SCRUB_DESKTOP = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 88%)",
   end: "clamp(top top)",
   y: 68,
-  scale: 0.97,
+  enterScale: 0.97,
+  exitScale: 0.94,
 } as const;
 
 type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP;
@@ -58,7 +60,7 @@ function bindScrubBlocks(
     gsap.set(block, {
       opacity: 0,
       y: config.y,
-      scale: config.scale,
+      scale: config.enterScale,
       force3D: true,
       transformOrigin: "center center",
     });
@@ -78,7 +80,7 @@ function bindScrubBlocks(
       {
         opacity: 0,
         y: config.y,
-        scale: config.scale,
+        scale: config.enterScale,
         force3D: true,
       },
       {
@@ -100,7 +102,7 @@ function bindScrubBlocks(
       tl.to(block, {
         opacity: 0,
         y: -config.y,
-        scale: config.scale,
+        scale: config.exitScale,
         force3D: true,
         duration: config.exit,
         ease: "none",
