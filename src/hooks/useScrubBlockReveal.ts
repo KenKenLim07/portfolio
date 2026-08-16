@@ -5,15 +5,36 @@ import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
 
-const SCRUB_REVEAL = {
-  start: "clamp(top 92%)",
-  end: "clamp(top top)",
-  scrub: 1.1,
-  y: 48,
+/** Shared scrub timeline weights (relative durations inside the scrub range). */
+const SCRUB_WEIGHTS = {
   enter: 0.7,
   hold: 2.4,
   exit: 0.7,
+  scrub: 1.1,
 } as const;
+
+/** Mobile — shorter viewport; same light scale as desktop, smaller rise. */
+const SCRUB_MOBILE = {
+  ...SCRUB_WEIGHTS,
+  start: "clamp(top 92%)",
+  end: "clamp(top top)",
+  y: 48,
+  scale: 0.97,
+} as const;
+
+/**
+ * Desktop — taller viewport stretches scrub, so bump travel, add a light
+ * scale, and start a touch earlier so the enter reads clearly.
+ */
+const SCRUB_DESKTOP = {
+  ...SCRUB_WEIGHTS,
+  start: "clamp(top 88%)",
+  end: "clamp(top top)",
+  y: 68,
+  scale: 0.97,
+} as const;
+
+type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP;
 
 type UseScrubBlockRevealOptions = {
   /** Defaults to `[data-scrub-reveal]` */
@@ -22,9 +43,76 @@ type UseScrubBlockRevealOptions = {
   disableExit?: boolean;
 };
 
+function bindScrubBlocks(
+  root: HTMLElement,
+  selector: string,
+  config: ScrubConfig,
+  disableExit: boolean,
+) {
+  const blocks = gsap.utils.toArray<HTMLElement>(
+    root.querySelectorAll(selector),
+  );
+
+  blocks.forEach((block) => {
+    block.classList.add("gsap-bound");
+    gsap.set(block, {
+      opacity: 0,
+      y: config.y,
+      scale: config.scale,
+      force3D: true,
+      transformOrigin: "center center",
+    });
+
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: block,
+        start: config.start,
+        end: config.end,
+        scrub: config.scrub,
+        invalidateOnRefresh: true,
+      },
+    });
+
+    tl.fromTo(
+      block,
+      {
+        opacity: 0,
+        y: config.y,
+        scale: config.scale,
+        force3D: true,
+      },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        force3D: true,
+        duration: config.enter,
+        ease: "none",
+      },
+    ).to(
+      {},
+      {
+        duration: disableExit ? config.hold + config.exit : config.hold,
+      },
+    );
+
+    if (!disableExit) {
+      tl.to(block, {
+        opacity: 0,
+        y: -config.y,
+        scale: config.scale,
+        force3D: true,
+        duration: config.exit,
+        ease: "none",
+      });
+    }
+  });
+}
+
 /**
  * Per-block scrubbed reveal: enter from below → long readable hold → late
  * exit upward. Used by About, Projects, Stack, Process, Contact, etc.
+ * Desktop gets a stronger rise + light scale via gsap.matchMedia.
  */
 export function useScrubBlockReveal(
   options: UseScrubBlockRevealOptions = {},
@@ -40,63 +128,26 @@ export function useScrubBlockReveal(
       const root = scopeRef.current;
       if (!root || prefersReducedMotion) return;
 
-      const ctx = gsap.context(() => {
-        const blocks = gsap.utils.toArray<HTMLElement>(
-          root.querySelectorAll(selector),
-        );
+      const mm = gsap.matchMedia();
 
-        blocks.forEach((block) => {
-          block.classList.add("gsap-bound");
-          gsap.set(block, {
-            opacity: 0,
-            y: SCRUB_REVEAL.y,
-            force3D: true,
-          });
-
-          const tl = gsap.timeline({
-            scrollTrigger: {
-              trigger: block,
-              start: SCRUB_REVEAL.start,
-              end: SCRUB_REVEAL.end,
-              scrub: SCRUB_REVEAL.scrub,
-              invalidateOnRefresh: true,
-            },
-          });
-
-          tl.fromTo(
-            block,
-            { opacity: 0, y: SCRUB_REVEAL.y, force3D: true },
-            {
-              opacity: 1,
-              y: 0,
-              force3D: true,
-              duration: SCRUB_REVEAL.enter,
-              ease: "none",
-            },
-          ).to(
-            {},
-            {
-              duration: disableExit
-                ? SCRUB_REVEAL.hold + SCRUB_REVEAL.exit
-                : SCRUB_REVEAL.hold,
-            },
-          );
-
-          if (!disableExit) {
-            tl.to(block, {
-              opacity: 0,
-              y: -SCRUB_REVEAL.y,
-              force3D: true,
-              duration: SCRUB_REVEAL.exit,
-              ease: "none",
-            });
-          }
-        });
-      }, root);
+      mm.add(
+        {
+          isDesktop: "(min-width: 768px)",
+          isMobile: "(max-width: 767px)",
+        },
+        (context) => {
+          const { isDesktop } = context.conditions as {
+            isDesktop: boolean;
+            isMobile: boolean;
+          };
+          const config = isDesktop ? SCRUB_DESKTOP : SCRUB_MOBILE;
+          bindScrubBlocks(root, selector, config, disableExit);
+        },
+      );
 
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
-      return () => ctx.revert();
+      return () => mm.revert();
     },
     {
       scope: scopeRef,
