@@ -3,40 +3,41 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
-import { gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap, heroScrollReveal, initGsap, ScrollTrigger } from "@/lib/gsap";
 
 /**
- * Scrub timeline weights (relative). Exit sits between the old equal-weight
- * leave and the stronger hero-like pass — readable, not dramatic.
+ * Scrub timeline weights (relative). Exit a touch lighter than the mid pass;
+ * travel + fade opacity match the hero leave.
  */
 const SCRUB_WEIGHTS = {
   enter: 0.75,
-  hold: 2.1,
-  exit: 1.0,
+  hold: 2.25,
+  exit: 0.85,
   scrub: 1.1,
 } as const;
 
-/** Mobile — exit finishes mid-way between `top top` and the strong on-screen leave. */
+/** Mobile — same hero exit travel / fade; enter rise stays smaller. */
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 92%)",
   end: "clamp(top 12%)",
   y: 48,
-  exitY: 56,
+  exitY: heroScrollReveal.y,
+  exitOpacity: heroScrollReveal.exitOpacity,
   enterScale: 0.97,
   exitScale: 0.94,
 } as const;
 
 /**
- * Desktop — taller viewport; moderated exit travel + end between the old
- * `top top` and the stronger `top 18%` pass.
+ * Desktop — same hero exit travel / fade; enter rise stays desktop-sized.
  */
 const SCRUB_DESKTOP = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 88%)",
   end: "clamp(top 10%)",
   y: 68,
-  exitY: 82,
+  exitY: heroScrollReveal.y,
+  exitOpacity: heroScrollReveal.exitOpacity,
   enterScale: 0.97,
   exitScale: 0.94,
 } as const;
@@ -105,7 +106,7 @@ function bindScrubBlocks(
 
     if (!disableExit) {
       tl.to(block, {
-        opacity: 0,
+        opacity: config.exitOpacity,
         y: -config.exitY,
         scale: config.exitScale,
         force3D: true,
