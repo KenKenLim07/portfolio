@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Space_Grotesk } from "next/font/google";
+import { PortfolioChat } from "@/components/chat/PortfolioChat";
 import { GsapProvider } from "@/components/GsapProvider";
 import { SiteBackground } from "@/components/SiteBackground";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -84,7 +85,10 @@ export default function RootLayout({
       <body className="min-h-full overflow-x-hidden bg-transparent font-sans text-foreground antialiased transition-colors duration-300">
         <ThemeProvider>
           <SiteBackground />
-          <GsapProvider>{children}</GsapProvider>
+          <GsapProvider>
+            {children}
+            <PortfolioChat />
+          </GsapProvider>
         </ThemeProvider>
       </body>
     </html>
