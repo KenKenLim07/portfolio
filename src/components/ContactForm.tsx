@@ -60,19 +60,25 @@ export function ContactForm() {
     setStatusMessage("");
 
     try {
-      await emailjs.sendForm(
+      // Use send() with controlled values — after await, e.currentTarget is null
+      // in React, so sendForm + form.reset() falsely looked like a failure.
+      await emailjs.send(
         SERVICE_ID,
         TEMPLATE_ID,
-        e.currentTarget,
-        PUBLIC_KEY,
+        {
+          from_name: values.from_name,
+          from_email: values.from_email,
+          message: values.message,
+        },
+        { publicKey: PUBLIC_KEY },
       );
       setStatus("success");
       setStatusMessage("Message sent. I'll get back to you soon.");
       setValues(INITIAL);
       setErrors({});
       setSubmitAttempted(false);
-      e.currentTarget.reset();
-    } catch {
+    } catch (err) {
+      console.error("[EmailJS]", err);
       setStatus("error");
       setStatusMessage(
         "Something went wrong. Please try again or email directly.",
