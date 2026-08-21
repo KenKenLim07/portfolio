@@ -90,7 +90,7 @@ export default async function ProjectDetailsPage({ params }: PageProps) {
                     href={project.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
+                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none"
                   >
                     Live Demo
                     <ExternalLink className="h-4 w-4" aria-hidden />
@@ -101,7 +101,7 @@ export default async function ProjectDetailsPage({ params }: PageProps) {
                     href={project.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-colors duration-200 hover:border-border hover:bg-[var(--fill-hover)]"
+                    className="radius-control inline-flex cursor-pointer items-center gap-2 border border-border bg-subtle px-5 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none"
                   >
                     GitHub
                     <GitHubIcon />

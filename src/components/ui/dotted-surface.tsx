@@ -820,7 +820,7 @@ function createRockField(
     axis.normalize();
     const mass = Math.max(opts.scale, 16);
     const spinRate =
-      randRange(rng, 0.018, 0.08) * (48 / mass);
+      randRange(rng, 0.055, 0.2) * (48 / mass);
     const bias = rng();
     if (bias < 0.33)
       axis.set(axis.x * 1.8, axis.y * 0.35, axis.z * 0.45).normalize();

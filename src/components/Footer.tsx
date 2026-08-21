@@ -43,33 +43,33 @@ export function Footer() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <a
             href={SOCIAL_LINKS.github}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
-            className="radius-chip cursor-pointer border border-border p-2.5 text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
+            className="radius-control inline-flex size-10 cursor-pointer items-center justify-center border border-border text-muted transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:text-foreground hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 motion-reduce:transition-none"
           >
-            <GitHubIcon />
+            <GitHubIcon className="h-5 w-5" />
           </a>
           <a
             href={SOCIAL_LINKS.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
-            className="radius-chip cursor-pointer border border-border p-2.5 text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
+            className="radius-control inline-flex size-10 cursor-pointer items-center justify-center border border-border text-muted transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:text-foreground hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 motion-reduce:transition-none"
           >
-            <LinkedInIcon />
+            <LinkedInIcon className="h-5 w-5" />
           </a>
           <a
             href={SOCIAL_LINKS.facebook}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook"
-            className="radius-chip cursor-pointer border border-border p-2.5 text-muted transition-colors duration-200 hover:border-border hover:text-foreground"
+            className="radius-control inline-flex size-10 cursor-pointer items-center justify-center border border-border text-muted transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:text-foreground hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 motion-reduce:transition-none"
           >
-            <FacebookIcon />
+            <FacebookIcon className="h-5 w-5" />
           </a>
         </div>
       </div>

@@ -241,7 +241,7 @@ export function PortfolioChat() {
                 <button
                   type="submit"
                   disabled={busy || !input.trim()}
-                  className="radius-control inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] text-[var(--cta-fg)] transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
+                  className="radius-control inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] text-[var(--cta-fg)] transition-[filter,box-shadow,opacity] duration-200 ease-out hover:brightness-110 hover:shadow-[0_8px_24px_-8px_var(--overlay)] active:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100 disabled:hover:shadow-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30 motion-reduce:transition-none"
                   aria-label="Send message"
                 >
                   {busy ? (
@@ -263,7 +263,7 @@ export function PortfolioChat() {
           aria-controls={open ? panelId : undefined}
           aria-label={open ? "Close chat" : "Open chat — ask about me"}
           className={cn(
-            "radius-control inline-flex h-12 w-12 cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] text-[var(--cta-fg)] shadow-md transition-[opacity,transform] duration-200 hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30",
+            "radius-control inline-flex h-12 w-12 cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] text-[var(--cta-fg)] shadow-md transition-[filter,box-shadow,opacity] duration-200 ease-out hover:brightness-110 hover:shadow-[0_10px_28px_-8px_var(--overlay)] active:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30",
             "motion-reduce:transition-none",
           )}
         >

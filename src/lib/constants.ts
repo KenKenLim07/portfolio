@@ -237,6 +237,7 @@ export const PROJECTS: Project[] = [
     image: "/projects/news.png",
     gradient: "from-slate-900 via-blue-950 to-slate-950",
     liveUrl: "https://ph-vibe-check.vercel.app/",
+    githubUrl: "https://github.com/itskenlim/the-eye",
   },
   {
     id: "iphone-scraper",
@@ -256,6 +257,27 @@ export const PROJECTS: Project[] = [
     image: "/projects/iphone.png",
     gradient: "from-zinc-950 via-slate-900 to-sky-950",
     liveUrl: "https://iloilo-apple-deals.vercel.app/",
+    githubUrl: "https://github.com/itskenlim/IphoneScraperFlipper",
+  },
+  {
+    id: "iloilo-jobs",
+    title: "Iloilo Jobs — BPO Openings Hub",
+    category: "web",
+    description:
+      "Centralized Iloilo BPO job board that scrapes employer career sites and public APIs (including exposed listing endpoints) into one searchable board. Python providers normalize, dedupe, and validate roles from Asurion, Carelon, Concentrix, iQor, TELUS Digital, and more; a scheduled home-IP scrape pushes fresh JSON so the Next.js site always points applicants to official apply pages.",
+    stack: [
+      "Next.js",
+      "Python",
+      "Web Scraping",
+      "TypeScript",
+      "systemd",
+      "GitHub Actions",
+      "Vercel",
+    ],
+    image: "/projects/iloilo-jobs.png",
+    gradient: "from-slate-950 via-emerald-950 to-zinc-950",
+    liveUrl: "https://iloilojobs.vercel.app/",
+    githubUrl: "https://github.com/itskenlim/iloilojobs",
   },
   {
     id: "skyward-restaurant",
@@ -267,6 +289,7 @@ export const PROJECTS: Project[] = [
     image: "/projects/skyward.png",
     gradient: "from-zinc-950 via-stone-900 to-amber-950",
     liveUrl: "https://skyward-iloilo.vercel.app/",
+    githubUrl: "https://github.com/itskenlim/skyward",
   },
 ];
 
@@ -350,6 +373,6 @@ export const ABOUT = {
   belief:
     "Great software isn't just built to work. It should solve real problems.",
   paragraphs: [
-    "My recent work includes an NLP-powered news intelligence platform, automated web scraping pipelines, marketplace analytics tools, and modern business websites. Every project has strengthened my experience across frontend, backend, databases, and data engineering.",
+    "My recent work includes an NLP-powered news intelligence platform, automated web scraping pipelines, marketplace analytics tools, an Iloilo BPO job aggregator, and modern business websites. Every project has strengthened my experience across frontend, backend, databases, and data engineering.",
   ],
 } as const;
