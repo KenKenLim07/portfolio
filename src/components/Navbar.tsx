@@ -1,26 +1,58 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { NAV_LINKS, ENABLE_SUN_MODE, SITE } from "@/lib/constants";
-import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
+import {
+  Briefcase,
+  FileText,
+  Home,
+  Layers,
+  Mail,
+  Quote,
+  User,
+  type LucideIcon,
+} from "lucide-react";
+import { NavBar, type NavItem } from "@/components/ui/tubelight-navbar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   MenuBlackholeCore,
   MenuBlackholeDisk,
   ScrollBurgerIcon,
 } from "@/components/ui/ScrollBurgerIcon";
+import { NAV_LINKS, ENABLE_SUN_MODE, SITE } from "@/lib/constants";
+import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { cn } from "@/lib/utils";
 
-const linkClass =
-  "cursor-pointer font-mono text-[10px] uppercase tracking-[0.22em] text-muted transition-colors duration-200 hover:text-foreground";
-
-const SCROLL_THRESHOLD = 32;
+const NAV_ICONS: Record<(typeof NAV_LINKS)[number]["label"], LucideIcon> = {
+  Home,
+  About: User,
+  Projects: Briefcase,
+  "Tech Stack": Layers,
+  Testimonials: Quote,
+  Contact: Mail,
+};
 
 export function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(NAV_LINKS[0]?.label ?? "Home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const items = useMemo<NavItem[]>(
+    () => [
+      ...NAV_LINKS.map((link) => ({
+        name: link.label,
+        url: link.href,
+        icon: NAV_ICONS[link.label],
+      })),
+      {
+        name: "Resume",
+        url: SITE.resumeUrl,
+        icon: FileText,
+        external: true,
+      },
+    ],
+    [],
+  );
 
   const { overlayRef, panelRef, diskRef, coreRef, flightRef } =
     useGsapMobileMenu({
@@ -29,10 +61,32 @@ export function Navbar() {
     });
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const sections = NAV_LINKS.map((link) =>
+      document.getElementById(link.href.slice(1)),
+    ).filter((el): el is HTMLElement => el !== null);
+
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+
+        const top = visible[0];
+        if (!top) return;
+
+        const match = NAV_LINKS.find((link) => link.href === `#${top.target.id}`);
+        if (match) setActiveTab(match.label);
+      },
+      {
+        rootMargin: "-35% 0px -45% 0px",
+        threshold: [0, 0.15, 0.35, 0.55, 0.75, 1],
+      },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -53,47 +107,21 @@ export function Navbar() {
   const closeMenu = () => setMobileOpen(false);
   const toggleMenu = () => setMobileOpen((open) => !open);
 
-  const desktopBarSolid = scrolled && !mobileOpen;
-
   return (
     <>
-      <header
-        className={cn(
-          "fixed inset-x-0 top-0 z-50 hidden transition-[background-color,border-color,backdrop-filter] duration-500 ease-out lg:block",
-          desktopBarSolid
-            ? "border-b border-border bg-background/85 backdrop-blur-md"
-            : "border-b border-transparent bg-transparent",
-        )}
-      >
-        <nav
-          className="mx-auto flex h-16 max-w-7xl items-center justify-end gap-5 px-12 xl:gap-8"
-          aria-label="Main navigation"
-        >
-          {ENABLE_SUN_MODE ? <ThemeToggle /> : null}
-          <ul className="flex items-center gap-7 xl:gap-9">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className={linkClass}>
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-            <li>
-              <a
-                href={SITE.resumeUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="View resume (PDF)"
-                className={linkClass}
-              >
-                Resume
-              </a>
-            </li>
-          </ul>
-        </nav>
-      </header>
+      <div className="hidden lg:block">
+        {ENABLE_SUN_MODE ? (
+          <div className="fixed right-6 top-6 z-[60]">
+            <ThemeToggle />
+          </div>
+        ) : null}
+        <NavBar
+          items={items}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </div>
 
-      {/* Stack: disk (64) → flying content (65) → core (66) → button/X (70) */}
       <div ref={diskRef} className="pointer-events-none fixed z-[64] lg:hidden">
         <MenuBlackholeDisk />
       </div>

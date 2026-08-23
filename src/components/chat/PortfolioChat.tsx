@@ -14,11 +14,8 @@ import { Loader2, MessageSquare, Monitor, Send, Smartphone, Tablet, X } from "lu
 import {
   buildMessageMetadata,
   deviceLabel,
-  refreshVisitorContext,
-  resolveVisitorContext,
   type ChatDevice,
   type ChatMessageMetadata,
-  type ChatVisitorContext,
 } from "@/lib/chat-visitor";
 import { cn } from "@/lib/utils";
 
@@ -52,9 +49,7 @@ function UserMessageMeta({ metadata }: { metadata: ChatMessageMetadata }) {
   return (
     <p className="mt-1.5 flex items-center justify-end gap-1.5 text-[10px] leading-none text-muted">
       <DeviceIcon device={metadata.device} className="h-3 w-3 shrink-0" />
-      <span>
-        {deviceLabel(metadata.device)} · {metadata.location}
-      </span>
+      <span>{deviceLabel(metadata.device)}</span>
     </p>
   );
 }
@@ -62,9 +57,6 @@ function UserMessageMeta({ metadata }: { metadata: ChatMessageMetadata }) {
 export function PortfolioChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [visitorContext, setVisitorContext] = useState<ChatVisitorContext | null>(
-    null,
-  );
   const panelId = useId();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -79,21 +71,6 @@ export function PortfolioChat() {
   });
 
   const busy = status === "submitted" || status === "streaming";
-
-  useEffect(() => {
-    if (!open || visitorContext) return;
-    let cancelled = false;
-    void resolveVisitorContext().then((context) => {
-      if (!cancelled) setVisitorContext(context);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [open, visitorContext]);
-
-  const requestAccurateLocation = useCallback(() => {
-    void refreshVisitorContext(visitorContext).then(setVisitorContext);
-  }, [visitorContext]);
 
   const getMessageMetadata = useCallback(
     (message: PortfolioUIMessage): ChatMessageMetadata | undefined => {
@@ -175,11 +152,7 @@ export function PortfolioChat() {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
 
-    const context =
-      visitorContext ?? (await refreshVisitorContext(visitorContext));
-    if (!visitorContext) setVisitorContext(context);
-
-    const metadata = buildMessageMetadata(context);
+    const metadata = buildMessageMetadata();
     pendingMetadataRef.current = metadata;
 
     await sendMessage({ text: trimmed, metadata });
@@ -220,15 +193,6 @@ export function PortfolioChat() {
                 <p className="truncate text-xs text-muted">
                   Projects, skills, and how to get in touch
                 </p>
-                {visitorContext?.source === "ip" && (
-                  <button
-                    type="button"
-                    onClick={requestAccurateLocation}
-                    className="mt-1 cursor-pointer text-left text-[10px] text-[var(--accent-from)] underline-offset-2 hover:underline"
-                  >
-                    Use my location for accurate city
-                  </button>
-                )}
               </div>
               <button
                 type="button"

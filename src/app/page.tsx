@@ -14,7 +14,7 @@ export default function Home() {
     <>
       <Navbar />
       <HeroSideRail />
-      <main className="xl:pl-4">
+      <main className="pb-[calc(5.25rem+env(safe-area-inset-bottom))] sm:pb-[calc(5.25rem+env(safe-area-inset-bottom))] lg:pb-0 xl:pl-4">
         <HeroSection />
         <AboutSection />
         <ProjectsSection />

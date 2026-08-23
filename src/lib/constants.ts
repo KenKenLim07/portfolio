@@ -4,7 +4,7 @@ export const SITE = {
   email: "josemarelim7@gmail.com",
   tagline: "Building Intelligent Digital Systems",
   description:
-    "a Full-Stack Developer who builds modern web applications, intelligent automation, and AI-powered systems that transform data into practical solutions.",
+    "a Full-Stack Developer who builds modern web applications, intelligent automation, and AI-powered systems.",
   url:
     process.env.NEXT_PUBLIC_SITE_URL ?? "https://portfolio.example.com",
   /** Drop the PDF at `public/resume/Jose-Marie-Lim-Resume.pdf` */
