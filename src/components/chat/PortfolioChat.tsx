@@ -1,7 +1,7 @@
 "use client";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { DefaultChatTransport, type UIMessage } from "ai";
 import {
   useCallback,
   useEffect,
@@ -10,7 +10,15 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { Loader2, MessageSquare, Send, X } from "lucide-react";
+import { Loader2, MessageSquare, Monitor, Send, Smartphone, Tablet, X } from "lucide-react";
+import {
+  buildMessageMetadata,
+  deviceLabel,
+  resolveVisitorContext,
+  type ChatDevice,
+  type ChatMessageMetadata,
+  type ChatVisitorContext,
+} from "@/lib/chat-visitor";
 import { cn } from "@/lib/utils";
 
 const SUGGESTIONS = [
@@ -19,35 +27,91 @@ const SUGGESTIONS = [
   "Are you available for work?",
 ] as const;
 
-function messageText(
-  parts: { type: string; text?: string }[],
-): string {
+type PortfolioUIMessage = UIMessage<ChatMessageMetadata>;
+
+function messageText(parts: { type: string; text?: string }[]): string {
   return parts
     .filter((p) => p.type === "text" && typeof p.text === "string")
     .map((p) => p.text as string)
     .join("");
 }
 
+function DeviceIcon({ device, className }: { device: ChatDevice; className?: string }) {
+  switch (device) {
+    case "mobile":
+      return <Smartphone className={className} aria-hidden />;
+    case "tablet":
+      return <Tablet className={className} aria-hidden />;
+    default:
+      return <Monitor className={className} aria-hidden />;
+  }
+}
+
+function UserMessageMeta({ metadata }: { metadata: ChatMessageMetadata }) {
+  return (
+    <p className="mt-1.5 flex items-center justify-end gap-1.5 text-[10px] leading-none text-muted">
+      <DeviceIcon device={metadata.device} className="h-3 w-3 shrink-0" />
+      <span>
+        {deviceLabel(metadata.device)} · {metadata.location}
+      </span>
+    </p>
+  );
+}
+
 export function PortfolioChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
+  const [visitorContext, setVisitorContext] = useState<ChatVisitorContext | null>(
+    null,
+  );
   const panelId = useId();
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
+  const metadataByMessageId = useRef<Map<string, ChatMessageMetadata>>(new Map());
+  const pendingMetadataRef = useRef<ChatMessageMetadata | null>(null);
 
-  const { messages, sendMessage, status, error, stop } = useChat({
+  const { messages, sendMessage, status, error, stop } = useChat<PortfolioUIMessage>({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
   });
 
   const busy = status === "submitted" || status === "streaming";
 
+  useEffect(() => {
+    if (!open || visitorContext) return;
+    let cancelled = false;
+    void resolveVisitorContext().then((context) => {
+      if (!cancelled) setVisitorContext(context);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, visitorContext]);
+
+  const getMessageMetadata = useCallback(
+    (message: PortfolioUIMessage): ChatMessageMetadata | undefined => {
+      if (message.metadata) return message.metadata;
+      return metadataByMessageId.current.get(message.id);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const pending = pendingMetadataRef.current;
+    if (!pending) return;
+
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    if (!lastUser || metadataByMessageId.current.has(lastUser.id)) return;
+
+    metadataByMessageId.current.set(lastUser.id, pending);
+    pendingMetadataRef.current = null;
+  }, [messages]);
+
   const close = useCallback(() => {
     setOpen(false);
     if (busy) stop();
-    // Return focus to FAB after close
     requestAnimationFrame(() => fabRef.current?.focus());
   }, [busy, stop]);
 
@@ -102,16 +166,23 @@ export function PortfolioChat() {
     el.scrollTop = el.scrollHeight;
   }, [messages, status]);
 
-  const submit = (text: string) => {
+  const submit = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
-    void sendMessage({ text: trimmed });
+
+    const context = visitorContext ?? (await resolveVisitorContext());
+    if (!visitorContext) setVisitorContext(context);
+
+    const metadata = buildMessageMetadata(context);
+    pendingMetadataRef.current = metadata;
+
+    await sendMessage({ text: trimmed, metadata });
     setInput("");
   };
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
-    submit(input);
+    void submit(input);
   };
 
   return (
@@ -170,7 +241,7 @@ export function PortfolioChat() {
                         key={suggestion}
                         type="button"
                         disabled={busy}
-                        onClick={() => submit(suggestion)}
+                        onClick={() => void submit(suggestion)}
                         className="radius-chip cursor-pointer border border-border bg-subtle px-2.5 py-1.5 text-left text-xs text-foreground transition-colors duration-200 hover:bg-[var(--fill-hover)] disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-foreground/30"
                       >
                         {suggestion}
@@ -183,23 +254,30 @@ export function PortfolioChat() {
               {messages.map((message) => {
                 const text = messageText(message.parts);
                 const isUser = message.role === "user";
+                const metadata = isUser ? getMessageMetadata(message) : undefined;
+
                 return (
                   <div
                     key={message.id}
-                    className={cn(
-                      "flex",
-                      isUser ? "justify-end" : "justify-start",
-                    )}
+                    className={cn("flex", isUser ? "justify-end" : "justify-start")}
                   >
                     <div
                       className={cn(
-                        "max-w-[85%] radius-panel px-3 py-2 text-sm leading-relaxed",
-                        isUser
-                          ? "bg-[var(--cta-bg)] text-[var(--cta-fg)]"
-                          : "border border-border bg-subtle text-foreground",
+                        "max-w-[85%]",
+                        isUser ? "text-right" : "text-left",
                       )}
                     >
-                      {text || (busy && !isUser ? "…" : null)}
+                      <div
+                        className={cn(
+                          "radius-panel px-3 py-2 text-sm leading-relaxed",
+                          isUser
+                            ? "inline-block text-left bg-[var(--cta-bg)] text-[var(--cta-fg)]"
+                            : "border border-border bg-subtle text-foreground",
+                        )}
+                      >
+                        {text || (busy && !isUser ? "…" : null)}
+                      </div>
+                      {metadata && <UserMessageMeta metadata={metadata} />}
                     </div>
                   </div>
                 );
@@ -220,10 +298,7 @@ export function PortfolioChat() {
               )}
             </div>
 
-            <form
-              onSubmit={onSubmit}
-              className="border-t border-border p-3"
-            >
+            <form onSubmit={onSubmit} className="border-t border-border p-3">
               <div className="flex items-center gap-2">
                 <label htmlFor={`${panelId}-input`} className="sr-only">
                   Message
