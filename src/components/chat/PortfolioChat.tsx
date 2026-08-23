@@ -14,6 +14,7 @@ import { Loader2, MessageSquare, Monitor, Send, Smartphone, Tablet, X } from "lu
 import {
   buildMessageMetadata,
   deviceLabel,
+  refreshVisitorContext,
   resolveVisitorContext,
   type ChatDevice,
   type ChatMessageMetadata,
@@ -89,6 +90,10 @@ export function PortfolioChat() {
       cancelled = true;
     };
   }, [open, visitorContext]);
+
+  const requestAccurateLocation = useCallback(() => {
+    void refreshVisitorContext(visitorContext).then(setVisitorContext);
+  }, [visitorContext]);
 
   const getMessageMetadata = useCallback(
     (message: PortfolioUIMessage): ChatMessageMetadata | undefined => {
@@ -170,7 +175,8 @@ export function PortfolioChat() {
     const trimmed = text.trim();
     if (!trimmed || busy) return;
 
-    const context = visitorContext ?? (await resolveVisitorContext());
+    const context =
+      visitorContext ?? (await refreshVisitorContext(visitorContext));
     if (!visitorContext) setVisitorContext(context);
 
     const metadata = buildMessageMetadata(context);
@@ -214,6 +220,15 @@ export function PortfolioChat() {
                 <p className="truncate text-xs text-muted">
                   Projects, skills, and how to get in touch
                 </p>
+                {visitorContext?.source === "ip" && (
+                  <button
+                    type="button"
+                    onClick={requestAccurateLocation}
+                    className="mt-1 cursor-pointer text-left text-[10px] text-[var(--accent-from)] underline-offset-2 hover:underline"
+                  >
+                    Use my location for accurate city
+                  </button>
+                )}
               </div>
               <button
                 type="button"
