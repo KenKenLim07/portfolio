@@ -36,12 +36,7 @@ export function useProcessRoadmap() {
           node.dataset.active = i <= activeIndex ? "true" : "false";
         });
         steps.forEach((step, i) => {
-          const on = i <= activeIndex;
-          step.dataset.active = on ? "true" : "false";
-          // Fire the card glow once the first time this step fills — never again.
-          if (on && step.dataset.glow !== "true") {
-            step.dataset.glow = "true";
-          }
+          step.dataset.active = i <= activeIndex ? "true" : "false";
         });
       };
 

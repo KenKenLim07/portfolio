@@ -5,7 +5,8 @@ export const SITE = {
   tagline: "Building Intelligent Digital Systems",
   description:
     "a Full-Stack Developer who builds modern web applications, intelligent automation, and AI-powered systems that transform data into practical solutions.",
-  url: "https://portfolio.example.com",
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://portfolio.example.com",
   /** Drop the PDF at `public/resume/Jose-Marie-Lim-Resume.pdf` */
   resumeUrl: "/resume/Jose-Marie-Lim-Resume.pdf",
 } as const;

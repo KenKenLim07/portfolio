@@ -30,17 +30,19 @@ function HeroAvailability({ className }: { className?: string }) {
   return (
     <p
       className={cn(
-        "flex items-center gap-2 text-xs sm:text-sm",
+        "availability-badge inline-flex items-center gap-2.5 px-3.5 py-1.5 text-xs sm:text-sm",
         className,
       )}
     >
-      <span className="relative flex h-1.5 w-1.5 shrink-0">
-        {!prefersReducedMotion && (
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
-        )}
-        <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+      <span className="availability-badge-inner inline-flex items-center gap-2.5">
+        <span className="relative flex h-1.5 w-1.5 shrink-0">
+          {!prefersReducedMotion && (
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500/50 dark:bg-emerald-400/50" />
+          )}
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
+        </span>
+        <span className="text-foreground/90">{HERO_AVAILABILITY}</span>
       </span>
-      <span className="text-muted">{HERO_AVAILABILITY}</span>
     </p>
   );
 }
@@ -67,7 +69,7 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("projects");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-4 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-[color,background-color,border-color,box-shadow,filter] duration-200 ease-out hover:brightness-110 hover:shadow-[0_8px_24px_-8px_var(--overlay)] active:brightness-95 motion-reduce:transition-none lg:px-5 lg:py-3"
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-[1.03rem] py-[0.644rem] text-[0.721rem] font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-[color,background-color,border-color,box-shadow,filter] duration-200 ease-out hover:brightness-110 hover:shadow-[0_8px_24px_-8px_var(--overlay)] active:brightness-95 motion-reduce:transition-none lg:px-5 lg:py-3 lg:text-[0.7rem]"
         >
           View projects
         </Link>
@@ -77,7 +79,7 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("contact");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-4 py-2.5 text-[0.7rem] font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none lg:px-5 lg:py-3"
+          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-[1.03rem] py-[0.644rem] text-[0.721rem] font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none lg:px-5 lg:py-3 lg:text-[0.7rem]"
         >
           Get in touch
         </Link>

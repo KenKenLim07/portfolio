@@ -91,7 +91,7 @@ export function ProjectShowcase({
     >
       {/* Desktop: image follows cursor — sized to show full 2:1 screenshots */}
       <div
-        className="pointer-events-none absolute z-50 hidden overflow-hidden rounded-panel-lg shadow-2xl lg:block"
+        className="pointer-events-none absolute z-50 hidden overflow-hidden radius-panel-lg shadow-2xl lg:block"
         style={{
           left: 0,
           top: 0,
@@ -103,7 +103,7 @@ export function ProjectShowcase({
         }}
         aria-hidden
       >
-        <div className="relative h-[220px] w-[440px] overflow-hidden rounded-panel-lg bg-zinc-950">
+        <div className="relative h-[220px] w-[440px] overflow-hidden radius-panel-lg bg-zinc-950">
           {projects.map((project, index) => (
             <div
               key={project.id}
@@ -154,7 +154,7 @@ export function ProjectShowcase({
                 }}
               >
               {/* Mobile still shows a static image */}
-              <div className="relative mt-8 aspect-[2/1] overflow-hidden rounded-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
+              <div className="relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
                 <div
                   className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
                   aria-hidden

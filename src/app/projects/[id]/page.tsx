@@ -35,8 +35,8 @@ export default async function ProjectDetailsPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <div className="mt-10 overflow-hidden rounded-panel-lg border border-border bg-surface">
-        <div className="relative aspect-[2/1] overflow-hidden rounded-t-panel-lg bg-zinc-950">
+      <div className="mt-10 overflow-hidden radius-panel-lg border border-border bg-surface">
+        <div className="relative aspect-[2/1] overflow-hidden rounded-t-[var(--radius-panel-lg)] bg-zinc-950">
           <div
             className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
             aria-hidden

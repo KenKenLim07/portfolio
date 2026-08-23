@@ -60,7 +60,7 @@ function TechStackRow({
             {items.map((tech) => (
               <div
                 key={`${copy}-${tech}`}
-                className="glass radius-panel flex shrink-0 items-center gap-2.5 border border-border px-4 py-3 text-foreground transition-colors duration-200 hover:border-[color-mix(in_srgb,var(--accent-from)_35%,var(--border))]"
+                className="glass radius-control flex shrink-0 cursor-default items-center gap-2.5 border border-border px-4 py-3 text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none"
               >
                 <TechBrandIcon tech={tech} className="h-4 w-4" />
                 <span className="whitespace-nowrap text-sm font-medium tracking-tight">

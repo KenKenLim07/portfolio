@@ -58,7 +58,7 @@ export function ProjectCard({
       layout={!prefersReducedMotion && !isRail}
     >
       {/* 2:1 matches exported screenshots (1400×700) — avoids crop from 16:9 frames */}
-      <div className="relative aspect-[2/1] overflow-hidden rounded-t-panel-lg bg-zinc-950">
+      <div className="relative aspect-[2/1] overflow-hidden rounded-t-[var(--radius-panel-lg)] bg-zinc-950">
         <div
           className={cn(
             "absolute inset-0 bg-gradient-to-br opacity-20",
