@@ -47,6 +47,10 @@ type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP;
 type UseScrubBlockRevealOptions = {
   /** Defaults to `[data-scrub-reveal]` */
   selector?: string;
+  /** Override selector on desktop (min-width: 768px). */
+  desktopSelector?: string;
+  /** Override selector on mobile (max-width: 767px). */
+  mobileSelector?: string;
   /** Skip upward exit — useful for the last section (e.g. contact form). */
   disableExit?: boolean;
 };
@@ -126,7 +130,9 @@ export function useScrubBlockReveal(
 ) {
   const scopeRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useGsapReducedMotion();
-  const selector = options.selector ?? "[data-scrub-reveal]";
+  const defaultSelector = options.selector ?? "[data-scrub-reveal]";
+  const desktopSelector = options.desktopSelector ?? defaultSelector;
+  const mobileSelector = options.mobileSelector ?? defaultSelector;
   const disableExit = options.disableExit ?? false;
 
   useGSAP(
@@ -148,6 +154,7 @@ export function useScrubBlockReveal(
             isMobile: boolean;
           };
           const config = isDesktop ? SCRUB_DESKTOP : SCRUB_MOBILE;
+          const selector = isDesktop ? desktopSelector : mobileSelector;
           bindScrubBlocks(root, selector, config, disableExit);
         },
       );
@@ -158,7 +165,12 @@ export function useScrubBlockReveal(
     },
     {
       scope: scopeRef,
-      dependencies: [prefersReducedMotion, selector, disableExit],
+      dependencies: [
+        prefersReducedMotion,
+        desktopSelector,
+        mobileSelector,
+        disableExit,
+      ],
       revertOnUpdate: true,
     },
   );

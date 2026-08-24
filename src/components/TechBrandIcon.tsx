@@ -1,11 +1,12 @@
-import { Brain, Code2, MessageSquare, type LucideIcon } from "lucide-react";
+import { Bot, Code2, Cpu, MessageSquare, Monitor, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getTechBrandIcon } from "@/lib/tech-brand-icons";
 
 const fallbackIconMap: Record<string, LucideIcon> = {
   "VADER NLP": MessageSquare,
-  "Sentiment Analysis": Brain,
-  Transformers: Brain,
+  Transformers: Bot,
+  DistilBERT: Cpu,
+  Playwright: Monitor,
 };
 
 type TechBrandIconProps = {

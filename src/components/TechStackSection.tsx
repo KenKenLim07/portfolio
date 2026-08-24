@@ -1,82 +1,75 @@
 "use client";
 
-import { Fragment } from "react";
-import { motion } from "framer-motion";
 import { TECH_STACK } from "@/lib/constants";
 import { TechBrandIcon } from "@/components/TechBrandIcon";
-import { useMarqueeInView } from "@/hooks/useMarqueeInView";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
 import { MegaTitleText } from "@/components/ui/SectionHeading";
 
-const rows = [
-  { key: "backend" as const, duration: 42, reverse: false },
-  { key: "frontend" as const, duration: 48, reverse: true },
-  { key: "ai" as const, duration: 36, reverse: false },
+const STACK_CATEGORIES = [
+  { key: "frontend" as const, label: "Frontend" },
+  { key: "backend" as const, label: "Backend" },
+  { key: "ai" as const, label: "AI & Data" },
 ] as const;
 
-function TechStackRow({
-  items,
-  duration,
-  reverse = false,
-}: {
-  items: readonly string[];
-  duration: number;
-  reverse?: boolean;
-}) {
-  const { ref, shouldAnimate, prefersReducedMotion } = useMarqueeInView();
-  // Short lists (e.g. AI) need more copies so the marquee fills the viewport
-  const copyCount = prefersReducedMotion
-    ? 1
-    : Math.max(2, Math.ceil(10 / Math.max(items.length, 1)));
-  const loop = Array.from({ length: copyCount }, (_, i) => i);
-
+function TechChip({ tech }: { tech: string }) {
   return (
-    <div
-      ref={ref}
-      className="overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]"
-    >
-      <motion.div
-        animate={
-          shouldAnimate ? { x: reverse ? "0%" : "-50%" } : false
-        }
-        initial={
-          prefersReducedMotion ? undefined : { x: reverse ? "-50%" : "0%" }
-        }
-        transition={
-          shouldAnimate
-            ? {
-                duration,
-                repeat: Infinity,
-                ease: "linear",
-                repeatType: "loop",
-              }
-            : undefined
-        }
-        className="flex w-max gap-3 pr-3 md:gap-4 md:pr-4"
-      >
-        {loop.map((copy) => (
-          <Fragment key={copy}>
-            {items.map((tech) => (
-              <div
-                key={`${copy}-${tech}`}
-                className="glass radius-control flex shrink-0 cursor-default items-center gap-2.5 border border-border px-4 py-3 text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none"
-              >
-                <TechBrandIcon tech={tech} className="h-4 w-4" />
-                <span className="whitespace-nowrap text-sm font-medium tracking-tight">
-                  {tech}
-                </span>
-              </div>
-            ))}
-          </Fragment>
-        ))}
-      </motion.div>
+    <div className="glass radius-control flex cursor-default items-center gap-2.5 border border-border px-4 py-3 text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none">
+      <TechBrandIcon tech={tech} className="h-4 w-4" />
+      <span className="whitespace-nowrap text-sm font-medium tracking-tight">
+        {tech}
+      </span>
     </div>
   );
 }
 
+function CategoryLabel({ label }: { label: string }) {
+  return (
+    <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted md:mb-5">
+      {label}
+    </p>
+  );
+}
+
+function StackCategory({
+  label,
+  items,
+}: {
+  label: string;
+  items: readonly string[];
+}) {
+  return (
+    <>
+      <div data-scrub-reveal className="gsap-reveal hidden md:block">
+        <CategoryLabel label={label} />
+        <div className="flex flex-wrap gap-3 md:gap-4">
+          {items.map((tech) => (
+            <TechChip key={tech} tech={tech} />
+          ))}
+        </div>
+      </div>
+
+      <div className="md:hidden">
+        <div data-scrub-reveal-pill className="gsap-reveal">
+          <CategoryLabel label={label} />
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {items.map((tech) => (
+            <div key={tech} data-scrub-reveal-pill className="gsap-reveal">
+              <TechChip tech={tech} />
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export function TechStackSection() {
-  const scopeRef = useScrubBlockReveal();
+  const scopeRef = useScrubBlockReveal({
+    desktopSelector: "[data-scrub-reveal]",
+    mobileSelector: "[data-scrub-reveal], [data-scrub-reveal-pill]",
+  });
 
   return (
     <Section id="tech-stack">
@@ -87,15 +80,13 @@ export function TechStackSection() {
           </h2>
         </div>
 
-        <div className="flex flex-col gap-6 md:gap-8">
-          {rows.map((row) => (
-            <div key={row.key} data-scrub-reveal className="gsap-reveal">
-              <TechStackRow
-                items={TECH_STACK[row.key]}
-                duration={row.duration}
-                reverse={row.reverse}
-              />
-            </div>
+        <div className="flex flex-col gap-10 md:gap-12">
+          {STACK_CATEGORIES.map((category) => (
+            <StackCategory
+              key={category.key}
+              label={category.label}
+              items={TECH_STACK[category.key]}
+            />
           ))}
         </div>
       </div>
