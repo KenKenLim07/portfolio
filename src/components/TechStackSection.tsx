@@ -23,53 +23,8 @@ function TechChip({ tech }: { tech: string }) {
   );
 }
 
-function CategoryLabel({ label }: { label: string }) {
-  return (
-    <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted md:mb-5">
-      {label}
-    </p>
-  );
-}
-
-function StackCategory({
-  label,
-  items,
-}: {
-  label: string;
-  items: readonly string[];
-}) {
-  return (
-    <>
-      <div data-scrub-reveal className="gsap-reveal hidden md:block">
-        <CategoryLabel label={label} />
-        <div className="flex flex-wrap gap-3 md:gap-4">
-          {items.map((tech) => (
-            <TechChip key={tech} tech={tech} />
-          ))}
-        </div>
-      </div>
-
-      <div className="md:hidden">
-        <div data-scrub-reveal-pill className="gsap-reveal">
-          <CategoryLabel label={label} />
-        </div>
-        <div className="flex flex-wrap gap-3">
-          {items.map((tech) => (
-            <div key={tech} data-scrub-reveal-pill className="gsap-reveal">
-              <TechChip tech={tech} />
-            </div>
-          ))}
-        </div>
-      </div>
-    </>
-  );
-}
-
 export function TechStackSection() {
-  const scopeRef = useScrubBlockReveal({
-    desktopSelector: "[data-scrub-reveal]",
-    mobileSelector: "[data-scrub-reveal], [data-scrub-reveal-pill]",
-  });
+  const scopeRef = useScrubBlockReveal();
 
   return (
     <Section id="tech-stack">
@@ -82,11 +37,21 @@ export function TechStackSection() {
 
         <div className="flex flex-col gap-10 md:gap-12">
           {STACK_CATEGORIES.map((category) => (
-            <StackCategory
-              key={category.key}
-              label={category.label}
-              items={TECH_STACK[category.key]}
-            />
+            <div key={category.key}>
+              <p
+                data-scrub-reveal
+                className="gsap-reveal mb-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted md:mb-5"
+              >
+                {category.label}
+              </p>
+              <div className="flex flex-wrap gap-3 md:gap-4">
+                {TECH_STACK[category.key].map((tech) => (
+                  <div key={tech} data-scrub-reveal className="gsap-reveal">
+                    <TechChip tech={tech} />
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </div>
