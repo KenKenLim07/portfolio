@@ -32,10 +32,30 @@ const NAV_ICONS: Record<(typeof NAV_LINKS)[number]["label"], LucideIcon> = {
   Contact: Mail,
 };
 
+/** Spy line below the fixed nav — looser than `scroll-mt-28` so hash landings count. */
+function getSectionSpyOffset(): number {
+  return Math.round(window.innerHeight * 0.28);
+}
+
+function getActiveSectionLabel(): string {
+  const spyY = getSectionSpyOffset();
+  let current = NAV_LINKS[0]?.label ?? "Home";
+
+  for (const link of NAV_LINKS) {
+    const el = document.getElementById(link.href.slice(1));
+    if (!el) continue;
+    if (el.getBoundingClientRect().top <= spyY) current = link.label;
+  }
+
+  return current;
+}
+
 export function Navbar() {
   const [activeTab, setActiveTab] = useState<string>(NAV_LINKS[0]?.label ?? "Home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const pendingTabRef = useRef<string | null>(null);
+  const pendingFallbackRef = useRef<number>(0);
 
   const items = useMemo<NavItem[]>(
     () => [
@@ -61,33 +81,60 @@ export function Navbar() {
     });
 
   useEffect(() => {
-    const sections = NAV_LINKS.map((link) =>
-      document.getElementById(link.href.slice(1)),
-    ).filter((el): el is HTMLElement => el !== null);
+    let ticking = false;
 
-    if (sections.length === 0) return;
+    const clearPending = () => {
+      pendingTabRef.current = null;
+      if (pendingFallbackRef.current) {
+        window.clearTimeout(pendingFallbackRef.current);
+        pendingFallbackRef.current = 0;
+      }
+    };
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+    const syncActive = () => {
+      ticking = false;
+      if (pendingTabRef.current) return;
+      const next = getActiveSectionLabel();
+      setActiveTab((prev) => (prev === next ? prev : next));
+    };
 
-        const top = visible[0];
-        if (!top) return;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(syncActive);
+    };
 
-        const match = NAV_LINKS.find((link) => link.href === `#${top.target.id}`);
-        if (match) setActiveTab(match.label);
-      },
-      {
-        rootMargin: "-35% 0px -45% 0px",
-        threshold: [0, 0.15, 0.35, 0.55, 0.75, 1],
-      },
-    );
+    const onScrollEnd = () => {
+      clearPending();
+      syncActive();
+    };
 
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+    syncActive();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    window.addEventListener("scrollend", onScrollEnd);
+    return () => {
+      clearPending();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("scrollend", onScrollEnd);
+    };
   }, []);
+
+  const onTabChange = (name: string) => {
+    setActiveTab(name);
+    if (name === "Resume") return;
+
+    pendingTabRef.current = name;
+    if (pendingFallbackRef.current) {
+      window.clearTimeout(pendingFallbackRef.current);
+    }
+    pendingFallbackRef.current = window.setTimeout(() => {
+      pendingTabRef.current = null;
+      pendingFallbackRef.current = 0;
+      setActiveTab(getActiveSectionLabel());
+    }, 4000);
+  };
 
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
@@ -118,7 +165,7 @@ export function Navbar() {
         <NavBar
           items={items}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={onTabChange}
         />
       </div>
 

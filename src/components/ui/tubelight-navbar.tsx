@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -76,14 +75,19 @@ export function NavBar({ items, activeTab, onTabChange, className }: NavBarProps
           }
 
           return (
-            <Link
+            <a
               key={item.name}
               href={item.url}
-              onClick={() => onTabChange(item.name)}
+              onClick={(event) => {
+                event.preventDefault();
+                onTabChange(item.name);
+                const target = document.getElementById(item.url.slice(1));
+                target?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
               className={linkClass}
             >
               {content}
-            </Link>
+            </a>
           );
         })}
       </div>
