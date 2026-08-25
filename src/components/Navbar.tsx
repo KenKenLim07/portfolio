@@ -39,7 +39,8 @@ function getSectionSpyOffset(): number {
 
 function getActiveSectionLabel(): string {
   const spyY = getSectionSpyOffset();
-  let current = NAV_LINKS[0]?.label ?? "Home";
+  let current: (typeof NAV_LINKS)[number]["label"] =
+    NAV_LINKS[0]?.label ?? "Home";
 
   for (const link of NAV_LINKS) {
     const el = document.getElementById(link.href.slice(1));
