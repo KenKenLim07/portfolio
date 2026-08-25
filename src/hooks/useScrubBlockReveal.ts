@@ -57,9 +57,10 @@ function bindScrubBlocks(
   config: ScrubConfig,
   disableExit: boolean,
 ) {
-  const blocks = gsap.utils.toArray<HTMLElement>(
-    root.querySelectorAll(selector),
-  );
+  const blocks = gsap.utils
+    .toArray<HTMLElement>(root.querySelectorAll(selector))
+    // Skip breakpoint-hidden nodes (e.g. mobile-only project images on desktop)
+    .filter((el) => getComputedStyle(el).display !== "none");
 
   blocks.forEach((block) => {
     block.classList.add("gsap-bound");

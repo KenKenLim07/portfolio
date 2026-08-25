@@ -137,11 +137,7 @@ export function ProjectShowcase({
           const isHovered = hoveredIndex === index;
 
           return (
-            <div
-              key={project.id}
-              data-scrub-reveal
-              className="gsap-reveal"
-            >
+            <div key={project.id}>
               <a
                 href={project.href}
                 className="group block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -153,91 +149,98 @@ export function ProjectShowcase({
                   onProjectClick(project.id);
                 }}
               >
-              {/* Mobile still shows a static image */}
-              <div className="relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
+                {/* Mobile only — image reveals on its own so it isn’t one giant chunk */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
-                  aria-hidden
-                />
-                <Image
-                  src={project.image}
-                  alt={project.title}
-                  fill
-                  className="object-cover"
-                  style={{
-                    objectPosition: project.imagePosition ?? "center top",
-                  }}
-                  sizes="(max-width: 1024px) 100vw, 720px"
-                />
-                <div
-                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
-                  aria-hidden
-                />
-              </div>
+                  data-scrub-reveal
+                  className="gsap-reveal relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden"
+                >
+                  <div
+                    className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
+                    aria-hidden
+                  />
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className="object-cover"
+                    style={{
+                      objectPosition: project.imagePosition ?? "center top",
+                    }}
+                    sizes="(max-width: 1024px) 100vw, 720px"
+                  />
+                  <div
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
+                    aria-hidden
+                  />
+                </div>
 
-              <div className="relative border-t border-border py-5 transition-all duration-300 ease-out lg:py-6">
+                {/* Desktop: whole row. Mobile: title/stack after the image. */}
                 <div
-                  className={cn(
-                    "absolute inset-0 -mx-4 rounded-lg bg-surface/60 px-4 transition-all duration-300 ease-out",
-                    isHovered
-                      ? "scale-100 opacity-100"
-                      : "scale-95 opacity-0",
-                  )}
-                />
+                  data-scrub-reveal
+                  className="gsap-reveal relative border-t border-border py-5 transition-all duration-300 ease-out lg:py-6"
+                >
+                  <div
+                    className={cn(
+                      "absolute inset-0 -mx-4 rounded-lg bg-surface/60 px-4 transition-all duration-300 ease-out",
+                      isHovered
+                        ? "scale-100 opacity-100"
+                        : "scale-95 opacity-0",
+                    )}
+                  />
 
-                <div className="relative flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="inline-flex items-center gap-2">
-                      <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
-                        <span className="font-mono text-[0.85em] font-medium tracking-[0.12em] text-muted">
-                          {String(index + 1).padStart(2, "0")}
-                        </span>{" "}
-                        <span className="relative text-foreground">
-                          {project.title}
-                          <span
-                            className={cn(
-                              "absolute left-0 -bottom-0.5 h-px bg-foreground transition-all duration-300 ease-out",
-                              isHovered ? "w-full" : "w-0",
-                            )}
-                          />
-                        </span>
-                      </h3>
-                      <ArrowUpRight
+                  <div className="relative flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="inline-flex items-center gap-2">
+                        <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
+                          <span className="font-mono text-[0.85em] font-medium tracking-[0.12em] text-muted">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>{" "}
+                          <span className="relative text-foreground">
+                            {project.title}
+                            <span
+                              className={cn(
+                                "absolute left-0 -bottom-0.5 h-px bg-foreground transition-all duration-300 ease-out",
+                                isHovered ? "w-full" : "w-0",
+                              )}
+                            />
+                          </span>
+                        </h3>
+                        <ArrowUpRight
+                          className={cn(
+                            "h-4 w-4 text-muted transition-all duration-300 ease-out",
+                            isHovered
+                              ? "translate-x-0 translate-y-0 opacity-100"
+                              : "-translate-x-2 translate-y-2 opacity-0",
+                          )}
+                        />
+                      </div>
+
+                      <p
                         className={cn(
-                          "h-4 w-4 text-muted transition-all duration-300 ease-out",
-                          isHovered
-                            ? "translate-x-0 translate-y-0 opacity-100"
-                            : "-translate-x-2 translate-y-2 opacity-0",
+                          "mt-2 hidden line-clamp-2 text-sm leading-relaxed text-muted transition-colors duration-300 lg:block",
+                          isHovered && "text-foreground/70",
                         )}
-                      />
-                    </div>
+                      >
+                        {project.description}
+                      </p>
 
-                    <p
-                      className={cn(
-                        "mt-2 hidden line-clamp-2 text-sm leading-relaxed text-muted transition-colors duration-300 lg:block",
-                        isHovered && "text-foreground/70",
-                      )}
-                    >
-                      {project.description}
-                    </p>
-
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {stackPreview.map((tech, i) => (
-                        <Badge
-                          key={`${project.id}-${tech}-${i}`}
-                          className="text-[10px]"
-                        >
-                          {tech}
-                        </Badge>
-                      ))}
-                      {overflow > 0 && (
-                        <Badge className="text-[10px]">+{overflow}</Badge>
-                      )}
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {stackPreview.map((tech, i) => (
+                          <Badge
+                            key={`${project.id}-${tech}-${i}`}
+                            className="text-[10px]"
+                          >
+                            {tech}
+                          </Badge>
+                        ))}
+                        {overflow > 0 && (
+                          <Badge className="text-[10px]">+{overflow}</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </a>
+              </a>
             </div>
           );
         })}
