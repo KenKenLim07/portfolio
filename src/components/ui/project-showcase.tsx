@@ -137,7 +137,11 @@ export function ProjectShowcase({
           const isHovered = hoveredIndex === index;
 
           return (
-            <div key={project.id}>
+            <div
+              key={project.id}
+              data-scrub-reveal
+              className="gsap-reveal"
+            >
               <a
                 href={project.href}
                 className="group block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -149,11 +153,7 @@ export function ProjectShowcase({
                   onProjectClick(project.id);
                 }}
               >
-                {/* Mobile only — image reveals on its own so it isn’t one giant chunk */}
-                <div
-                  data-scrub-reveal
-                  className="gsap-reveal relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden"
-                >
+                <div className="relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
                   <div
                     className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
                     aria-hidden
@@ -174,11 +174,7 @@ export function ProjectShowcase({
                   />
                 </div>
 
-                {/* Desktop: whole row. Mobile: title/stack after the image. */}
-                <div
-                  data-scrub-reveal
-                  className="gsap-reveal relative border-t border-border py-5 transition-all duration-300 ease-out lg:py-6"
-                >
+                <div className="relative border-t border-border py-5 transition-all duration-300 ease-out lg:py-6">
                   <div
                     className={cn(
                       "absolute inset-0 -mx-4 rounded-lg bg-surface/60 px-4 transition-all duration-300 ease-out",
