@@ -63,8 +63,10 @@ export function PortfolioChat() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
-  const metadataByMessageId = useRef<Map<string, ChatMessageMetadata>>(new Map());
   const pendingMetadataRef = useRef<ChatMessageMetadata | null>(null);
+  const [metadataByMessageId, setMetadataByMessageId] = useState<
+    Record<string, ChatMessageMetadata>
+  >({});
 
   const { messages, sendMessage, status, error, stop } = useChat<PortfolioUIMessage>({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -72,22 +74,17 @@ export function PortfolioChat() {
 
   const busy = status === "submitted" || status === "streaming";
 
-  const getMessageMetadata = useCallback(
-    (message: PortfolioUIMessage): ChatMessageMetadata | undefined => {
-      if (message.metadata) return message.metadata;
-      return metadataByMessageId.current.get(message.id);
-    },
-    [],
-  );
-
   useEffect(() => {
     const pending = pendingMetadataRef.current;
     if (!pending) return;
 
     const lastUser = [...messages].reverse().find((m) => m.role === "user");
-    if (!lastUser || metadataByMessageId.current.has(lastUser.id)) return;
+    if (!lastUser) return;
 
-    metadataByMessageId.current.set(lastUser.id, pending);
+    setMetadataByMessageId((prev) => {
+      if (prev[lastUser.id]) return prev;
+      return { ...prev, [lastUser.id]: pending };
+    });
     pendingMetadataRef.current = null;
   }, [messages]);
 
@@ -233,7 +230,9 @@ export function PortfolioChat() {
               {messages.map((message) => {
                 const text = messageText(message.parts);
                 const isUser = message.role === "user";
-                const metadata = isUser ? getMessageMetadata(message) : undefined;
+                const metadata = isUser
+                  ? (message.metadata ?? metadataByMessageId[message.id])
+                  : undefined;
 
                 return (
                   <div
