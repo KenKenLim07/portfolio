@@ -5,7 +5,9 @@ import { cn } from "@/lib/utils";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-type DottedSurfaceProps = Omit<React.ComponentProps<"div">, "ref">;
+type DottedSurfaceProps = Omit<React.ComponentProps<"div">, "ref"> & {
+  onReady?: () => void;
+};
 
 const FOG = {
   space: 0x09090b,
@@ -1175,7 +1177,7 @@ function createShootingStarPool(isDark: boolean, count: number) {
 }
 
 
-export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
+export function DottedSurface({ className, onReady, ...props }: DottedSurfaceProps) {
   const { theme } = useTheme();
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<ScrollState>({
@@ -1372,6 +1374,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     let smoothedVelocity = 0;
     let smoothedGesture = 0;
     let flareAmt = 0;
+    let readyFrames = 0;
+    let reportedReady = false;
 
     const updateSunVisuals = (face: number) => {
       sunWorldPosition(isMobile, sun.group.position);
@@ -1582,6 +1586,15 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
       }
 
       renderer.render(scene, camera);
+
+      if (!reportedReady) {
+        readyFrames += 1;
+        // Warm GPU with a few frames before handing off to scroll
+        if (readyFrames >= 3) {
+          reportedReady = true;
+          onReady?.();
+        }
+      }
     };
 
     const handleResize = () => {
@@ -1614,7 +1627,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         container.removeChild(renderer.domElement);
       }
     };
-  }, []);
+  }, [onReady]);
 
   return (
     <div

@@ -3,6 +3,7 @@ import { Archivo, Space_Grotesk } from "next/font/google";
 import { PortfolioChat } from "@/components/chat/PortfolioChat";
 import { GsapProvider } from "@/components/GsapProvider";
 import { SiteBackground } from "@/components/SiteBackground";
+import { SiteIntro } from "@/components/SiteIntro";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
@@ -88,6 +89,7 @@ export default function RootLayout({
           <GsapProvider>
             {children}
             <PortfolioChat />
+            <SiteIntro />
           </GsapProvider>
         </ThemeProvider>
       </body>

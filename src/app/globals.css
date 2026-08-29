@@ -141,6 +141,33 @@ html {
   background-color: var(--background);
 }
 
+html[data-intro-active="true"],
+html[data-intro-active="true"] body {
+  overflow: hidden;
+}
+
+/* Intro name fill — soft leading edge reads like liquid */
+.intro-fill {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 calc(100% - 2.75rem),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    #000 0%,
+    #000 calc(100% - 2.75rem),
+    transparent 100%
+  );
+  will-change: width;
+}
+
+.intro-fill.intro-fill-complete {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
 html:not(.lenis) {
   scroll-behavior: smooth;
 }

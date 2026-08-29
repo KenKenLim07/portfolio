@@ -12,3 +12,11 @@ export function setLenisInstance(instance: Lenis | null) {
 export function getLenis(): Lenis | null {
   return lenis;
 }
+
+export function pauseLenis() {
+  lenis?.stop();
+}
+
+export function resumeLenis() {
+  lenis?.start();
+}

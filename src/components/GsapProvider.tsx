@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import Lenis from "lenis";
 import { REDUCED_MOTION_QUERY, gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
-import { setLenisInstance, SECTION_SCROLL_OFFSET } from "@/lib/lenis-instance";
+import { setLenisInstance, SECTION_SCROLL_OFFSET, pauseLenis } from "@/lib/lenis-instance";
+import { isIntroComplete, onIntroComplete } from "@/lib/site-intro";
 
 /**
  * Initializes GSAP ScrollTrigger, Lenis smooth scroll, and debounced refresh on resize / font load.
@@ -15,6 +16,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     let refreshTimer: number | undefined;
     let lenis: Lenis | null = null;
     let tickerCallback: ((time: number) => void) | null = null;
+    let unsubscribeIntro: (() => void) | undefined;
 
     const refresh = () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
@@ -35,6 +37,14 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
       setLenisInstance(lenis);
       lenis.on("scroll", ScrollTrigger.update);
+
+      if (!isIntroComplete()) {
+        pauseLenis();
+      }
+
+      unsubscribeIntro = onIntroComplete(() => {
+        lenis?.start();
+      });
 
       tickerCallback = (time: number) => {
         lenis?.raf(time * 1000);
@@ -64,6 +74,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
       lenis?.destroy();
       setLenisInstance(null);
+      unsubscribeIntro?.();
     };
   }, []);
 
