@@ -6,6 +6,7 @@ import { SiteBackground } from "@/components/SiteBackground";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SITE } from "@/lib/constants";
 import "./globals.css";
+import "lenis/dist/lenis.css";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -75,8 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${spaceGrotesk.variable} dark h-full scroll-smooth`}
-      data-scroll-behavior="smooth"
+      className={`${archivo.variable} ${spaceGrotesk.variable} dark h-full`}
       suppressHydrationWarning
     >
       <head>

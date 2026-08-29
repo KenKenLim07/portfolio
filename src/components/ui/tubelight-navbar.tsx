@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
+import { scrollToSection } from "@/lib/scroll-to";
 import { cn } from "@/lib/utils";
 
 export type NavItem = {
@@ -81,8 +82,7 @@ export function NavBar({ items, activeTab, onTabChange, className }: NavBarProps
               onClick={(event) => {
                 event.preventDefault();
                 onTabChange(item.name);
-                const target = document.getElementById(item.url.slice(1));
-                target?.scrollIntoView({ behavior: "smooth", block: "start" });
+                scrollToSection(item.url.slice(1));
               }}
               className={linkClass}
             >

@@ -138,8 +138,15 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background-color: var(--background);
+}
+
+html:not(.lenis) {
+  scroll-behavior: smooth;
+}
+
+html.lenis {
+  scroll-behavior: auto !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -166,18 +173,13 @@ html {
   }
 
   /*
-   * Hero: paintable (not visibility:hidden) but still opacity:0 from .gsap-reveal
-   * until GSAP fades in. Do NOT force opacity:1 here — that skips the entrance
-   * on first visit (content sits fully visible before hydrate).
+   * Hero: visible on load — scroll exit is handled by GSAP, not a mount entrance.
    */
   #home .gsap-reveal,
   #home [data-hero-cta-panel] {
     visibility: visible;
-  }
-
-  #home [data-hero-cta-panel] {
-    opacity: 0;
-    transform: translate3d(0, 3.5rem, 0);
+    opacity: 1;
+    transform: none;
     will-change: transform, opacity;
   }
 

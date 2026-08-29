@@ -17,12 +17,7 @@ import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
 import { HeroRevealItem } from "@/components/ui/HeroRevealItem";
 import { cn } from "@/lib/utils";
-
-function scrollToSection(id: string) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
+import { scrollToSection } from "@/lib/scroll-to";
 
 function HeroAvailability({ className }: { className?: string }) {
   const prefersReducedMotion = useGsapReducedMotion();

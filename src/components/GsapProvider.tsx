@@ -1,16 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { initGsap, ScrollTrigger } from "@/lib/gsap";
+import Lenis from "lenis";
+import { REDUCED_MOTION_QUERY, gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
+import { setLenisInstance, SECTION_SCROLL_OFFSET } from "@/lib/lenis-instance";
 
 /**
- * Initializes GSAP ScrollTrigger and debounced refresh on resize / font load.
+ * Initializes GSAP ScrollTrigger, Lenis smooth scroll, and debounced refresh on resize / font load.
  */
 export function GsapProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     initGsap();
 
     let refreshTimer: number | undefined;
+    let lenis: Lenis | null = null;
+    let tickerCallback: ((time: number) => void) | null = null;
 
     const refresh = () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
@@ -19,6 +23,26 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       }, 150);
     };
 
+    const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
+
+    if (!prefersReducedMotion) {
+      lenis = new Lenis({
+        lerp: 0.08,
+        smoothWheel: true,
+        anchors: { offset: SECTION_SCROLL_OFFSET },
+        autoRaf: false,
+      });
+
+      setLenisInstance(lenis);
+      lenis.on("scroll", ScrollTrigger.update);
+
+      tickerCallback = (time: number) => {
+        lenis?.raf(time * 1000);
+      };
+      gsap.ticker.add(tickerCallback);
+      gsap.ticker.lagSmoothing(0);
+    }
+
     window.addEventListener("resize", refresh, { passive: true });
     const t = window.setTimeout(refresh, 150);
 
@@ -26,10 +50,20 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       document.fonts.ready.then(refresh);
     }
 
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+
     return () => {
       window.removeEventListener("resize", refresh);
       window.clearTimeout(t);
       if (refreshTimer) window.clearTimeout(refreshTimer);
+
+      if (tickerCallback) {
+        gsap.ticker.remove(tickerCallback);
+        gsap.ticker.lagSmoothing(500, 33);
+      }
+
+      lenis?.destroy();
+      setLenisInstance(null);
     };
   }, []);
 

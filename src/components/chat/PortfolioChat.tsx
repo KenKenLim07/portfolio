@@ -203,6 +203,7 @@ export function PortfolioChat() {
 
             <div
               ref={listRef}
+              data-lenis-prevent
               className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
               aria-live="polite"
             >

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useSyncExternalStore, type RefObject } from "react";
+import { useSyncExternalStore, type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import {
@@ -106,10 +106,8 @@ function markBound(els: HTMLElement[]) {
 }
 
 /**
- * Hero ships two panels (mobile + desktop). Entrance/scrub only touch the active
- * one — the other stays at CSS opacity:0 and looks blank after a breakpoint
- * resize. Keep the *hidden* panel paint-ready. Never reset the active panel
- * here (that fought the exit scrub and caused rewind).
+ * Hero ships two panels (mobile + desktop). Only the active panel is scrubbed;
+ * the hidden panel is painted visible so breakpoint swaps don't flash blank.
  */
 function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
   const inactive = root.querySelector<HTMLElement>(
@@ -133,98 +131,31 @@ function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
   });
 }
 
-/** Staggered fade-up on hydrate — runs when the user can actually see it. */
-function playMountEntrance(root: HTMLElement): gsap.core.Timeline | null {
-  const copy = getRevealItems(root, "copy");
-  const tail = getRevealItems(root, "tail");
-  const cue = getRevealItems(root, "cue");
+/** Show the active hero panel immediately — no mount entrance animation. */
+function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
+  paintInactiveHeroPanel(root, isLg);
+
+  const exitLayers = getHeroExitLayers(root, isLg);
+  const targets = flattenExitLayers(exitLayers);
   const ctaPanel = getCtaPanel(root);
+  const all = ctaPanel ? [...targets, ctaPanel] : targets;
 
-  if (!copy.length && !tail.length && !cue.length && !ctaPanel) return null;
+  if (!all.length) return;
 
-  const { y, duration, stagger, ease, enterScale } = heroScrollReveal;
-  const all = flattenExitLayers(
-    getHeroExitLayers(root, window.matchMedia(LG_QUERY).matches),
-  );
-  const withCta = ctaPanel ? [...all, ctaPanel] : all;
-
-  markBound(withCta);
-  gsap.set(withCta, {
-    opacity: 0,
-    y,
-    scale: enterScale,
-    force3D: true,
-    transformOrigin: "center center",
-  });
+  markBound(all);
+  gsap.set(all, { opacity: 1, y: 0, scale: 1, force3D: true });
   if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
-
-  const enter = {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    stagger,
-    duration,
-    ease,
-    force3D: true,
-  } as const;
-
-  const tl = gsap.timeline();
-  if (copy.length) {
-    tl.to(copy, { ...enter }, 0.04);
-  }
-  const bandTargets = ctaPanel ? [...tail, ctaPanel] : tail;
-  if (bandTargets.length) {
-    tl.to(bandTargets, { ...enter }, 0.16);
-  }
-  if (cue.length) {
-    tl.to(cue, { opacity: 1, y: 0, scale: 1, duration, ease, force3D: true }, 0.3);
-  }
-
-  return tl;
 }
 
 /**
- * Hero: mount entrance + staggered scrub exit (copy → CTAs → metrics → cue).
- * Entrance plays once (survives lg breakpoint rebind). Scrub rebinds on layout
- * only after entrance finishes — otherwise fromTo(opacity:1) snaps the fade.
+ * Hero: visible on load, staggered scrub exit on scroll (copy → CTAs → metrics → cue).
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
 ) {
   const prefersReducedMotion = useGsapReducedMotion();
   const isLg = useMediaQuery(LG_QUERY);
-  const didEnterRef = useRef(false);
-  const entranceTlRef = useRef<gsap.core.Timeline | null>(null);
 
-  // Entrance once — not tied to isLg, so breakpoint hydrate can't cancel mid-fade
-  useGSAP(
-    () => {
-      initGsap();
-      const home = document.getElementById("home");
-      const root = contentRef.current;
-      if (!home || !root || prefersReducedMotion) return;
-      if (didEnterRef.current || !isHomeInView(home)) return;
-
-      didEnterRef.current = true;
-      const tl = playMountEntrance(root);
-      entranceTlRef.current = tl;
-
-      return () => {
-        // Dev Strict Mode remount: allow a fresh fade if we never finished
-        if (tl && tl.progress() < 1) {
-          tl.kill();
-          entranceTlRef.current = null;
-          didEnterRef.current = false;
-        }
-      };
-    },
-    {
-      scope: contentRef,
-      dependencies: [prefersReducedMotion],
-    },
-  );
-
-  // Scroll-exit scrub — safe to rebuild when desktop/mobile panel swaps
   useGSAP(
     () => {
       initGsap();
@@ -241,64 +172,31 @@ export function useHeroScrollReveal(
         const exitLayers = getHeroExitLayers(root, isLg);
         if (!flattenExitLayers(exitLayers).length) return;
 
-        // Outside context so revertOnUpdate can't clear it — resize-only prep
         paintInactiveHeroPanel(root, isLg);
 
-        ctx = gsap.context(() => {
-          bindHeroExitScrub(home, exitLayers, isLg);
-        }, root);
-      };
-
-      const afterEntrance = (fn: () => void) => {
-        const entrance = entranceTlRef.current;
-        if (entrance && entrance.progress() < 1) {
-          entrance.eventCallback("onComplete", () => {
-            entranceTlRef.current = null;
-            fn();
-          });
-          return;
-        }
-        entranceTlRef.current = null;
-        fn();
-      };
-
-      if (!isHomeInView(home) && !didEnterRef.current) {
-        const exitLayers = getHeroExitLayers(root, isLg);
-        const scrubTargets = flattenExitLayers(exitLayers);
-        gsap.set(scrubTargets, {
-          opacity: 0,
-          y: heroScrollReveal.y,
-          scale: heroScrollReveal.enterScale,
-          force3D: true,
-          transformOrigin: "center center",
-        });
-        markBound(scrubTargets);
-        const ctaPanel = getCtaPanel(root);
-        if (ctaPanel) {
-          gsap.set(ctaPanel, {
+        if (isHomeInView(home)) {
+          initializeHeroVisible(root, isLg);
+        } else {
+          const scrubTargets = flattenExitLayers(exitLayers);
+          const ctaPanel = getCtaPanel(root);
+          const all = ctaPanel ? [...scrubTargets, ctaPanel] : scrubTargets;
+          gsap.set(all, {
             opacity: 0,
             y: heroScrollReveal.y,
             scale: heroScrollReveal.enterScale,
             force3D: true,
             transformOrigin: "center center",
           });
-          markBound([ctaPanel]);
-          ctaPanel.style.pointerEvents = "auto";
+          markBound(all);
+          if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
         }
-        paintInactiveHeroPanel(root, isLg);
+
         ctx = gsap.context(() => {
           bindHeroExitScrub(home, exitLayers, isLg);
         }, root);
-      } else {
-        afterEntrance(() => {
-          if (!didEnterRef.current) {
-            requestAnimationFrame(() => afterEntrance(bindExit));
-            return;
-          }
-          bindExit();
-        });
-      }
+      };
 
+      bindExit();
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
       return () => ctx?.revert();
