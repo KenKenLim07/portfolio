@@ -11,7 +11,7 @@ type SectionHeadingProps = {
   variant?: "default" | "mega";
 };
 
-/** Leading words outlined; last word solid fill. Sun mode adapts via globals.css. */
+/** Leading words outlined; last word solid fill — matches hero mega-outline. */
 export function MegaTitleText({ title }: { title: string }) {
   const parts = title.trim().split(/\s+/);
   if (parts.length < 2) {
@@ -23,11 +23,24 @@ export function MegaTitleText({ title }: { title: string }) {
 
   return (
     <>
-      <span className="section-mega-outline">
-        {lead}{" "}
-      </span>
+      <span className="mega-outline">{lead} </span>
       <span className="text-foreground">{last}</span>
     </>
+  );
+}
+
+/** Section h2 — same mega type scale + outline pairing as the hero. */
+export function SectionMegaHeading({
+  title,
+  className,
+}: {
+  title: string;
+  className?: string;
+}) {
+  return (
+    <h2 className={cn("section-mega", className)}>
+      <MegaTitleText title={title} />
+    </h2>
   );
 }
 
@@ -56,15 +69,11 @@ export function SectionHeading({
         </AnimatedItem>
       )}
       <AnimatedItem>
-        <h2
-          className={cn(
-            variant === "mega"
-              ? "section-mega"
-              : "font-display text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl",
-          )}
-        >
-          {variant === "mega" ? <MegaTitleText title={title} /> : title}
-        </h2>
+        {variant === "mega" ? (
+          <SectionMegaHeading title={title} />
+        ) : (
+          <h2 className="section-mega text-foreground">{title}</h2>
+        )}
       </AnimatedItem>
       {description && (
         <AnimatedItem>

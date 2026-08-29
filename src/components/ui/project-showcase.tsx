@@ -3,14 +3,13 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/lib/constants";
 
 export type ProjectShowcaseItem = Pick<
   Project,
-  "id" | "title" | "description" | "image" | "imagePosition" | "gradient" | "stack"
+  "id" | "title" | "image" | "imagePosition" | "gradient" | "stack"
 > & {
   href: string;
 };
@@ -89,7 +88,7 @@ export function ProjectShowcase({
       onMouseMove={handleMouseMove}
       className={cn("relative w-full", className)}
     >
-      {/* Desktop: image follows cursor — sized to show full 2:1 screenshots */}
+      {/* Desktop: image follows cursor */}
       <div
         className="pointer-events-none absolute z-50 hidden overflow-hidden radius-panel-lg shadow-2xl lg:block"
         style={{
@@ -131,115 +130,67 @@ export function ProjectShowcase({
       </div>
 
       <div className="space-y-0">
-        {projects.map((project, index) => {
-          const stackPreview = project.stack.slice(0, 3);
-          const overflow = project.stack.length - stackPreview.length;
-          const isHovered = hoveredIndex === index;
-
-          return (
-            <div
-              key={project.id}
-              data-scrub-reveal
-              className="gsap-reveal"
+        {projects.map((project, index) => (
+          <div key={project.id} data-scrub-reveal className="gsap-reveal">
+            <a
+              href={project.href}
+              className="group block cursor-pointer border-t border-border outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              onMouseEnter={() => handleMouseEnter(index)}
+              onMouseLeave={handleMouseLeave}
+              onClick={(e) => {
+                if (!onProjectClick) return;
+                e.preventDefault();
+                onProjectClick(project.id);
+              }}
             >
-              <a
-                href={project.href}
-                className="group block cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                onMouseEnter={() => handleMouseEnter(index)}
-                onMouseLeave={handleMouseLeave}
-                onClick={(e) => {
-                  if (!onProjectClick) return;
-                  e.preventDefault();
-                  onProjectClick(project.id);
-                }}
-              >
-                <div className="relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
-                    aria-hidden
-                  />
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    className="object-cover"
-                    style={{
-                      objectPosition: project.imagePosition ?? "center top",
-                    }}
-                    sizes="(max-width: 1024px) 100vw, 720px"
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
-                    aria-hidden
-                  />
-                </div>
+              {/* Mobile: image always visible */}
+              <div className="relative mt-8 aspect-[2/1] overflow-hidden radius-panel-lg bg-zinc-950 first:mt-0 lg:hidden">
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br opacity-20 ${project.gradient}`}
+                  aria-hidden
+                />
+                <Image
+                  src={project.image}
+                  alt={project.title}
+                  fill
+                  className="object-cover"
+                  style={{
+                    objectPosition: project.imagePosition ?? "center top",
+                  }}
+                  sizes="(max-width: 1024px) 100vw, 720px"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-zinc-950/65 via-transparent to-transparent"
+                  aria-hidden
+                />
+              </div>
 
-                <div className="relative border-t border-border py-5 transition-all duration-300 ease-out lg:py-6">
-                  <div
-                    className={cn(
-                      "absolute inset-0 -mx-4 rounded-lg bg-surface/60 px-4 transition-all duration-300 ease-out",
-                      isHovered
-                        ? "scale-100 opacity-100"
-                        : "scale-95 opacity-0",
-                    )}
-                  />
+              <div className="py-5 lg:py-7">
+                <div className="flex flex-col gap-3 sm:gap-4">
+                  <h3 className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="shrink-0 font-mono text-xl font-medium tracking-[0.12em] text-muted sm:text-2xl">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="font-display text-3xl tracking-tight text-foreground transition-colors duration-200 group-hover:text-foreground/80 sm:text-4xl lg:text-5xl">
+                      {project.title}
+                    </span>
+                  </h3>
 
-                  <div className="relative flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="inline-flex items-center gap-2">
-                        <h3 className="font-display text-xl font-semibold tracking-tight sm:text-2xl">
-                          <span className="font-mono text-[0.85em] font-medium tracking-[0.12em] text-muted">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>{" "}
-                          <span className="relative text-foreground">
-                            {project.title}
-                            <span
-                              className={cn(
-                                "absolute left-0 -bottom-0.5 h-px bg-foreground transition-all duration-300 ease-out",
-                                isHovered ? "w-full" : "w-0",
-                              )}
-                            />
-                          </span>
-                        </h3>
-                        <ArrowUpRight
-                          className={cn(
-                            "h-4 w-4 text-muted transition-all duration-300 ease-out",
-                            isHovered
-                              ? "translate-x-0 translate-y-0 opacity-100"
-                              : "-translate-x-2 translate-y-2 opacity-0",
-                          )}
-                        />
-                      </div>
-
-                      <p
-                        className={cn(
-                          "mt-2 hidden line-clamp-2 text-sm leading-relaxed text-muted transition-colors duration-300 lg:block",
-                          isHovered && "text-foreground/70",
-                        )}
+                  <div className="flex flex-wrap gap-1.5">
+                    {project.stack.map((tech) => (
+                      <Badge
+                        key={`${project.id}-${tech}`}
+                        className="text-[10px]"
                       >
-                        {project.description}
-                      </p>
-
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {stackPreview.map((tech, i) => (
-                          <Badge
-                            key={`${project.id}-${tech}-${i}`}
-                            className="text-[10px]"
-                          >
-                            {tech}
-                          </Badge>
-                        ))}
-                        {overflow > 0 && (
-                          <Badge className="text-[10px]">+{overflow}</Badge>
-                        )}
-                      </div>
-                    </div>
+                        {tech}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
-              </a>
-            </div>
-          );
-        })}
+              </div>
+            </a>
+          </div>
+        ))}
       </div>
     </div>
   );

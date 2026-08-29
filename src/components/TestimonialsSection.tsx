@@ -3,7 +3,7 @@
 import { TESTIMONIALS } from "@/lib/constants";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { SectionMegaHeading } from "@/components/ui/SectionHeading";
 import { TestimonialsRow } from "@/components/ui/testimonials-columns";
 
 const firstRow = TESTIMONIALS.slice(0, 5);
@@ -16,9 +16,7 @@ export function TestimonialsSection() {
     <Section id="testimonials">
       <div ref={scopeRef}>
         <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
-          <h2 className="section-mega">
-            <MegaTitleText title="Kind Words" />
-          </h2>
+          <SectionMegaHeading title="Kind Words" />
         </div>
 
         <div className="flex flex-col gap-6">

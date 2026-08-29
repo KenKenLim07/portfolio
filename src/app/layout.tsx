@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Space_Grotesk } from "next/font/google";
+import { Anton, Roboto_Flex } from "next/font/google";
 import { PortfolioChat } from "@/components/chat/PortfolioChat";
 import { GsapProvider } from "@/components/GsapProvider";
 import { SiteBackground } from "@/components/SiteBackground";
@@ -9,16 +9,15 @@ import { SITE } from "@/lib/constants";
 import "./globals.css";
 import "lenis/dist/lenis.css";
 
-const archivo = Archivo({
-  variable: "--font-archivo",
+const anton = Anton({
+  variable: "--font-anton",
   subsets: ["latin"],
+  weight: "400",
   display: "swap",
-  // Enables font-stretch / wdth so hero mega type can go wider
-  axes: ["wdth"],
 });
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const robotoFlex = Roboto_Flex({
+  variable: "--font-roboto-flex",
   subsets: ["latin"],
   display: "swap",
 });
@@ -77,7 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${archivo.variable} ${spaceGrotesk.variable} dark h-full`}
+      className={`${anton.variable} ${robotoFlex.variable} dark h-full`}
       suppressHydrationWarning
     >
       <head>

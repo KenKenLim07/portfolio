@@ -101,9 +101,6 @@ export const heroScrollReveal = {
   endMobile: "clamp(bottom 26%)",
   scrub: 1.25,
   y: 108,
-  /** Match section scrub reveals */
-  enterScale: 0.97,
-  exitScale: 0.94,
   /** Copy: visible motion, still more legible than chrome */
   exitYCopy: 96,
   exitOpacityCopy: 0.15,
@@ -160,7 +157,6 @@ export function bindHeroExitScrub(
   if (!items.length) return null;
 
   enableHeroExitPointerEvents(items);
-  gsap.set(items, { transformOrigin: "center center" });
 
   const tl = gsap.timeline({
     scrollTrigger: {
@@ -193,11 +189,10 @@ export function bindHeroExitScrub(
 
     tl.fromTo(
       targets,
-      { opacity: 1, y: 0, scale: 1, force3D: true },
+      { opacity: 1, y: 0, force3D: true },
       {
         opacity: exitOpacity,
         y: -exitY,
-        scale: config.exitScale,
         ease: "none",
         force3D: true,
         duration: exitTweenDuration,

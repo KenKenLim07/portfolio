@@ -107,7 +107,7 @@ function HeroCopy({
       </HeroRevealItem>
 
       <div
-        className="font-display font-semibold tracking-tight"
+        className="font-display space-y-0.5 tracking-tight sm:space-y-1"
         role="heading"
         aria-level={1}
       >
@@ -118,7 +118,7 @@ function HeroCopy({
           <span className="hero-mega text-foreground">Developer</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega hero-mega-outline">• AI Systems</span>
+          <span className="hero-mega mega-outline">• AI Systems</span>
         </HeroRevealItem>
       </div>
 

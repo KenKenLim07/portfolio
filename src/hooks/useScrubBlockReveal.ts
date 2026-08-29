@@ -24,8 +24,6 @@ const SCRUB_MOBILE = {
   y: 48,
   exitY: heroScrollReveal.y,
   exitOpacity: heroScrollReveal.exitOpacity,
-  enterScale: 0.97,
-  exitScale: 0.94,
 } as const;
 
 /**
@@ -38,8 +36,6 @@ const SCRUB_DESKTOP = {
   y: 68,
   exitY: heroScrollReveal.y,
   exitOpacity: heroScrollReveal.exitOpacity,
-  enterScale: 0.97,
-  exitScale: 0.94,
 } as const;
 
 type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP;
@@ -67,9 +63,7 @@ function bindScrubBlocks(
     gsap.set(block, {
       opacity: 0,
       y: config.y,
-      scale: config.enterScale,
       force3D: true,
-      transformOrigin: "center center",
     });
 
     const tl = gsap.timeline({
@@ -87,13 +81,11 @@ function bindScrubBlocks(
       {
         opacity: 0,
         y: config.y,
-        scale: config.enterScale,
         force3D: true,
       },
       {
         opacity: 1,
         y: 0,
-        scale: 1,
         force3D: true,
         duration: config.enter,
         ease: "none",
@@ -109,7 +101,6 @@ function bindScrubBlocks(
       tl.to(block, {
         opacity: config.exitOpacity,
         y: -config.exitY,
-        scale: config.exitScale,
         force3D: true,
         duration: config.exit,
         ease: "none",

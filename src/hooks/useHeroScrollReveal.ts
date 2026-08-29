@@ -123,7 +123,7 @@ function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
   if (!items.length) return;
 
   markBound(items);
-  gsap.set(items, { opacity: 1, y: 0, scale: 1, force3D: true });
+  gsap.set(items, { opacity: 1, y: 0, force3D: true });
   items.forEach((el) => {
     if (el.hasAttribute("data-hero-cta-panel")) {
       el.style.pointerEvents = "auto";
@@ -143,7 +143,7 @@ function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
   if (!all.length) return;
 
   markBound(all);
-  gsap.set(all, { opacity: 1, y: 0, scale: 1, force3D: true });
+  gsap.set(all, { opacity: 1, y: 0, force3D: true });
   if (ctaPanel) ctaPanel.style.pointerEvents = "auto";
 }
 
@@ -183,9 +183,7 @@ export function useHeroScrollReveal(
           gsap.set(all, {
             opacity: 0,
             y: heroScrollReveal.y,
-            scale: heroScrollReveal.enterScale,
             force3D: true,
-            transformOrigin: "center center",
           });
           markBound(all);
           if (ctaPanel) ctaPanel.style.pointerEvents = "auto";

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const MIN_INTRO_MS = 2200;
 const MAX_INTRO_MS = 6500;
-const EXIT_MS = 560;
+const CURTAIN_MS = 760;
 const FILL_LERP = 0.038;
 const HOLD_AT_FULL_MS = 360;
 const INTRO_TEXT = `${SITE.name}.`;
@@ -86,7 +86,7 @@ export function SiteIntro() {
 
       if (holdingFull && performance.now() - holdStarted >= HOLD_AT_FULL_MS) {
         setExiting(true);
-        window.setTimeout(completeIntro, EXIT_MS);
+        window.setTimeout(completeIntro, CURTAIN_MS);
         return;
       }
 
@@ -115,14 +115,14 @@ export function SiteIntro() {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[200] flex items-center justify-center bg-background px-6 transition-opacity duration-[560ms] ease-out motion-reduce:transition-none",
-        exiting ? "pointer-events-none opacity-0" : "opacity-100",
+        "intro-curtain fixed inset-0 z-[200] bg-background motion-reduce:transition-none",
+        exiting && "intro-curtain-exiting",
       )}
       role="status"
       aria-live="polite"
       aria-label="Loading portfolio"
     >
-      <div className="flex w-full justify-center px-6">
+      <div className="flex h-full w-full items-center justify-center px-6">
         <h1
           className="relative inline-block max-w-full text-center font-display text-[clamp(2.5rem,11vw,6.5rem)] font-semibold leading-[0.95] tracking-tight"
           aria-label={SITE.name}

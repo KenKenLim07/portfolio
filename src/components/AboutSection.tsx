@@ -3,7 +3,7 @@
 import { ABOUT } from "@/lib/constants";
 import { useAboutBlockReveal } from "@/hooks/useAboutBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { SectionMegaHeading } from "@/components/ui/SectionHeading";
 import { cn } from "@/lib/utils";
 
 function AboutReveal({
@@ -27,9 +27,7 @@ export function AboutSection() {
     <Section id="about">
       <div ref={scopeRef}>
         <AboutReveal className="mb-5 md:mb-6">
-          <h2 className="section-mega">
-            <MegaTitleText title="About Me" />
-          </h2>
+          <SectionMegaHeading title="About Me" />
         </AboutReveal>
 
         <AboutReveal className="mb-14 md:mb-20">

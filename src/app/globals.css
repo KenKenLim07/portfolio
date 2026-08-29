@@ -104,18 +104,10 @@
   --menu-overlay: rgba(10, 16, 32, 0.45);
 }
 
-.dark:is(.sun, [data-theme="sun"]) .hero-mega-outline {
+.dark:is(.sun, [data-theme="sun"]) .mega-outline {
   -webkit-text-stroke-color: color-mix(
     in oklab,
     var(--foreground) 55%,
-    transparent
-  );
-}
-
-.dark:is(.sun, [data-theme="sun"]) .section-mega-outline {
-  -webkit-text-stroke-color: color-mix(
-    in oklab,
-    var(--foreground) 48%,
     transparent
   );
 }
@@ -129,8 +121,8 @@
   --color-border: var(--border);
   --color-image-well: var(--image-well);
   --color-overlay: var(--overlay);
-  --font-sans: var(--font-space-grotesk), system-ui, sans-serif;
-  --font-display: var(--font-archivo), system-ui, sans-serif;
+  --font-sans: var(--font-roboto-flex), system-ui, sans-serif;
+  --font-display: var(--font-anton), system-ui, sans-serif;
   --radius-panel-lg: 0;
   --radius-panel: 0;
   --radius-control: 0;
@@ -166,6 +158,41 @@ html[data-intro-active="true"] body {
 .intro-fill.intro-fill-complete {
   -webkit-mask-image: none;
   mask-image: none;
+}
+
+/* Intro exit — curtain lifts to reveal hero underneath */
+.intro-curtain {
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+  transition: transform 760ms cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.intro-curtain::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--foreground) 14%, transparent);
+  box-shadow: 0 12px 40px -8px color-mix(in srgb, var(--background) 85%, #000);
+  opacity: 1;
+  transition: opacity 280ms ease-out;
+  pointer-events: none;
+}
+
+.intro-curtain-exiting {
+  transform: translate3d(0, -100%, 0);
+  pointer-events: none;
+}
+
+.intro-curtain-exiting::after {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-curtain {
+    transition: none;
+  }
 }
 
 html:not(.lenis) {
@@ -240,7 +267,7 @@ html.lenis {
 body {
   background: transparent;
   color: var(--foreground);
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
+  font-family: var(--font-roboto-flex), system-ui, sans-serif;
 }
 
 ::selection {
@@ -471,36 +498,38 @@ body {
   }
 }
 
+/* Shared mega display type — Anton, uppercase, intro-matched tracking */
+.hero-mega,
+.section-mega {
+  font-family: var(--font-display);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+}
+
 /* Display hero typography — solid + muted outlined pairing */
 .hero-mega {
   display: block;
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 9vw, 6.5rem);
-  font-weight: 900;
-  font-stretch: 108%;
-  line-height: 0.86;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-size: clamp(2.75rem, 11vw, 7rem);
+  line-height: 1;
 }
 
 @media (max-width: 1023px) {
   .hero-mega {
-    font-size: clamp(2.5rem, 12vw, 3.5rem);
-    line-height: 0.86;
-    font-stretch: 105%;
+    font-size: clamp(3.25rem, 15vw, 5rem);
+    line-height: 0.98;
   }
 }
 
 @media (min-width: 1024px) {
   .hero-mega {
     /* Desktop: headline must dominate CTAs/metrics in the right column */
-    font-size: clamp(3rem, 5.5vw, 4.75rem);
-    line-height: 0.86;
-    font-stretch: 110%;
+    font-size: clamp(4rem, 7.25vw, 6.75rem);
+    line-height: 1.02;
   }
 }
 
-.hero-mega-outline {
+.mega-outline {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
   -webkit-text-stroke-width: 0.026em;
@@ -512,19 +541,28 @@ body {
 }
 
 .section-mega {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -0.02em;
-  text-transform: uppercase;
+  font-size: clamp(2.5rem, 8vw, 4.25rem);
+  line-height: 1.02;
 }
 
+@media (min-width: 1024px) {
+  .section-mega {
+    font-size: clamp(3.25rem, 5.75vw, 5.5rem);
+    line-height: 1.02;
+  }
+}
+
+/* Legacy aliases — same outline treatment as hero */
+.hero-mega-outline,
 .section-mega-outline {
   color: transparent !important;
   -webkit-text-fill-color: transparent !important;
-  -webkit-text-stroke-width: 0.03em;
-  -webkit-text-stroke-color: var(--foreground);
+  -webkit-text-stroke-width: 0.026em;
+  -webkit-text-stroke-color: color-mix(
+    in oklab,
+    var(--foreground) 38%,
+    transparent
+  );
 }
 
 /* Process roadmap nodes — fill on scroll via [data-active] */

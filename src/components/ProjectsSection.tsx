@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { PROJECTS } from "@/lib/constants";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { SectionMegaHeading } from "@/components/ui/SectionHeading";
 import {
   ProjectShowcase,
   type ProjectShowcaseItem,
@@ -20,7 +20,6 @@ export function ProjectsSection() {
       PROJECTS.map((project) => ({
         id: project.id,
         title: project.title,
-        description: project.description,
         image: project.image,
         imagePosition: project.imagePosition,
         gradient: project.gradient,
@@ -41,9 +40,7 @@ export function ProjectsSection() {
     <Section id="projects">
       <div ref={scopeRef}>
         <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
-          <h2 className="section-mega">
-            <MegaTitleText title="Selected Projects" />
-          </h2>
+          <SectionMegaHeading title="Selected Projects" />
         </div>
 
         <ProjectShowcase projects={items} onProjectClick={openProject} />

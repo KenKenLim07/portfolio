@@ -12,7 +12,7 @@ import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
 import { Button } from "@/components/ui/Button";
 import { ContactForm } from "@/components/ContactForm";
-import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { SectionMegaHeading } from "@/components/ui/SectionHeading";
 
 type ContactIcon = LucideIcon | typeof GitHubIcon;
 
@@ -75,9 +75,7 @@ export function ContactSection() {
         <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
           <div className="space-y-0">
             <div data-scrub-reveal className="gsap-reveal">
-              <h2 className="section-mega max-w-xl">
-                <MegaTitleText title="Get in Touch" />
-              </h2>
+              <SectionMegaHeading title="Get in Touch" className="max-w-xl" />
             </div>
 
             <div data-scrub-reveal className="gsap-reveal mt-6">

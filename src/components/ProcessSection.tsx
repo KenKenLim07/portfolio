@@ -4,7 +4,7 @@ import { PROCESS_STEPS } from "@/lib/constants";
 import { useProcessRoadmap } from "@/hooks/useProcessRoadmap";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { SectionMegaHeading } from "@/components/ui/SectionHeading";
 import { ProcessStepCard } from "@/components/ui/process-step-card";
 import { cn } from "@/lib/utils";
 
@@ -16,9 +16,7 @@ export function ProcessSection() {
     <Section id="process">
       <div ref={scopeRef}>
         <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
-          <h2 className="section-mega">
-            <MegaTitleText title="How I Work" />
-          </h2>
+          <SectionMegaHeading title="How I Work" />
         </div>
 
         <div ref={trackRef} className="relative mx-auto max-w-5xl">

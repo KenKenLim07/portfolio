@@ -4,7 +4,7 @@ import { TECH_STACK } from "@/lib/constants";
 import { TechBrandIcon } from "@/components/TechBrandIcon";
 import { useScrubBlockReveal } from "@/hooks/useScrubBlockReveal";
 import { Section } from "@/components/ui/Section";
-import { MegaTitleText } from "@/components/ui/SectionHeading";
+import { SectionMegaHeading } from "@/components/ui/SectionHeading";
 
 const STACK_CATEGORIES = [
   { key: "frontend" as const, label: "Frontend" },
@@ -30,9 +30,7 @@ export function TechStackSection() {
     <Section id="tech-stack">
       <div ref={scopeRef}>
         <div data-scrub-reveal className="gsap-reveal mb-14 md:mb-20">
-          <h2 className="section-mega">
-            <MegaTitleText title="My Stack" />
-          </h2>
+          <SectionMegaHeading title="My Stack" />
         </div>
 
         <div className="flex flex-col gap-10 md:gap-12">
