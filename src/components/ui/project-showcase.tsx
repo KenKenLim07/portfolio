@@ -130,7 +130,11 @@ export function ProjectShowcase({
       </div>
 
       <div className="space-y-0">
-        {projects.map((project, index) => (
+        {projects.map((project, index) => {
+          const stackPreview = project.stack.slice(0, 3);
+          const stackOverflow = project.stack.length - stackPreview.length;
+
+          return (
           <div key={project.id} data-scrub-reveal className="gsap-reveal">
             <a
               href={project.href}
@@ -176,21 +180,40 @@ export function ProjectShowcase({
                     </span>
                   </h3>
 
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.stack.map((tech) => (
-                      <Badge
-                        key={`${project.id}-${tech}`}
-                        className="text-[10px]"
-                      >
-                        {tech}
-                      </Badge>
-                    ))}
+                  <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 lg:hidden">
+                      {stackPreview.map((tech) => (
+                        <Badge
+                          key={`${project.id}-${tech}-mobile`}
+                          className="px-3.5 py-1.5 text-[11px] sm:text-xs"
+                        >
+                          {tech}
+                        </Badge>
+                      ))}
+                      {stackOverflow > 0 && (
+                        <Badge className="px-3.5 py-1.5 text-[11px] sm:text-xs">
+                          +{stackOverflow}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="hidden flex-wrap gap-2 lg:flex">
+                      {project.stack.map((tech) => (
+                        <Badge
+                          key={`${project.id}-${tech}-desktop`}
+                          className="px-3.5 py-1.5 text-xs"
+                        >
+                          {tech}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             </a>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

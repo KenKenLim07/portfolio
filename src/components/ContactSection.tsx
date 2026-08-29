@@ -60,11 +60,13 @@ const links: {
 ];
 
 export function ContactSection() {
-  // Last section: same enter feel, no upward exit so the form stays usable
-  const scopeRef = useScrubBlockReveal({ disableExit: true });
+  const scopeRef = useScrubBlockReveal({
+    disableExit: true,
+    lastSection: true,
+  });
 
   return (
-    <Section id="contact">
+    <Section id="contact" className="pb-32 md:pb-40">
       <div
         ref={scopeRef}
         className="radius-panel-lg relative overflow-hidden border border-border"

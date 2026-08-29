@@ -262,7 +262,7 @@ export const PROJECTS: Project[] = [
   },
   {
     id: "iloilo-jobs",
-    title: "Iloilo Jobs — BPO Openings Hub",
+    title: "Iloilo Jobs",
     category: "web",
     description:
       "Centralized Iloilo BPO job board that scrapes employer career sites and public APIs (including exposed listing endpoints) into one searchable board. Python providers normalize, dedupe, and validate roles from Asurion, Carelon, Concentrix, iQor, TELUS Digital, and more; a scheduled home-IP scrape pushes fresh JSON so the Next.js site always points applicants to official apply pages.",

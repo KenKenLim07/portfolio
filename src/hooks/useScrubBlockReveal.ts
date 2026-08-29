@@ -38,25 +38,78 @@ const SCRUB_DESKTOP = {
   exitOpacity: heroScrollReveal.exitOpacity,
 } as const;
 
-type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP;
+type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP | typeof SCRUB_LAST_MOBILE | typeof SCRUB_LAST_DESKTOP;
+
+/** Last section — shorter hold, bottom-based end so enter can finish near page end */
+const SCRUB_LAST_WEIGHTS = {
+  enter: 0.85,
+  hold: 0.2,
+  exit: 0,
+  scrub: 0.9,
+} as const;
+
+const SCRUB_LAST_MOBILE = {
+  ...SCRUB_LAST_WEIGHTS,
+  start: "clamp(top 94%)",
+  end: "clamp(bottom 78%)",
+  y: 40,
+  exitY: heroScrollReveal.y,
+  exitOpacity: heroScrollReveal.exitOpacity,
+} as const;
+
+const SCRUB_LAST_DESKTOP = {
+  ...SCRUB_LAST_WEIGHTS,
+  start: "clamp(top 90%)",
+  end: "clamp(bottom 75%)",
+  y: 56,
+  exitY: heroScrollReveal.y,
+  exitOpacity: heroScrollReveal.exitOpacity,
+} as const;
 
 type UseScrubBlockRevealOptions = {
   /** Defaults to `[data-scrub-reveal]` */
   selector?: string;
   /** Skip upward exit — useful for the last section (e.g. contact form). */
   disableExit?: boolean;
+  /** Bottom-of-page section — completes enter before scroll runs out. */
+  lastSection?: boolean;
 };
+
+function completeIfPinnedAtPageEnd(block: HTMLElement, tl: gsap.core.Timeline) {
+  const sync = () => {
+    const maxScroll =
+      document.documentElement.scrollHeight - window.innerHeight;
+    if (maxScroll <= 8 || window.scrollY < maxScroll - 24) return;
+
+    const rect = block.getBoundingClientRect();
+    if (rect.top >= window.innerHeight * 0.98) return;
+
+    tl.progress(1, false);
+  };
+
+  sync();
+  ScrollTrigger.addEventListener("refresh", sync);
+  window.addEventListener("scroll", sync, { passive: true });
+
+  return () => {
+    ScrollTrigger.removeEventListener("refresh", sync);
+    window.removeEventListener("scroll", sync);
+  };
+}
 
 function bindScrubBlocks(
   root: HTMLElement,
   selector: string,
   config: ScrubConfig,
   disableExit: boolean,
+  lastSection: boolean,
 ) {
   const blocks = gsap.utils
     .toArray<HTMLElement>(root.querySelectorAll(selector))
     // Skip breakpoint-hidden nodes (e.g. mobile-only project images on desktop)
     .filter((el) => getComputedStyle(el).display !== "none");
+
+  const cleanups: Array<() => void> = [];
 
   blocks.forEach((block) => {
     block.classList.add("gsap-bound");
@@ -106,7 +159,15 @@ function bindScrubBlocks(
         ease: "none",
       });
     }
+
+    if (lastSection) {
+      cleanups.push(completeIfPinnedAtPageEnd(block, tl));
+    }
   });
+
+  return () => {
+    cleanups.forEach((fn) => fn());
+  };
 }
 
 /**
@@ -120,6 +181,7 @@ export function useScrubBlockReveal(
   const prefersReducedMotion = useGsapReducedMotion();
   const selector = options.selector ?? "[data-scrub-reveal]";
   const disableExit = options.disableExit ?? false;
+  const lastSection = options.lastSection ?? false;
 
   useGSAP(
     () => {
@@ -128,6 +190,7 @@ export function useScrubBlockReveal(
       if (!root || prefersReducedMotion) return;
 
       const mm = gsap.matchMedia();
+      let cleanupBlocks: (() => void) | undefined;
 
       mm.add(
         {
@@ -139,18 +202,33 @@ export function useScrubBlockReveal(
             isDesktop: boolean;
             isMobile: boolean;
           };
-          const config = isDesktop ? SCRUB_DESKTOP : SCRUB_MOBILE;
-          bindScrubBlocks(root, selector, config, disableExit);
+          const config = lastSection
+            ? isDesktop
+              ? SCRUB_LAST_DESKTOP
+              : SCRUB_LAST_MOBILE
+            : isDesktop
+              ? SCRUB_DESKTOP
+              : SCRUB_MOBILE;
+          cleanupBlocks = bindScrubBlocks(
+            root,
+            selector,
+            config,
+            disableExit,
+            lastSection,
+          );
         },
       );
 
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
-      return () => mm.revert();
+      return () => {
+        cleanupBlocks?.();
+        mm.revert();
+      };
     },
     {
       scope: scopeRef,
-      dependencies: [prefersReducedMotion, selector, disableExit],
+      dependencies: [prefersReducedMotion, selector, disableExit, lastSection],
       revertOnUpdate: true,
     },
   );
