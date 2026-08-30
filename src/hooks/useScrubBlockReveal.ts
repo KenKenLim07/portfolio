@@ -11,8 +11,8 @@ import { gsap, heroScrollReveal, initGsap, ScrollTrigger } from "@/lib/gsap";
  */
 const SCRUB_WEIGHTS = {
   enter: 0.75,
-  hold: 2.25,
-  exit: 0.85,
+  hold: 3.1,
+  exit: 1.35,
   scrub: 1.1,
 } as const;
 
@@ -20,9 +20,9 @@ const SCRUB_WEIGHTS = {
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 92%)",
-  end: "clamp(top 12%)",
+  end: "clamp(top 8%)",
   y: 48,
-  exitY: heroScrollReveal.y,
+  exitY: 72,
   exitOpacity: heroScrollReveal.exitOpacity,
 } as const;
 
@@ -32,9 +32,9 @@ const SCRUB_MOBILE = {
 const SCRUB_DESKTOP = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 88%)",
-  end: "clamp(top 10%)",
+  end: "clamp(top 6%)",
   y: 68,
-  exitY: heroScrollReveal.y,
+  exitY: 88,
   exitOpacity: heroScrollReveal.exitOpacity,
 } as const;
 

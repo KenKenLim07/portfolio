@@ -60,13 +60,10 @@ const links: {
 ];
 
 export function ContactSection() {
-  const scopeRef = useScrubBlockReveal({
-    disableExit: true,
-    lastSection: true,
-  });
+  const scopeRef = useScrubBlockReveal();
 
   return (
-    <Section id="contact" className="pb-32 md:pb-40">
+    <Section id="contact">
       <div
         ref={scopeRef}
         className="radius-panel-lg relative overflow-hidden border border-border"
