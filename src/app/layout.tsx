@@ -76,7 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${anton.variable} ${robotoFlex.variable} dark h-full`}
+      className={`${anton.variable} ${robotoFlex.variable} dark min-h-full`}
       suppressHydrationWarning
     >
       <head>

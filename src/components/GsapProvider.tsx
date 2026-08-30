@@ -6,6 +6,16 @@ import { REDUCED_MOTION_QUERY, gsap, initGsap, ScrollTrigger } from "@/lib/gsap"
 import { setLenisInstance, SECTION_SCROLL_OFFSET, pauseLenis } from "@/lib/lenis-instance";
 import { isIntroComplete, onIntroComplete } from "@/lib/site-intro";
 
+/** Touch-primary devices use native scroll — Lenis touch interception is unreliable on mobile. */
+function prefersNativeTouchScroll() {
+  return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+}
+
+function refreshScrollMetrics(lenis: Lenis | null) {
+  lenis?.resize();
+  ScrollTrigger.refresh();
+}
+
 /**
  * Initializes GSAP ScrollTrigger, Lenis smooth scroll, and debounced refresh on resize / font load.
  */
@@ -17,17 +27,29 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     let lenis: Lenis | null = null;
     let tickerCallback: ((time: number) => void) | null = null;
     let unsubscribeIntro: (() => void) | undefined;
+    const unlockTimers: number[] = [];
 
     const refresh = () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => {
-        ScrollTrigger.refresh();
+        refreshScrollMetrics(lenis);
       }, 150);
     };
 
-    const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
+    const unlockAfterIntro = () => {
+      lenis?.start();
+      refreshScrollMetrics(lenis);
+      requestAnimationFrame(() => refreshScrollMetrics(lenis));
+      unlockTimers.push(
+        window.setTimeout(() => refreshScrollMetrics(lenis), 120),
+        window.setTimeout(() => refreshScrollMetrics(lenis), 480),
+      );
+    };
 
-    if (!prefersReducedMotion) {
+    const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
+    const useLenis = !prefersReducedMotion && !prefersNativeTouchScroll();
+
+    if (useLenis) {
       lenis = new Lenis({
         lerp: 0.08,
         smoothWheel: true,
@@ -42,19 +64,16 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
         pauseLenis();
       }
 
-      unsubscribeIntro = onIntroComplete(() => {
-        lenis?.start();
-        requestAnimationFrame(() => {
-          lenis?.resize();
-          ScrollTrigger.refresh();
-        });
-      });
+      unsubscribeIntro = onIntroComplete(unlockAfterIntro);
 
       tickerCallback = (time: number) => {
         lenis?.raf(time * 1000);
       };
       gsap.ticker.add(tickerCallback);
       gsap.ticker.lagSmoothing(0);
+    } else {
+      setLenisInstance(null);
+      unsubscribeIntro = onIntroComplete(unlockAfterIntro);
     }
 
     window.addEventListener("resize", refresh, { passive: true });
@@ -64,11 +83,20 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       document.fonts.ready.then(refresh);
     }
 
+    const onLoad = () => refreshScrollMetrics(lenis);
+    window.addEventListener("load", onLoad);
+
     requestAnimationFrame(() => ScrollTrigger.refresh());
+
+    if (isIntroComplete()) {
+      unlockAfterIntro();
+    }
 
     return () => {
       window.removeEventListener("resize", refresh);
+      window.removeEventListener("load", onLoad);
       window.clearTimeout(t);
+      unlockTimers.forEach((id) => window.clearTimeout(id));
       if (refreshTimer) window.clearTimeout(refreshTimer);
 
       if (tickerCallback) {

@@ -24,7 +24,9 @@ function easeOutCubic(t: number) {
 
 export function SiteIntro() {
   const prefersReducedMotion = useGsapReducedMotion();
-  const [visible, setVisible] = useState(() => !prefersReducedMotion);
+  const [visible, setVisible] = useState(
+    () => !prefersReducedMotion && !isIntroComplete(),
+  );
   const [exiting, setExiting] = useState(false);
   const fillRef = useRef<HTMLSpanElement>(null);
   const fillValue = useRef(0);
@@ -32,10 +34,12 @@ export function SiteIntro() {
   useEffect(() => {
     if (prefersReducedMotion) {
       markIntroComplete();
+      setVisible(false);
       return;
     }
 
     if (isIntroComplete()) {
+      setVisible(false);
       return;
     }
 

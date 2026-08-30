@@ -206,12 +206,12 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative z-[1] overflow-x-hidden",
+        "relative overflow-x-hidden",
         "lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div ref={heroContentRef} className="relative z-[2] lg:h-full lg:min-h-0">
+      <div ref={heroContentRef} className="relative lg:h-full lg:min-h-0">
         <div
           data-hero-panel="mobile"
           className={cn(
