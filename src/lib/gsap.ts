@@ -96,21 +96,21 @@ export const heroTailExitScroll = {
  */
 export const heroScrollReveal = {
   start: "clamp(top top)",
-  /** Lower % = exit finishes nearer the bottom of the hero (more scroll in-band) */
-  endDesktop: "clamp(bottom 28%)",
-  endMobile: "clamp(bottom 26%)",
+  /** Lower % = more hero scroll before exit completes (slower, later finish) */
+  endDesktop: "clamp(bottom 22%)",
+  endMobile: "clamp(bottom 20%)",
   scrub: 1.25,
-  y: 108,
+  y: 88,
   /** Copy: visible motion, still more legible than chrome */
-  exitYCopy: 96,
+  exitYCopy: 80,
   exitOpacityCopy: 0.15,
   duration: 0.95,
   stagger: 0.11,
   /** Timeline dead zone before any exit (fraction of scrub progress) */
-  exitScrollHold: 0.28,
-  exitTweenDuration: 0.52,
+  exitScrollHold: 0.38,
+  exitTweenDuration: 0.74,
   exitItemStagger: 0.085,
-  exitLayerGap: 0.13,
+  exitLayerGap: 0.14,
   /** Desktop: offset between right-rail blocks (copy runs at 0 in parallel) */
   exitRailStagger: 0.05,
   exitOpacity: tailMotion.exitOpacity,
