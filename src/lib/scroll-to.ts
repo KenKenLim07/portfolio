@@ -1,6 +1,6 @@
 import { getLenis, SECTION_SCROLL_OFFSET } from "@/lib/lenis-instance";
 
-/** Scroll to a page section — uses Lenis when active, native smooth scroll otherwise. */
+/** Scroll to a page section — Lenis on desktop, native smooth scroll on mobile. */
 export function scrollToSection(id: string) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -11,5 +11,7 @@ export function scrollToSection(id: string) {
     return;
   }
 
-  el.scrollIntoView({ behavior: "smooth", block: "start" });
+  const top =
+    el.getBoundingClientRect().top + window.scrollY - SECTION_SCROLL_OFFSET;
+  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
 }

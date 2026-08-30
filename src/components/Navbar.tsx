@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
 import {
   Briefcase,
   FileText,
@@ -20,6 +19,7 @@ import {
   ScrollBurgerIcon,
 } from "@/components/ui/ScrollBurgerIcon";
 import { NAV_LINKS, ENABLE_SUN_MODE, SITE } from "@/lib/constants";
+import { scrollToSection } from "@/lib/scroll-to";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { cn } from "@/lib/utils";
 
@@ -155,6 +155,19 @@ export function Navbar() {
   const closeMenu = () => setMobileOpen(false);
   const toggleMenu = () => setMobileOpen((open) => !open);
 
+  const onMobileSectionNav = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    event.preventDefault();
+    closeMenu();
+    // Unlock before scroll — menu open sets body overflow hidden synchronously
+    document.body.style.overflow = "";
+    requestAnimationFrame(() => {
+      scrollToSection(href.slice(1));
+    });
+  };
+
   return (
     <>
       <div className="hidden lg:block">
@@ -232,14 +245,14 @@ export function Navbar() {
         <ul className="flex list-none flex-1 flex-col justify-center gap-0 px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(6.5rem,env(safe-area-inset-top))]">
           {NAV_LINKS.map((link) => (
             <li key={link.href} data-menu-link className="list-none">
-              <Link
+              <a
                 href={link.href}
                 className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-[var(--menu-fg)] transition-colors duration-300 hover:text-[var(--menu-muted)] sm:py-4 sm:text-[2rem]"
-                onClick={closeMenu}
+                onClick={(event) => onMobileSectionNav(event, link.href)}
                 tabIndex={mobileOpen ? 0 : -1}
               >
                 {link.label}
-              </Link>
+              </a>
             </li>
           ))}
           <li data-menu-link className="list-none">
