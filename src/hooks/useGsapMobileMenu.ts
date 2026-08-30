@@ -14,6 +14,8 @@ type ClipPaths = {
 type UseGsapMobileMenuOptions = {
   open: boolean;
   triggerRef: RefObject<HTMLElement | null>;
+  /** Fires after the close timeline settles (or instant close in reduced motion). */
+  onCloseComplete?: () => void;
 };
 
 type PullSample = {
@@ -366,6 +368,7 @@ function addPullTweens(
 export function useGsapMobileMenu({
   open,
   triggerRef,
+  onCloseComplete,
 }: UseGsapMobileMenuOptions) {
   const prefersReducedMotion = useGsapReducedMotion();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -377,6 +380,13 @@ export function useGsapMobileMenu({
   const clipRef = useRef<ClipPaths | null>(null);
   const isOpenRef = useRef(false);
   const spinTweensRef = useRef<gsap.core.Tween[]>([]);
+  const onCloseCompleteRef = useRef(onCloseComplete);
+
+  onCloseCompleteRef.current = onCloseComplete;
+
+  const notifyCloseComplete = () => {
+    onCloseCompleteRef.current?.();
+  };
 
   const stopSpin = () => {
     spinTweensRef.current.forEach((t) => t.kill());
@@ -604,7 +614,9 @@ export function useGsapMobileMenu({
         if (parts.lines) gsap.set(parts.lines, { opacity: 1, scale: 1, rotate: 0 });
         hideHoleLayers(parts.holeLayers);
         hideClose(parts.close);
+        const wasOpen = isOpenRef.current;
         isOpenRef.current = false;
+        if (wasOpen) notifyCloseComplete();
       }
       return;
     }
@@ -757,6 +769,7 @@ export function useGsapMobileMenu({
           applyClip(panel, closedClip);
           gsap.set(panel, { pointerEvents: "none" });
           resetItemsAtRest(items);
+          notifyCloseComplete();
         },
       });
       timelineRef.current = tl;
@@ -866,7 +879,11 @@ export function useGsapMobileMenu({
     hideHoleLayers(parts.holeLayers);
     hideClose(parts.close);
     stopSpin();
+    const wasOpen =
+      isOpenRef.current ||
+      Boolean(timelineRef.current && timelineRef.current.progress() > 0);
     isOpenRef.current = false;
+    if (!open && wasOpen) notifyCloseComplete();
   }, [open, prefersReducedMotion, triggerRef]);
 
   return { overlayRef, panelRef, diskRef, coreRef, flightRef };

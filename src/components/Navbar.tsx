@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Briefcase,
   FileText,
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/ScrollBurgerIcon";
 import { NAV_LINKS, ENABLE_SUN_MODE, SITE } from "@/lib/constants";
 import { scrollToSection } from "@/lib/scroll-to";
+import { ScrollTrigger } from "@/lib/gsap";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +56,7 @@ export function Navbar() {
   const [activeTab, setActiveTab] = useState<string>(NAV_LINKS[0]?.label ?? "Home");
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuTriggerRef = useRef<HTMLButtonElement>(null);
+  const pendingScrollIdRef = useRef<string | null>(null);
   const pendingTabRef = useRef<string | null>(null);
   const pendingFallbackRef = useRef<number>(0);
 
@@ -75,10 +77,25 @@ export function Navbar() {
     [],
   );
 
+  const refreshScrollTriggers = useCallback(() => {
+    ScrollTrigger.refresh();
+  }, []);
+
+  const handleMenuCloseComplete = useCallback(() => {
+    document.body.style.overflow = "";
+    const id = pendingScrollIdRef.current;
+    pendingScrollIdRef.current = null;
+    if (!id) return;
+    requestAnimationFrame(() => {
+      scrollToSection(id, refreshScrollTriggers);
+    });
+  }, [refreshScrollTriggers]);
+
   const { overlayRef, panelRef, diskRef, coreRef, flightRef } =
     useGsapMobileMenu({
       open: mobileOpen,
       triggerRef: menuTriggerRef,
+      onCloseComplete: handleMenuCloseComplete,
     });
 
   useEffect(() => {
@@ -138,11 +155,16 @@ export function Navbar() {
   };
 
   useEffect(() => {
-    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    }
+  }, [mobileOpen]);
+
+  useEffect(() => {
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -158,14 +180,19 @@ export function Navbar() {
   const onMobileSectionNav = (
     event: React.MouseEvent<HTMLAnchorElement>,
     href: string,
+    label: string,
   ) => {
     event.preventDefault();
+    onTabChange(label);
+    const id = href.slice(1);
+
+    if (!mobileOpen) {
+      scrollToSection(id, refreshScrollTriggers);
+      return;
+    }
+
+    pendingScrollIdRef.current = id;
     closeMenu();
-    // Unlock before scroll — menu open sets body overflow hidden synchronously
-    document.body.style.overflow = "";
-    requestAnimationFrame(() => {
-      scrollToSection(href.slice(1));
-    });
   };
 
   return (
@@ -248,7 +275,7 @@ export function Navbar() {
               <a
                 href={link.href}
                 className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-[var(--menu-fg)] transition-colors duration-300 hover:text-[var(--menu-muted)] sm:py-4 sm:text-[2rem]"
-                onClick={(event) => onMobileSectionNav(event, link.href)}
+                onClick={(event) => onMobileSectionNav(event, link.href, link.label)}
                 tabIndex={mobileOpen ? 0 : -1}
               >
                 {link.label}
