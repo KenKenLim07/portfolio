@@ -129,6 +129,9 @@ export function getHeroScrollBand(isLg: boolean) {
   return {
     ...heroScrollReveal,
     end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
+    /** Tighter coupling on touch — high scrub + hold reads as sticky native scroll */
+    scrub: isLg ? heroScrollReveal.scrub : 0.45,
+    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.1,
   };
 }
 
@@ -168,8 +171,8 @@ export function bindHeroExitScrub(
     },
   });
 
-  const { exitScrollHold, exitTweenDuration, exitItemStagger, exitLayerGap } =
-    heroScrollReveal;
+  const { exitTweenDuration, exitItemStagger, exitLayerGap } = heroScrollReveal;
+  const { exitScrollHold } = config;
 
   if (exitScrollHold > 0) {
     tl.to({}, { duration: exitScrollHold });

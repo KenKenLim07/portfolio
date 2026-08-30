@@ -43,12 +43,17 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     const unlockAfterIntro = () => {
       unlockDocumentScroll();
       lenis?.start();
-      refreshScrollMetrics(lenis);
-      requestAnimationFrame(() => refreshScrollMetrics(lenis));
-      unlockTimers.push(
-        window.setTimeout(() => refreshScrollMetrics(lenis), 120),
-        window.setTimeout(() => refreshScrollMetrics(lenis), 480),
-      );
+
+      if (useLenis) {
+        refreshScrollMetrics(lenis);
+        requestAnimationFrame(() => refreshScrollMetrics(lenis));
+        unlockTimers.push(
+          window.setTimeout(() => refreshScrollMetrics(lenis), 120),
+        );
+      } else {
+        // One refresh after paint — repeated refresh mid-swipe causes sticky scroll on iOS
+        requestAnimationFrame(() => ScrollTrigger.refresh());
+      }
     };
 
     const prefersReducedMotion = window.matchMedia(REDUCED_MOTION_QUERY).matches;
@@ -91,7 +96,9 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       document.fonts.ready.then(refresh);
     }
 
-    const onLoad = () => refreshScrollMetrics(lenis);
+    const onLoad = () => {
+      if (useLenis) refreshScrollMetrics(lenis);
+    };
     window.addEventListener("load", onLoad);
 
     requestAnimationFrame(() => ScrollTrigger.refresh());

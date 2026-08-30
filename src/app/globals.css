@@ -140,6 +140,7 @@ html {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
+    scroll-behavior: auto;
   }
 }
 
@@ -202,6 +203,12 @@ html {
 
 html:not(.lenis) {
   scroll-behavior: smooth;
+}
+
+@media (max-width: 1023px) {
+  html:not(.lenis) {
+    scroll-behavior: auto;
+  }
 }
 
 html.lenis {

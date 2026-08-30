@@ -16,7 +16,7 @@ const SCRUB_WEIGHTS = {
   scrub: 1.1,
 } as const;
 
-/** Mobile — same hero exit travel / fade; enter rise stays smaller. */
+/** Mobile — lighter scrub so scroll tracks the finger without a sticky catch-up phase */
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
   start: "clamp(top 92%)",
@@ -24,6 +24,7 @@ const SCRUB_MOBILE = {
   y: 48,
   exitY: 72,
   exitOpacity: heroScrollReveal.exitOpacity,
+  scrub: 0.55,
 } as const;
 
 /**
