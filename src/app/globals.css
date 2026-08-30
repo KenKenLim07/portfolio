@@ -352,15 +352,132 @@ body {
 }
 
 .mobile-menu-link {
+  position: relative;
+  display: block;
+  margin-inline: -0.75rem;
+  min-height: 2.75rem;
+  padding: 0.875rem 0.75rem 0.875rem 1rem;
+  border-radius: 0.5rem;
   color: var(--menu-fg);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    color 0.2s ease,
+    background-color 0.15s ease,
+    transform 0.15s ease,
+    padding-left 0.2s ease;
 }
 
 .mobile-menu-link:hover {
   color: var(--menu-muted);
 }
 
+.mobile-menu-link:active {
+  background-color: color-mix(in oklab, var(--menu-fg) 10%, transparent);
+  color: var(--menu-fg);
+  transform: translateX(0.25rem);
+}
+
+.mobile-menu-link--active {
+  padding-left: 1.35rem;
+  color: var(--accent-from);
+}
+
+.mobile-menu-link--active:hover {
+  color: color-mix(in oklab, var(--accent-from) 82%, var(--menu-muted));
+}
+
+.mobile-menu-link--active::before {
+  content: "";
+  position: absolute;
+  left: 0.35rem;
+  top: 50%;
+  width: 3px;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--accent-from),
+    var(--accent-to)
+  );
+  transform: translateY(-50%);
+  box-shadow: 0 0 12px color-mix(in oklab, var(--accent-from) 45%, transparent);
+}
+
+.mobile-menu-link:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent-from) 55%, transparent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-link {
+    transition: color 0.2s ease, background-color 0.15s ease;
+  }
+
+  .mobile-menu-link:active {
+    transform: none;
+  }
+}
+
 .mobile-menu-chrome {
   color: var(--menu-fg);
+}
+
+/* Project list — title underline draws on hover / tap */
+.project-showcase-title {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 0.2em;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.project-showcase-title::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.28em;
+  height: 4px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: #ffffff;
+  opacity: 0.95;
+  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-showcase-title--draw::after {
+  transform: scaleX(1);
+  transition: transform 1.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (hover: hover) {
+  .project-showcase-link:hover .project-showcase-title::after {
+    transform: scaleX(1);
+    transition-duration: 1.05s;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+.project-showcase-link:active .project-showcase-title::after {
+  transform: scaleX(1);
+  transition-duration: 1.45s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.project-showcase-link:focus-visible .project-showcase-title::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-showcase-title::after {
+    transition-duration: 0.01ms;
+  }
+
+  .project-showcase-title--draw::after,
+  .project-showcase-link:active .project-showcase-title::after {
+    transition-duration: 0.01ms;
+  }
 }
 
 /* Burger blackhole — sharp void + soft steel-blue eclipse halo */
@@ -618,6 +735,46 @@ body {
   );
 }
 
+/* Process roadmap — monochrome accent (scoped to How I Work) */
+#process {
+  --process-accent: var(--foreground);
+  --process-on-accent: var(--background);
+  --process-glow: color-mix(in oklab, var(--foreground) 28%, transparent);
+  --process-rim: color-mix(in oklab, var(--foreground) 62%, var(--border));
+  --process-inset: color-mix(in oklab, var(--foreground) 7%, transparent);
+  --process-spine-width: 4px;
+  --process-tip-size: 10px;
+}
+
+.process-spine {
+  width: var(--process-spine-width);
+}
+
+.process-spine-track {
+  background: var(--border);
+}
+
+.process-spine-fill {
+  background: var(--process-accent);
+}
+
+.process-spine-tip {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: var(--process-tip-size);
+  height: var(--process-tip-size);
+  border-radius: 50%;
+  background: var(--process-accent);
+  box-shadow:
+    0 0 0 3px var(--background),
+    0 0 12px var(--process-glow);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  will-change: top, opacity;
+}
+
 /* Process roadmap nodes — fill on scroll via [data-active] */
 .process-node {
   border: 1px solid var(--border);
@@ -631,12 +788,12 @@ body {
 }
 
 .process-node[data-active="true"] {
-  border-color: var(--accent-from);
-  background: var(--accent-from);
-  color: var(--background);
+  border-color: var(--process-accent);
+  background: var(--process-accent);
+  color: var(--process-on-accent);
   box-shadow:
     0 0 0 4px var(--background),
-    0 0 0 5px color-mix(in oklab, var(--accent-from) 35%, transparent);
+    0 0 0 5px var(--process-glow);
 }
 
 /* Process cards — accent rim when step is active */
@@ -659,23 +816,23 @@ body {
 [data-process-step][data-active="true"] .process-card {
   background: linear-gradient(
     135deg,
-    var(--accent-from),
-    var(--accent-to),
-    var(--accent-from)
+    var(--process-accent),
+    color-mix(in oklab, var(--process-accent) 68%, var(--muted)),
+    var(--process-accent)
   );
-  box-shadow: 0 0 28px color-mix(in oklab, var(--accent-from) 35%, transparent);
+  box-shadow: 0 0 28px var(--process-glow);
 }
 
 [data-process-step][data-active="true"] .process-card-face {
-  border-color: color-mix(in oklab, var(--accent-from) 65%, var(--border)) !important;
+  border-color: var(--process-rim) !important;
   box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--accent-from) 40%, transparent),
-    inset 0 0 24px color-mix(in oklab, var(--accent-from) 8%, transparent);
+    0 0 0 1px color-mix(in oklab, var(--process-accent) 38%, transparent),
+    inset 0 0 24px var(--process-inset);
 }
 
 @media (prefers-reduced-motion: reduce) {
   [data-process-step][data-active="true"] .process-card {
-    background: var(--accent-from);
+    background: var(--process-accent);
   }
 }
 

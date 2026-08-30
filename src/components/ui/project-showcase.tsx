@@ -26,6 +26,8 @@ export function ProjectShowcase({
   onProjectClick,
 }: ProjectShowcaseProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [pressedIndex, setPressedIndex] = useState<number | null>(null);
+  const pressedClearRef = useRef<number>(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [smoothPosition, setSmoothPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
@@ -73,6 +75,37 @@ export function ProjectShowcase({
     setHoveredIndex(null);
     setIsVisible(false);
   };
+
+  const handleProjectPointerDown = (index: number) => {
+    if (pressedClearRef.current) {
+      window.clearTimeout(pressedClearRef.current);
+      pressedClearRef.current = 0;
+    }
+    setPressedIndex(index);
+  };
+
+  const handleProjectPointerUp = () => {
+    pressedClearRef.current = window.setTimeout(() => {
+      setPressedIndex(null);
+      pressedClearRef.current = 0;
+    }, 1500);
+  };
+
+  const handleProjectPointerCancel = () => {
+    if (pressedClearRef.current) {
+      window.clearTimeout(pressedClearRef.current);
+      pressedClearRef.current = 0;
+    }
+    setPressedIndex(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pressedClearRef.current) {
+        window.clearTimeout(pressedClearRef.current);
+      }
+    };
+  }, []);
 
   if (projects.length === 0) {
     return (
@@ -138,9 +171,12 @@ export function ProjectShowcase({
           <div key={project.id} data-scrub-reveal className="gsap-reveal">
             <a
               href={project.href}
-              className="group block cursor-pointer border-t border-border outline-none focus-visible:ring-2 focus-visible:ring-amber-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="project-showcase-link group block cursor-pointer touch-manipulation border-t border-border outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-from)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               onMouseEnter={() => handleMouseEnter(index)}
               onMouseLeave={handleMouseLeave}
+              onPointerDown={() => handleProjectPointerDown(index)}
+              onPointerUp={handleProjectPointerUp}
+              onPointerCancel={handleProjectPointerCancel}
               onClick={(e) => {
                 if (!onProjectClick) return;
                 e.preventDefault();
@@ -175,7 +211,13 @@ export function ProjectShowcase({
                     <span className="shrink-0 font-mono text-xl font-medium tracking-[0.12em] text-muted sm:text-2xl">
                       {String(index + 1).padStart(2, "0")}
                     </span>
-                    <span className="font-display text-3xl tracking-tight text-foreground transition-colors duration-200 group-hover:text-foreground/80 sm:text-4xl lg:text-5xl">
+                    <span
+                      className={cn(
+                        "project-showcase-title font-display text-3xl tracking-tight text-foreground sm:text-4xl lg:text-5xl",
+                        (hoveredIndex === index || pressedIndex === index) &&
+                          "project-showcase-title--draw",
+                      )}
+                    >
                       {project.title}
                     </span>
                   </h3>

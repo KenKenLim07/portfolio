@@ -22,14 +22,15 @@ export function ProcessSection() {
         <div ref={trackRef} className="relative mx-auto max-w-5xl">
           {/* Track + scroll-filled progress */}
           <div
-            className="absolute bottom-4 left-[1.125rem] top-4 w-px md:left-1/2 md:-translate-x-px"
+            className="process-spine absolute bottom-4 left-[1.125rem] top-4 -translate-x-1/2 md:left-1/2"
             aria-hidden
           >
-            <div className="absolute inset-0 bg-border" />
+            <div className="process-spine-track absolute inset-0" />
             <div
               data-process-progress
-              className="absolute inset-0 origin-top scale-y-0 bg-[var(--accent-from)]"
+              className="process-spine-fill absolute inset-0 origin-top scale-y-0"
             />
+            <div data-process-tip className="process-spine-tip" aria-hidden />
           </div>
 
           <ol className="relative m-0 grid list-none gap-8 p-0 md:gap-12">

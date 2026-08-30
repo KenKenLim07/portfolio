@@ -195,6 +195,12 @@ export function Navbar() {
     closeMenu();
   };
 
+  const mobileLinkClass = (label: string) =>
+    cn(
+      "mobile-menu-link font-display text-3xl font-medium uppercase tracking-tight sm:text-[2rem]",
+      activeTab === label && "mobile-menu-link--active",
+    );
+
   return (
     <>
       <div className="hidden lg:block">
@@ -274,7 +280,8 @@ export function Navbar() {
             <li key={link.href} data-menu-link className="list-none">
               <a
                 href={link.href}
-                className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-[var(--menu-fg)] transition-colors duration-300 hover:text-[var(--menu-muted)] sm:py-4 sm:text-[2rem]"
+                className={mobileLinkClass(link.label)}
+                aria-current={activeTab === link.label ? "true" : undefined}
                 onClick={(event) => onMobileSectionNav(event, link.href, link.label)}
                 tabIndex={mobileOpen ? 0 : -1}
               >
@@ -288,8 +295,11 @@ export function Navbar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="View resume (PDF)"
-              className="mobile-menu-link block cursor-pointer py-3.5 font-display text-3xl font-medium uppercase tracking-tight text-[var(--menu-fg)] transition-colors duration-300 hover:text-[var(--menu-muted)] sm:py-4 sm:text-[2rem]"
-              onClick={closeMenu}
+              className={mobileLinkClass("Resume")}
+              onClick={() => {
+                onTabChange("Resume");
+                closeMenu();
+              }}
               tabIndex={mobileOpen ? 0 : -1}
             >
               Resume

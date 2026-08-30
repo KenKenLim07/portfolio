@@ -21,6 +21,7 @@ export function useProcessRoadmap() {
       if (!track) return;
 
       const progress = track.querySelector<HTMLElement>("[data-process-progress]");
+      const tip = track.querySelector<HTMLElement>("[data-process-tip]");
       const spine = progress?.parentElement;
       const steps = gsap.utils.toArray<HTMLElement>(
         track.querySelectorAll("[data-process-step]"),
@@ -65,18 +66,28 @@ export function useProcessRoadmap() {
         }
 
         setActive(activeIndex);
-        gsap.set(progress, {
-          scaleY: Math.max(0, Math.min(1, fillPx / spineHeight)),
-        });
+        const fillRatio = Math.max(0, Math.min(1, fillPx / spineHeight));
+        gsap.set(progress, { scaleY: fillRatio });
+        if (tip) {
+          gsap.set(tip, {
+            top: fillPx,
+            opacity: fillRatio > 0.01 ? 1 : 0,
+          });
+        }
       };
 
       if (prefersReducedMotion) {
+        const spineHeight = spine.offsetHeight || 1;
         gsap.set(progress, { scaleY: 1 });
+        if (tip) {
+          gsap.set(tip, { top: spineHeight, opacity: 1 });
+        }
         setActive(nodes.length - 1);
         return;
       }
 
       gsap.set(progress, { scaleY: 0, transformOrigin: "top center" });
+      if (tip) gsap.set(tip, { top: 0, opacity: 0 });
       setActive(-1);
 
       const ctx = gsap.context(() => {
