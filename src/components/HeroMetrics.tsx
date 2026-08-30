@@ -32,44 +32,39 @@ export function HeroMetrics({
       <div
         className={cn(
           stacked
-            ? "flex w-full flex-col gap-3 border-t border-border pt-4 lg:gap-3.5 lg:pt-4"
+            ? "flex w-full flex-col gap-5 lg:gap-6"
             : compact
-              ? "grid grid-cols-3 gap-2 border-t border-border pt-4 sm:gap-3 sm:pt-5"
-              : "grid grid-cols-3 gap-2 border-t border-border pt-4 sm:gap-3 sm:pt-5 lg:flex lg:flex-wrap lg:items-start lg:justify-between lg:gap-6 lg:pt-8",
+              ? "grid grid-cols-3 justify-items-center gap-4 text-center sm:gap-5"
+              : "grid grid-cols-3 justify-items-center gap-4 text-center sm:gap-5",
           HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-fuchsia-300/90",
         )}
       >
-        {HERO_METRICS.map((metric, i) => (
+        {HERO_METRICS.map((metric) => (
           <div
             key={metric.label}
             className={cn(
-              "min-w-0",
-              stacked
-                ? i > 0 && "border-t border-border pt-3.5 lg:pt-4"
-                : cn(
-                    i > 0 && "border-l border-border pl-2.5 sm:pl-3",
-                    !compact && "lg:flex-1 lg:basis-auto lg:pl-8",
-                  ),
+              "flex min-w-0 flex-col",
+              stacked ? "w-full items-start text-left" : "items-center text-center",
             )}
           >
             <p
               className={cn(
-                "font-display font-semibold leading-tight tracking-tight text-foreground",
+                "font-display font-semibold leading-none tracking-tight text-foreground",
                 compact
-                  ? "text-base sm:text-lg"
+                  ? "text-xl sm:text-2xl"
                   : stacked
-                    ? "text-base lg:text-lg"
-                    : "text-base sm:text-lg lg:text-2xl xl:text-3xl",
+                    ? "text-2xl lg:text-4xl xl:text-5xl"
+                    : "text-2xl sm:text-3xl lg:text-4xl xl:text-5xl",
               )}
             >
               {metric.value}
             </p>
             <p
               className={cn(
-                "mt-0.5 uppercase leading-snug tracking-[0.12em] text-muted",
+                "mt-1.5 uppercase leading-snug tracking-[0.12em] text-muted",
                 compact
-                  ? "text-[9px]"
-                  : "text-[9px] sm:text-[10px] lg:mt-1.5 lg:text-xs lg:tracking-[0.14em]",
+                  ? "text-xs sm:text-sm"
+                  : "text-xs sm:text-sm lg:mt-2 lg:text-base lg:tracking-[0.14em]",
               )}
             >
               {metric.label}

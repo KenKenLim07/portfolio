@@ -10,26 +10,26 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="relative overflow-hidden border-t border-border py-12 md:py-16">
+    <footer className="relative overflow-hidden py-12 md:py-16">
       <p
         className="pointer-events-none absolute bottom-0 left-6 font-display text-[clamp(4rem,18vw,12rem)] font-bold leading-none tracking-tighter text-foreground/[0.04] select-none md:left-8 lg:left-12"
         aria-hidden
       >
         {SITE.name.split(" ")[0]}
       </p>
-      <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 md:flex-row md:items-center md:justify-between md:px-8 lg:px-12">
-        <div>
+      <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center gap-10 px-6 text-center md:flex-row md:items-center md:justify-between md:px-8 md:text-left lg:px-12">
+        <div className="flex flex-col items-center md:items-start">
           <Link
             href="#home"
-            className="font-display cursor-pointer text-lg font-semibold text-foreground transition-colors duration-200 hover:text-muted"
+            className="font-display cursor-pointer text-3xl tracking-tight text-foreground transition-colors duration-200 hover:text-muted sm:text-4xl lg:text-5xl"
           >
             {SITE.name}
           </Link>
           <p className="mt-2 max-w-xs text-sm text-muted">{SITE.role}</p>
         </div>
 
-        <nav aria-label="Footer navigation">
-          <ul className="flex flex-wrap gap-x-6 gap-y-2">
+        <nav aria-label="Footer navigation" className="w-full md:w-auto">
+          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
                 <Link
@@ -43,7 +43,7 @@ export function Footer() {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center gap-3 md:justify-start">
           <a
             href={SOCIAL_LINKS.github}
             target="_blank"

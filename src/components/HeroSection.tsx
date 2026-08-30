@@ -112,10 +112,10 @@ function HeroCopy({
         aria-level={1}
       >
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega text-foreground">Full-Stack</span>
+          <span className="hero-mega-solid uppercase text-foreground">FULL-STACK</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega text-foreground">Developer</span>
+          <span className="hero-mega-solid uppercase text-foreground">DEVELOPER</span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
           <span className="hero-mega mega-outline">• AI Systems</span>
