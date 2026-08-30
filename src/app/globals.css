@@ -524,22 +524,37 @@ body {
 /* Display hero typography — solid + muted outlined pairing */
 .hero-mega,
 .hero-mega-solid {
-  display: block;
   line-height: 1;
 }
 
+.hero-mega {
+  display: block;
+}
+
 .hero-mega-solid {
-  font-size: clamp(3.75rem, 18vw, 6.5rem);
+  --hero-solid-scale-x: 1.15;
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  font-size: clamp(calc(3.75rem * 0.97), calc(18vw * 0.97), calc(6.5rem * 0.97));
+  line-height: 0.92;
+  transform: scaleX(var(--hero-solid-scale-x));
+  transform-origin: left center;
 }
 
 .hero-mega {
   font-size: clamp(2.75rem, 11vw, 7rem);
 }
 
+/* Stack solid lines tight — no extra gap between HeroRevealItem wrappers */
+.hero-mega-heading .gsap-reveal + .gsap-reveal {
+  margin-top: -0.06em;
+}
+
 @media (max-width: 1023px) {
   .hero-mega-solid {
-    font-size: clamp(4rem, 19vw, 6.25rem);
-    line-height: 0.98;
+    font-size: clamp(calc(4rem * 0.97), calc(19vw * 0.97), calc(6.25rem * 0.97));
+    line-height: 0.92;
   }
 
   .hero-mega {
@@ -550,14 +565,20 @@ body {
 
 @media (min-width: 1024px) {
   .hero-mega-solid {
-    font-size: clamp(5rem, 8.5vw, 8.25rem);
-    line-height: 1.02;
+    font-size: clamp(calc(5rem * 0.97), calc(8.5vw * 0.97), calc(8.25rem * 0.97));
+    line-height: 0.92;
   }
 
   .hero-mega {
     /* Outline line — unchanged scale */
     font-size: clamp(4rem, 7.25vw, 6.75rem);
     line-height: 1.02;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mega-solid {
+    transform: none;
   }
 }
 

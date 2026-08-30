@@ -42,6 +42,9 @@ function HeroAvailability({ className }: { className?: string }) {
   );
 }
 
+const HERO_CTA_SIZE =
+  "px-[calc(1.03rem*1.02)] py-[calc(0.644rem*1.02)] text-[calc(0.721rem*1.02)] lg:px-[calc(1.25rem*1.02)] lg:py-[calc(0.75rem*1.02)] lg:text-[calc(0.7rem*1.02)]";
+
 function HeroCtas({ className }: { className?: string }) {
   return (
     <div
@@ -64,7 +67,10 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("projects");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] px-[1.03rem] py-[0.644rem] text-[0.721rem] font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-[color,background-color,border-color,box-shadow,filter] duration-200 ease-out hover:brightness-110 hover:shadow-[0_8px_24px_-8px_var(--overlay)] active:brightness-95 motion-reduce:transition-none lg:px-5 lg:py-3 lg:text-[0.7rem]"
+          className={cn(
+            "radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-[color,background-color,border-color,box-shadow,filter] duration-200 ease-out hover:brightness-110 hover:shadow-[0_8px_24px_-8px_var(--overlay)] active:brightness-95 motion-reduce:transition-none",
+            HERO_CTA_SIZE,
+          )}
         >
           View projects
         </Link>
@@ -74,7 +80,10 @@ function HeroCtas({ className }: { className?: string }) {
             e.preventDefault();
             scrollToSection("contact");
           }}
-          className="radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle px-[1.03rem] py-[0.644rem] text-[0.721rem] font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none lg:px-5 lg:py-3 lg:text-[0.7rem]"
+          className={cn(
+            "radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none",
+            HERO_CTA_SIZE,
+          )}
         >
           Get in touch
         </Link>
@@ -107,7 +116,7 @@ function HeroCopy({
       </HeroRevealItem>
 
       <div
-        className="font-display space-y-0.5 tracking-tight sm:space-y-1"
+        className="hero-mega-heading font-display space-y-0 tracking-tight"
         role="heading"
         aria-level={1}
       >

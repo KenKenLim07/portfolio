@@ -12,6 +12,18 @@ type HeroMetricsProps = {
   variant?: "row" | "column";
 };
 
+/** 2% below Tailwind scale — keeps hierarchy, slightly tighter hero metrics */
+const METRIC_TYPE = {
+  valueRow:
+    "text-[calc(1.25rem*0.98)] sm:text-[calc(1.5rem*0.98)] lg:text-[calc(1.875rem*0.98)] xl:text-[calc(2.25rem*0.98)]",
+  valueStacked:
+    "text-[calc(1.25rem*0.98)] lg:text-[calc(1.875rem*0.98)] xl:text-[calc(2.25rem*0.98)]",
+  valueCompact:
+    "text-[calc(1.125rem*0.98)] sm:text-[calc(1.25rem*0.98)]",
+  label: "text-[calc(0.6875rem*0.98)] sm:text-[calc(0.75rem*0.98)]",
+  labelLg: "lg:text-[calc(0.875rem*0.98)]",
+} as const;
+
 export function HeroMetrics({
   className,
   compact = false,
@@ -51,10 +63,10 @@ export function HeroMetrics({
               className={cn(
                 "font-display font-semibold leading-none tracking-tight text-foreground",
                 compact
-                  ? "text-xl sm:text-2xl"
+                  ? METRIC_TYPE.valueCompact
                   : stacked
-                    ? "text-2xl lg:text-4xl xl:text-5xl"
-                    : "text-2xl sm:text-3xl lg:text-4xl xl:text-5xl",
+                    ? METRIC_TYPE.valueStacked
+                    : METRIC_TYPE.valueRow,
               )}
             >
               {metric.value}
@@ -62,9 +74,9 @@ export function HeroMetrics({
             <p
               className={cn(
                 "mt-1.5 uppercase leading-snug tracking-[0.12em] text-muted",
-                compact
-                  ? "text-xs sm:text-sm"
-                  : "text-xs sm:text-sm lg:mt-2 lg:text-base lg:tracking-[0.14em]",
+                METRIC_TYPE.label,
+                !compact && "lg:mt-2 lg:tracking-[0.14em]",
+                !compact && METRIC_TYPE.labelLg,
               )}
             >
               {metric.label}
