@@ -133,16 +133,10 @@ html {
   background-color: var(--background);
 }
 
-html[data-intro-active="true"],
-html[data-intro-active="true"] body {
-  overflow: hidden;
-  touch-action: none;
-}
-
-/* Native touch scroll on phones — Lenis is disabled there; avoid iOS scroll traps after intro */
-@media (hover: none) and (pointer: coarse) {
-  html:not([data-intro-active="true"]),
-  html:not([data-intro-active="true"]) body {
+/* Phones / tablets — native scroll; never leave touch pan disabled after intro */
+@media (max-width: 1023px) {
+  html,
+  body {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
@@ -323,6 +317,7 @@ body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  touch-action: pan-y;
 }
 
 .mobile-menu-panel {

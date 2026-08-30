@@ -9,6 +9,7 @@ import {
   markIntroComplete,
   onBackgroundReady,
 } from "@/lib/site-intro";
+import { unlockDocumentScroll } from "@/lib/unlock-scroll";
 import { cn } from "@/lib/utils";
 
 const MIN_INTRO_MS = 2200;
@@ -43,7 +44,7 @@ export function SiteIntro() {
       return;
     }
 
-    document.documentElement.setAttribute("data-intro-active", "true");
+    // Desktop Lenis only — mobile uses native scroll; overlay blocks touches while visible.
     pauseLenis();
 
     let bgReady = false;
@@ -70,7 +71,7 @@ export function SiteIntro() {
     };
 
     const completeIntro = () => {
-      document.documentElement.removeAttribute("data-intro-active");
+      unlockDocumentScroll();
       resumeLenis();
       markIntroComplete();
       setVisible(false);
@@ -120,7 +121,7 @@ export function SiteIntro() {
       cancelAnimationFrame(raf);
       if (curtainTimer) window.clearTimeout(curtainTimer);
       unsubBg();
-      document.documentElement.removeAttribute("data-intro-active");
+      unlockDocumentScroll();
       resumeLenis();
     };
   }, [prefersReducedMotion]);

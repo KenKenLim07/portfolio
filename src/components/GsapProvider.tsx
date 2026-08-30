@@ -5,10 +5,14 @@ import Lenis from "lenis";
 import { REDUCED_MOTION_QUERY, gsap, initGsap, ScrollTrigger } from "@/lib/gsap";
 import { setLenisInstance, SECTION_SCROLL_OFFSET, pauseLenis } from "@/lib/lenis-instance";
 import { isIntroComplete, onIntroComplete } from "@/lib/site-intro";
+import { unlockDocumentScroll } from "@/lib/unlock-scroll";
 
-/** Touch-primary devices use native scroll — Lenis touch interception is unreliable on mobile. */
+/** Touch-primary / mobile layout — use native scroll instead of Lenis. */
 function prefersNativeTouchScroll() {
-  return window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  return (
+    window.matchMedia("(max-width: 1023px)").matches ||
+    window.matchMedia("(hover: none) and (pointer: coarse)").matches
+  );
 }
 
 function refreshScrollMetrics(lenis: Lenis | null) {
@@ -37,6 +41,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     };
 
     const unlockAfterIntro = () => {
+      unlockDocumentScroll();
       lenis?.start();
       refreshScrollMetrics(lenis);
       requestAnimationFrame(() => refreshScrollMetrics(lenis));
@@ -73,8 +78,11 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       gsap.ticker.lagSmoothing(0);
     } else {
       setLenisInstance(null);
+      unlockDocumentScroll();
       unsubscribeIntro = onIntroComplete(unlockAfterIntro);
     }
+
+    unlockDocumentScroll();
 
     window.addEventListener("resize", refresh, { passive: true });
     const t = window.setTimeout(refresh, 150);

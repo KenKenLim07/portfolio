@@ -1,3 +1,5 @@
+import { unlockDocumentScroll } from "@/lib/unlock-scroll";
+
 type Listener = () => void;
 
 let backgroundReady = false;
@@ -33,9 +35,7 @@ export function isIntroComplete() {
 export function markIntroComplete() {
   if (introComplete) return;
   introComplete = true;
-  if (typeof document !== "undefined") {
-    document.documentElement.removeAttribute("data-intro-active");
-  }
+  unlockDocumentScroll();
   introListeners.forEach((fn) => fn());
   introListeners.clear();
 }

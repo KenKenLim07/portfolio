@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Anton, Roboto_Flex } from "next/font/google";
 import { PortfolioChat } from "@/components/chat/PortfolioChat";
 import { GsapProvider } from "@/components/GsapProvider";
+import { ScrollUnlock } from "@/components/ScrollUnlock";
 import { SiteBackground } from "@/components/SiteBackground";
 import { SiteIntro } from "@/components/SiteIntro";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -86,6 +87,7 @@ export default function RootLayout({
         <ThemeProvider>
           <SiteBackground />
           <GsapProvider>
+            <ScrollUnlock />
             {children}
             <PortfolioChat />
             <SiteIntro />

@@ -175,7 +175,7 @@ export function Navbar() {
       </div>
       <div
         ref={flightRef}
-        className="pointer-events-none fixed inset-0 z-[65] overflow-visible lg:hidden"
+        className="pointer-events-none fixed left-0 top-0 z-[65] h-0 w-0 overflow-visible lg:hidden"
         aria-hidden
       />
       <div ref={coreRef} className="pointer-events-none fixed z-[66] lg:hidden">
