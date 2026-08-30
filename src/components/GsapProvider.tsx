@@ -44,6 +44,10 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
       unsubscribeIntro = onIntroComplete(() => {
         lenis?.start();
+        requestAnimationFrame(() => {
+          lenis?.resize();
+          ScrollTrigger.refresh();
+        });
       });
 
       tickerCallback = (time: number) => {

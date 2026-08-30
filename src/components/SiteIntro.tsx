@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { SITE } from "@/lib/constants";
 import { pauseLenis, resumeLenis } from "@/lib/lenis-instance";
-import { markIntroComplete, onBackgroundReady } from "@/lib/site-intro";
+import {
+  isIntroComplete,
+  markIntroComplete,
+  onBackgroundReady,
+} from "@/lib/site-intro";
 import { cn } from "@/lib/utils";
 
 const MIN_INTRO_MS = 2200;
@@ -31,6 +35,10 @@ export function SiteIntro() {
       return;
     }
 
+    if (isIntroComplete()) {
+      return;
+    }
+
     document.documentElement.setAttribute("data-intro-active", "true");
     pauseLenis();
 
@@ -40,6 +48,7 @@ export function SiteIntro() {
     let holdingFull = false;
     let holdStarted = 0;
     let raf = 0;
+    let curtainTimer: number | undefined;
     const start = performance.now();
 
     const unsubBg = onBackgroundReady(() => {
@@ -86,7 +95,7 @@ export function SiteIntro() {
 
       if (holdingFull && performance.now() - holdStarted >= HOLD_AT_FULL_MS) {
         setExiting(true);
-        window.setTimeout(completeIntro, CURTAIN_MS);
+        curtainTimer = window.setTimeout(completeIntro, CURTAIN_MS);
         return;
       }
 
@@ -105,8 +114,10 @@ export function SiteIntro() {
 
     return () => {
       cancelAnimationFrame(raf);
+      if (curtainTimer) window.clearTimeout(curtainTimer);
       unsubBg();
       document.documentElement.removeAttribute("data-intro-active");
+      resumeLenis();
     };
   }, [prefersReducedMotion]);
 
