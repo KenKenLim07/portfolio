@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
+import { useAnimationWhenVisible } from "@/hooks/useAnimationWhenVisible";
 import { useHeroScrollReveal } from "@/hooks/useHeroScrollReveal";
 import { gsap, initGsap } from "@/lib/gsap";
 import {
@@ -104,6 +105,9 @@ function HeroCopy({
   introClassName?: string;
   compact?: boolean;
 }) {
+  const { ref: headingRef, isVisible: headingInView } =
+    useAnimationWhenVisible<HTMLDivElement>({ threshold: 0.15 });
+
   return (
     <>
       <HeroRevealItem
@@ -121,15 +125,23 @@ function HeroCopy({
       </HeroRevealItem>
 
       <div
-        className="hero-mega-heading font-display space-y-0 tracking-tight"
+        ref={headingRef}
+        className={cn(
+          "hero-mega-heading font-display space-y-0 tracking-tight",
+          headingInView && "hero-mega-heading--animate",
+        )}
         role="heading"
         aria-level={1}
       >
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega-solid uppercase text-foreground">FULL-STACK</span>
+          <span className="hero-mega-solid hero-mega-solid-gradient uppercase">
+            FULL-STACK
+          </span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
-          <span className="hero-mega-solid uppercase text-foreground">DEVELOPER</span>
+          <span className="hero-mega-solid hero-mega-solid-gradient uppercase">
+            DEVELOPER
+          </span>
         </HeroRevealItem>
         <HeroRevealItem group="copy" className="block">
           <span className="hero-mega mega-outline">• AI Systems</span>
