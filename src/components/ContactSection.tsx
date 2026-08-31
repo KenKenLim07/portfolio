@@ -64,55 +64,47 @@ export function ContactSection() {
 
   return (
     <Section id="contact">
-      <div
-        ref={scopeRef}
-        className="radius-panel-lg relative overflow-hidden border border-border"
-      >
-        <div className="pointer-events-none absolute inset-0 glow-orb opacity-80" />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[var(--accent-from)]/20 via-transparent to-[var(--accent-to)]/15" />
-
-        <div className="relative grid gap-12 px-6 py-16 md:px-12 md:py-20 lg:grid-cols-2 lg:gap-16 lg:px-16 lg:py-24">
-          <div className="space-y-0">
-            <div data-scrub-reveal className="gsap-reveal">
-              <SectionMegaHeading title="Get in Touch" className="max-w-xl" />
-            </div>
-
-            <div data-scrub-reveal className="gsap-reveal mt-6">
-              <p className="max-w-lg text-lg leading-relaxed text-muted">
-                Open to collaborations with brands, startups, and businesses
-                ready to elevate their digital presence with premium engineering
-                and design.
-              </p>
-            </div>
-
-            <div data-scrub-reveal className="gsap-reveal mt-8">
-              <div className="flex flex-wrap gap-3">
-                {links.map((link) => {
-                  const Icon = link.icon;
-                  return (
-                    <Button
-                      key={link.label}
-                      href={link.href}
-                      variant={link.variant}
-                      external={link.external}
-                      className="inline-flex gap-2"
-                    >
-                      <Icon />
-                      {link.label}
-                    </Button>
-                  );
-                })}
-              </div>
-            </div>
+      <div ref={scopeRef} className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="space-y-0">
+          <div data-scrub-reveal className="gsap-reveal">
+            <SectionMegaHeading title="Get in Touch" className="max-w-xl" />
           </div>
 
-          <div data-scrub-reveal className="gsap-reveal">
-            <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
-              <h3 className="font-display mb-6 text-lg font-semibold text-foreground">
-                Send a message
-              </h3>
-              <ContactForm />
+          <div data-scrub-reveal className="gsap-reveal mt-6">
+            <p className="max-w-lg text-lg leading-relaxed text-muted">
+              Open to collaborations with brands, startups, and businesses ready
+              to elevate their digital presence with premium engineering and
+              design.
+            </p>
+          </div>
+
+          <div data-scrub-reveal className="gsap-reveal mt-8">
+            <div className="flex flex-wrap gap-3">
+              {links.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <Button
+                    key={link.label}
+                    href={link.href}
+                    variant={link.variant}
+                    external={link.external}
+                    className="inline-flex gap-2"
+                  >
+                    <Icon />
+                    {link.label}
+                  </Button>
+                );
+              })}
             </div>
+          </div>
+        </div>
+
+        <div data-scrub-reveal className="gsap-reveal">
+          <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
+            <h3 className="font-display mb-6 text-lg font-semibold text-foreground">
+              Send a message
+            </h3>
+            <ContactForm />
           </div>
         </div>
       </div>

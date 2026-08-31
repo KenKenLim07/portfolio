@@ -16,6 +16,7 @@ import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
 import { HeroMetrics } from "@/components/HeroMetrics";
 import { HeroRevealItem } from "@/components/ui/HeroRevealItem";
+import { GradientButton } from "@/components/ui/gradient-button";
 import { cn } from "@/lib/utils";
 import { scrollToSection } from "@/lib/scroll-to";
 
@@ -61,32 +62,36 @@ function HeroCtas({ className }: { className?: string }) {
           HERO_LAYOUT_DEBUG && "rounded-sm border border-sky-300/80",
         )}
       >
-        <Link
-          href="#projects"
-          onClick={(e) => {
-            e.preventDefault();
-            scrollToSection("projects");
-          }}
-          className={cn(
-            "radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-[color:var(--cta-border)] bg-[var(--cta-bg)] font-medium uppercase tracking-[0.08em] text-[var(--cta-fg)] transition-[color,background-color,border-color,box-shadow,filter] duration-200 ease-out hover:brightness-110 hover:shadow-[0_8px_24px_-8px_var(--overlay)] active:brightness-95 motion-reduce:transition-none",
-            HERO_CTA_SIZE,
-          )}
-        >
-          View projects
-        </Link>
-        <Link
-          href="#contact"
-          onClick={(e) => {
-            e.preventDefault();
-            scrollToSection("contact");
-          }}
-          className={cn(
-            "radius-control relative z-10 inline-flex cursor-pointer items-center justify-center border border-border bg-subtle font-medium uppercase tracking-[0.08em] text-foreground transition-[color,background-color,border-color,box-shadow] duration-200 ease-out hover:border-[color-mix(in_srgb,var(--accent-from)_40%,var(--border))] hover:bg-[var(--fill-hover)] hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--accent-from)_22%,transparent)] motion-reduce:transition-none",
-            HERO_CTA_SIZE,
-          )}
-        >
-          Get in touch
-        </Link>
+        <GradientButton asChild>
+          <Link
+            href="#projects"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection("projects");
+            }}
+            className={cn(
+              "radius-control relative z-10 font-medium uppercase tracking-[0.08em]",
+              HERO_CTA_SIZE,
+            )}
+          >
+            View projects
+          </Link>
+        </GradientButton>
+        <GradientButton asChild variant="variant">
+          <Link
+            href="#contact"
+            onClick={(e) => {
+              e.preventDefault();
+              scrollToSection("contact");
+            }}
+            className={cn(
+              "radius-control relative z-10 font-medium uppercase tracking-[0.08em]",
+              HERO_CTA_SIZE,
+            )}
+          >
+            Get in touch
+          </Link>
+        </GradientButton>
       </div>
     </div>
   );

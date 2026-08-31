@@ -219,6 +219,9 @@ export function ProjectShowcase({
                       )}
                     >
                       {project.title}
+                      <span className="project-showcase-underline" aria-hidden>
+                        <span className="project-showcase-underline-line" />
+                      </span>
                     </span>
                   </h3>
 
