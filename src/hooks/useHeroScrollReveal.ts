@@ -211,15 +211,9 @@ export function useHeroScrollReveal(
         if (!isLg) {
           const syncAtTop = () => {
             if (window.scrollY > 12) return;
-            ScrollTrigger.refresh();
             const st = heroTimeline?.scrollTrigger;
-            if (
-              heroTimeline &&
-              window.scrollY <= 2 &&
-              (st?.progress ?? 0) > 0.01
-            ) {
-              heroTimeline.progress(0);
-            }
+            if (!st || st.progress <= 0.02) return;
+            ScrollTrigger.refresh();
           };
           ScrollTrigger.addEventListener("scrollEnd", syncAtTop);
           removeScrollEnd = () => {

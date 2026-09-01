@@ -29,24 +29,10 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     initGsap();
 
     let refreshTimer: number | undefined;
-    let pendingChromeRefresh = false;
     let lenis: Lenis | null = null;
     let tickerCallback: ((time: number) => void) | null = null;
     let unsubscribeIntro: (() => void) | undefined;
     const unlockTimers: number[] = [];
-
-    const refreshScrollTriggers = () => {
-      if (refreshTimer) window.clearTimeout(refreshTimer);
-      refreshTimer = window.setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 150);
-    };
-
-    const flushChromeRefresh = () => {
-      if (!pendingChromeRefresh) return;
-      pendingChromeRefresh = false;
-      refreshScrollTriggers();
-    };
 
     const refresh = () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
@@ -106,11 +92,8 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribeResize = onViewportResize({
       onStable: refresh,
-      onChrome: () => {
-        pendingChromeRefresh = true;
-      },
+      // Skip chrome-only resizes — mid-scroll refresh causes scrub flicker on hero
     });
-    ScrollTrigger.addEventListener("scrollEnd", flushChromeRefresh);
     const t = window.setTimeout(refresh, 150);
 
     if (document.fonts?.ready) {
@@ -129,7 +112,6 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     }
 
     return () => {
-      ScrollTrigger.removeEventListener("scrollEnd", flushChromeRefresh);
       unsubscribeResize();
       window.removeEventListener("load", onLoad);
       window.clearTimeout(t);

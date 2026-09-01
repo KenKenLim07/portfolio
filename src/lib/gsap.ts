@@ -131,9 +131,10 @@ export function getHeroScrollBand(isLg: boolean) {
   return {
     ...heroScrollReveal,
     end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
-    scrub: isLg ? heroScrollReveal.scrub : 0.72,
-    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.26,
-    exitLayerGap: isLg ? heroScrollReveal.exitLayerGap : 0.2,
+    /** Match scrub-block sections — tight on touch, light lag on desktop */
+    scrub: isLg ? 1.1 : 0.55,
+    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.18,
+    exitLayerGap: isLg ? heroScrollReveal.exitLayerGap : 0.16,
   };
 }
 
