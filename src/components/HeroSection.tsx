@@ -195,7 +195,7 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative min-h-dvh overflow-hidden",
+        "relative min-h-svh overflow-hidden",
         "lg:h-dvh lg:max-h-dvh",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
@@ -206,7 +206,7 @@ export function HeroSection() {
         <div
           data-hero-panel="mobile"
           className={cn(
-            "relative z-10 mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
+            "relative z-10 mx-auto flex min-h-svh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
             HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
           )}
         >

@@ -123,9 +123,6 @@ export function HeroScrollCue({ className }: HeroScrollCueProps) {
       const borderLengths = borderPaths.map(measurePath);
       borderPaths.forEach((path, i) => hideStroke(path, borderLengths[i]!));
 
-      const slideDistance = () =>
-        (window.innerHeight * SLIDE_DISTANCE_VH) / 100;
-
       gsap.set(fill, { fillOpacity: 0 });
       gsap.set(root, { y: 0, opacity: 1, scale: 0.985, transformOrigin: "50% 88%" });
 
@@ -151,7 +148,7 @@ export function HeroScrollCue({ className }: HeroScrollCueProps) {
         .to(root, { scale: 1, duration: 0.5, ease: "power2.out" })
         .to({}, { duration: 0.35 })
         .to(root, {
-          y: slideDistance,
+          y: `${SLIDE_DISTANCE_VH}vh`,
           duration: SLIDE_DURATION,
           ease: SLIDE_EASE,
         })

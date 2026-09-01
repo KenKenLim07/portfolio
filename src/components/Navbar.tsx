@@ -23,6 +23,7 @@ import { scrollToSection } from "@/lib/scroll-to";
 import { ScrollTrigger } from "@/lib/gsap";
 import { useGsapMobileMenu } from "@/hooks/useGsapMobileMenu";
 import { cn } from "@/lib/utils";
+import { shouldHandleViewportResize } from "@/lib/viewport-resize";
 
 const NAV_ICONS: Record<(typeof NAV_LINKS)[number]["label"], LucideIcon> = {
   Home,
@@ -129,12 +130,15 @@ export function Navbar() {
 
     syncActive();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    const onResize = () => {
+      if (shouldHandleViewportResize()) onScroll();
+    };
+    window.addEventListener("resize", onResize);
     window.addEventListener("scrollend", onScrollEnd);
     return () => {
       clearPending();
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("resize", onResize);
       window.removeEventListener("scrollend", onScrollEnd);
     };
   }, []);
@@ -264,7 +268,7 @@ export function Navbar() {
         aria-modal="true"
         aria-label="Menu"
         aria-hidden={!mobileOpen}
-        className="mobile-menu-panel fixed top-0 right-0 z-50 flex h-dvh w-[min(100%,18.5rem)] flex-col overflow-hidden sm:w-[min(88vw,20rem)] lg:hidden"
+        className="mobile-menu-panel fixed top-0 right-0 z-50 flex h-svh w-[min(100%,18.5rem)] flex-col overflow-hidden sm:w-[min(88vw,20rem)] lg:hidden"
       >
         {ENABLE_SUN_MODE ? (
           <div

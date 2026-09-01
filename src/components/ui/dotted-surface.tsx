@@ -2,6 +2,7 @@
 
 import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/utils";
+import { shouldHandleViewportResize } from "@/lib/viewport-resize";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
@@ -1216,11 +1217,14 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
 
     readScroll();
     window.addEventListener("scroll", readScroll, { passive: true });
-    window.addEventListener("resize", readScroll, { passive: true });
+    const onResize = () => {
+      if (shouldHandleViewportResize()) readScroll();
+    };
+    window.addEventListener("resize", onResize, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", readScroll);
-      window.removeEventListener("resize", readScroll);
+      window.removeEventListener("resize", onResize);
     };
   }, []);
 
@@ -1598,6 +1602,8 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
     };
 
     const handleResize = () => {
+      if (!shouldHandleViewportResize()) return;
+
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);

@@ -748,8 +748,8 @@ body {
 
 @media (max-width: 1023px) {
   .hero-scroll-boomerang-layer {
-    /* More bottom padding = boomerang sits higher on mobile */
-    padding-bottom: clamp(2.5rem, 14vh, 7rem);
+    /* Fixed offset — avoids jump when mobile browser chrome toggles vh */
+    padding-bottom: 3.5rem;
   }
 
   .hero-mega-solid {
