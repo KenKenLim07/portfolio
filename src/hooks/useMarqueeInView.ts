@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useInView, useReducedMotion } from "framer-motion";
 
-const DEFAULT_MARGIN = "160px 0px" as const;
+const DEFAULT_MARGIN = "80px 0px" as const;
 
 /**
  * Drive infinite marquees only while near the viewport.
@@ -15,7 +15,20 @@ export function useMarqueeInView(
   const ref = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const inView = useInView(ref, { margin, amount: 0 });
-  const shouldAnimate = Boolean(inView && !prefersReducedMotion);
+  const [tabVisible, setTabVisible] = useState(
+    () => typeof document === "undefined" || document.visibilityState === "visible",
+  );
+
+  useEffect(() => {
+    const onVisibility = () => {
+      setTabVisible(document.visibilityState === "visible");
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
+  }, []);
+
+  const shouldAnimate = Boolean(inView && tabVisible && !prefersReducedMotion);
 
   return { ref, shouldAnimate, prefersReducedMotion };
 }

@@ -1,7 +1,7 @@
 "use client";
 
-import { Fragment } from "react";
-import { motion } from "framer-motion";
+import { Fragment, useEffect } from "react";
+import { motion, useAnimationControls } from "framer-motion";
 import type { Testimonial } from "@/lib/constants";
 import { useMarqueeInView } from "@/hooks/useMarqueeInView";
 import { cn } from "@/lib/utils";
@@ -37,7 +37,28 @@ export function TestimonialsRow({
   reverse?: boolean;
 }) {
   const { ref, shouldAnimate, prefersReducedMotion } = useMarqueeInView();
+  const controls = useAnimationControls();
   const loop = prefersReducedMotion ? [0] : [0, 1];
+  const initialX = reverse ? "-50%" : "0%";
+  const targetX = reverse ? "0%" : "-50%";
+
+  useEffect(() => {
+    if (prefersReducedMotion) return;
+
+    if (shouldAnimate) {
+      void controls.start({
+        x: targetX,
+        transition: {
+          duration,
+          repeat: Infinity,
+          ease: "linear",
+          repeatType: "loop",
+        },
+      });
+    } else {
+      controls.stop();
+    }
+  }, [shouldAnimate, controls, duration, targetX, prefersReducedMotion]);
 
   return (
     <div
@@ -48,20 +69,8 @@ export function TestimonialsRow({
       )}
     >
       <motion.div
-        animate={shouldAnimate ? { x: reverse ? "0%" : "-50%" } : false}
-        initial={
-          prefersReducedMotion ? undefined : { x: reverse ? "-50%" : "0%" }
-        }
-        transition={
-          shouldAnimate
-            ? {
-                duration,
-                repeat: Infinity,
-                ease: "linear",
-                repeatType: "loop",
-              }
-            : undefined
-        }
+        animate={controls}
+        initial={prefersReducedMotion ? undefined : { x: initialX }}
         className="flex w-max gap-6 pr-6"
       >
         {loop.map((copy) => (
