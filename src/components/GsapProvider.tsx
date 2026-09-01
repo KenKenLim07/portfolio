@@ -29,6 +29,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     initGsap();
 
     let refreshTimer: number | undefined;
+    let pendingChromeRefresh = false;
     let lenis: Lenis | null = null;
     let tickerCallback: ((time: number) => void) | null = null;
     let unsubscribeIntro: (() => void) | undefined;
@@ -39,6 +40,12 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
       refreshTimer = window.setTimeout(() => {
         ScrollTrigger.refresh();
       }, 150);
+    };
+
+    const flushChromeRefresh = () => {
+      if (!pendingChromeRefresh) return;
+      pendingChromeRefresh = false;
+      refreshScrollTriggers();
     };
 
     const refresh = () => {
@@ -99,8 +106,11 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribeResize = onViewportResize({
       onStable: refresh,
-      onChrome: refreshScrollTriggers,
+      onChrome: () => {
+        pendingChromeRefresh = true;
+      },
     });
+    ScrollTrigger.addEventListener("scrollEnd", flushChromeRefresh);
     const t = window.setTimeout(refresh, 150);
 
     if (document.fonts?.ready) {
@@ -119,6 +129,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     }
 
     return () => {
+      ScrollTrigger.removeEventListener("scrollEnd", flushChromeRefresh);
       unsubscribeResize();
       window.removeEventListener("load", onLoad);
       window.clearTimeout(t);

@@ -99,7 +99,8 @@ export const heroScrollReveal = {
   start: "clamp(top top)",
   /** Lower % = more hero scroll before exit completes (slower, later finish) */
   endDesktop: "clamp(bottom 22%)",
-  endMobile: "clamp(bottom 20%)",
+  /** Lower % = longer scroll band before exit finishes (more noticeable on touch) */
+  endMobile: "clamp(bottom 10%)",
   scrub: 1.25,
   y: 88,
   /** Copy: visible motion, still more legible than chrome */
@@ -122,24 +123,17 @@ export type HeroExitLayer = {
   targets: gsap.TweenTarget;
   exitOpacity?: number;
   exitY?: number;
-  exitItemStagger?: number;
   /** Offset from end of hold — layers with the same `at` exit in parallel */
   at?: number;
 };
 
-/** Mobile end distance — stable px so browser chrome show/hide won't thin the scrub band */
-export function getHeroMobileScrollEnd(): string {
-  return `+=${Math.round(getLayoutViewportHeight() * 0.82)}`;
-}
-
 export function getHeroScrollBand(isLg: boolean) {
   return {
     ...heroScrollReveal,
-    end: isLg
-      ? heroScrollReveal.endDesktop
-      : getHeroMobileScrollEnd,
+    end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
     scrub: isLg ? heroScrollReveal.scrub : 0.72,
-    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.28,
+    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.26,
+    exitLayerGap: isLg ? heroScrollReveal.exitLayerGap : 0.2,
   };
 }
 
@@ -179,8 +173,8 @@ export function bindHeroExitScrub(
     },
   });
 
-  const { exitTweenDuration, exitItemStagger, exitLayerGap } = heroScrollReveal;
-  const { exitScrollHold } = config;
+  const { exitTweenDuration, exitItemStagger } = heroScrollReveal;
+  const { exitScrollHold, exitLayerGap } = config;
 
   if (exitScrollHold > 0) {
     tl.to({}, { duration: exitScrollHold });
@@ -195,7 +189,6 @@ export function bindHeroExitScrub(
     const count = targets.length;
     const exitOpacity = layer.exitOpacity ?? config.exitOpacity;
     const exitY = layer.exitY ?? config.y;
-    const layerStagger = layer.exitItemStagger ?? exitItemStagger;
     const startAt =
       layer.at !== undefined ? exitScrollHold + layer.at : sequentialAt;
 
@@ -208,13 +201,13 @@ export function bindHeroExitScrub(
         ease: "none",
         force3D: true,
         duration: exitTweenDuration,
-        stagger: layerStagger,
+        stagger: exitItemStagger,
       },
       startAt,
     );
 
     const layerSpan =
-      exitTweenDuration + Math.max(0, count - 1) * layerStagger;
+      exitTweenDuration + Math.max(0, count - 1) * exitItemStagger;
 
     if (layer.at === undefined) {
       sequentialAt += layerSpan + exitLayerGap;

@@ -15,7 +15,7 @@ import { getLayoutViewportHeight } from "@/lib/viewport-resize";
 
 const LG_QUERY = "(min-width: 1024px)";
 
-type HeroGroup = "copy" | "tail" | "cue";
+type HeroGroup = "copy" | "intro" | "tail" | "cue";
 
 function useMediaQuery(query: string) {
   return useSyncExternalStore(
@@ -50,44 +50,50 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
   return panel?.querySelector<HTMLElement>("[data-hero-cta-panel]") ?? null;
 }
 
-/** Mobile + desktop: parallel exit rail so partial scrub doesn't strand copy while CTAs show. */
-function getHeroExitLayers(root: HTMLElement): HeroExitLayer[] {
-  const copyAll = getRevealItems(root, "copy");
-  const copyIntro = copyAll.filter((el) => el.hasAttribute("data-hero-intro"));
-  const copyPrimary = copyAll.filter((el) => !el.hasAttribute("data-hero-intro"));
+/** Desktop: parallel rail. Mobile: sequential copy → intro → CTAs → metrics → cue. */
+function getHeroExitLayers(root: HTMLElement, isLg: boolean): HeroExitLayer[] {
+  const copy = getRevealItems(root, "copy");
+  const intro = getRevealItems(root, "intro");
   const ctaPanel = getCtaPanel(root);
   const tail = getRevealItems(root, "tail");
   const cue = getRevealItems(root, "cue");
   const layers: HeroExitLayer[] = [];
 
-  const copyMotion = {
-    exitOpacity: heroScrollReveal.exitOpacityCopy,
-    exitY: heroScrollReveal.exitYCopy,
-  };
+  const makeCopyLayer = (targets: HTMLElement[]): HeroExitLayer | null =>
+    targets.length
+      ? {
+          targets,
+          exitOpacity: heroScrollReveal.exitOpacityCopy,
+          exitY: heroScrollReveal.exitYCopy,
+        }
+      : null;
 
-  const { exitRailStagger } = heroScrollReveal;
-  let railAt = 0;
+  if (isLg) {
+    const copyLayer = makeCopyLayer([...copy, ...intro]);
+    const { exitRailStagger } = heroScrollReveal;
+    let railAt = 0;
 
-  if (copyPrimary.length) {
-    layers.push({ targets: copyPrimary, ...copyMotion, at: 0 });
+    if (copyLayer) layers.push({ ...copyLayer, at: 0 });
+    if (ctaPanel) {
+      layers.push({ targets: ctaPanel, at: railAt });
+      railAt += exitRailStagger;
+    }
+    if (tail.length) {
+      layers.push({ targets: tail, at: railAt });
+      railAt += exitRailStagger;
+    }
+    if (cue.length) layers.push({ targets: cue, at: railAt });
+    return layers;
   }
-  if (copyIntro.length) {
-    layers.push({
-      targets: copyIntro,
-      ...copyMotion,
-      at: 0,
-      exitItemStagger: 0,
-    });
-  }
-  if (ctaPanel) {
-    layers.push({ targets: ctaPanel, at: railAt });
-    railAt += exitRailStagger;
-  }
-  if (tail.length) {
-    layers.push({ targets: tail, at: railAt });
-    railAt += exitRailStagger;
-  }
-  if (cue.length) layers.push({ targets: cue, at: railAt });
+
+  const copyLayer = makeCopyLayer(copy);
+  const introLayer = makeCopyLayer(intro);
+
+  if (copyLayer) layers.push(copyLayer);
+  if (introLayer) layers.push(introLayer);
+  if (ctaPanel) layers.push({ targets: ctaPanel });
+  if (tail.length) layers.push({ targets: tail });
+  if (cue.length) layers.push({ targets: cue });
 
   return layers;
 }
@@ -138,7 +144,7 @@ function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
 function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
   paintInactiveHeroPanel(root, isLg);
 
-  const exitLayers = getHeroExitLayers(root);
+  const exitLayers = getHeroExitLayers(root, isLg);
   const targets = flattenExitLayers(exitLayers);
   const ctaPanel = getCtaPanel(root);
   const all = ctaPanel ? [...targets, ctaPanel] : targets;
@@ -151,7 +157,8 @@ function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
 }
 
 /**
- * Hero: visible on load, scrub exit on scroll (copy, CTAs, metrics, cue in parallel).
+ * Hero: visible on load, scrub exit on scroll.
+ * Mobile exits in order: headlines → intro → CTAs → metrics → cue.
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -177,7 +184,7 @@ export function useHeroScrollReveal(
         removeScrollEnd = undefined;
         heroTimeline = null;
 
-        const exitLayers = getHeroExitLayers(root);
+        const exitLayers = getHeroExitLayers(root, isLg);
         if (!flattenExitLayers(exitLayers).length) return;
 
         paintInactiveHeroPanel(root, isLg);
@@ -204,9 +211,14 @@ export function useHeroScrollReveal(
         if (!isLg) {
           const syncAtTop = () => {
             if (window.scrollY > 12) return;
+            ScrollTrigger.refresh();
             const st = heroTimeline?.scrollTrigger;
-            if (st && st.progress > 0.02) {
-              ScrollTrigger.refresh();
+            if (
+              heroTimeline &&
+              window.scrollY <= 2 &&
+              (st?.progress ?? 0) > 0.01
+            ) {
+              heroTimeline.progress(0);
             }
           };
           ScrollTrigger.addEventListener("scrollEnd", syncAtTop);
