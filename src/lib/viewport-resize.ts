@@ -6,6 +6,7 @@
 
 let lastWidth = 0;
 let lastHeight = 0;
+let stableViewportHeight = 0;
 
 export function isCoarseTouchViewport(): boolean {
   if (typeof window === "undefined") return false;
@@ -13,6 +14,35 @@ export function isCoarseTouchViewport(): boolean {
     window.matchMedia("(max-width: 1023px)").matches ||
     window.matchMedia("(hover: none) and (pointer: coarse)").matches
   );
+}
+
+/** Lock viewport height on mobile so chrome show/hide does not reflow fixed layers. */
+export function initStableViewportHeight(): number {
+  if (typeof window === "undefined") return 0;
+
+  stableViewportHeight =
+    window.visualViewport?.height ?? window.innerHeight;
+
+  return stableViewportHeight;
+}
+
+export function getStableViewportHeight(): number {
+  if (typeof window === "undefined") return 0;
+  if (stableViewportHeight === 0) {
+    return initStableViewportHeight();
+  }
+  return stableViewportHeight;
+}
+
+/**
+ * Viewport height for scroll + canvas math — stable on touch mobile, live on desktop.
+ */
+export function getLayoutViewportHeight(): number {
+  if (typeof window === "undefined") return 0;
+  if (isCoarseTouchViewport()) {
+    return getStableViewportHeight();
+  }
+  return window.innerHeight;
 }
 
 /**
@@ -35,6 +65,10 @@ export function isMobileBrowserChromeResize(): boolean {
   lastWidth = width;
   lastHeight = height;
 
+  if (widthChanged && isCoarseTouchViewport()) {
+    initStableViewportHeight();
+  }
+
   return chromeOnly;
 }
 
@@ -48,6 +82,7 @@ export function onStableViewportResize(callback: () => void): () => void {
 
   lastWidth = window.innerWidth;
   lastHeight = window.innerHeight;
+  initStableViewportHeight();
 
   const handler = () => {
     if (shouldHandleViewportResize()) callback();

@@ -2,7 +2,11 @@
 
 import { useTheme } from "@/components/ThemeProvider";
 import { cn } from "@/lib/utils";
-import { shouldHandleViewportResize } from "@/lib/viewport-resize";
+import {
+  getLayoutViewportHeight,
+  initStableViewportHeight,
+  shouldHandleViewportResize,
+} from "@/lib/viewport-resize";
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
@@ -165,9 +169,9 @@ function randRange(rng: Rng, min: number, max: number) {
  * Asteroid size mix — many small debris, fewer medium, rare giants.
  * (Avoids the old depth-linked lerp that made most rocks read the same on screen.)
  */
-function pickRockScale(rng: Rng, isMobile: boolean): number {
+function pickRockScale(rng: Rng, isMobileLayout: boolean): number {
   const roll = rng();
-  if (isMobile) {
+  if (isMobileLayout) {
     if (roll < 0.5) return randRange(rng, 10, 24);
     if (roll < 0.78) return randRange(rng, 24, 46);
     if (roll < 0.93) return randRange(rng, 46, 82);
@@ -186,18 +190,18 @@ function pickRockScale(rng: Rng, isMobile: boolean): number {
  */
 function pickRockX(
   rng: Rng,
-  isMobile: boolean,
+  isMobileLayout: boolean,
   xMin: number,
   xMax: number,
 ): number {
   const side = rng() < 0.5 ? -1 : 1;
   // Bias hard toward the outer edge of the allowed band
   const t = Math.pow(rng(), 0.35);
-  const inner = xMin * (isMobile ? 0.95 : 0.85);
-  const outer = xMax * (isMobile ? 1.55 : 1.25);
+  const inner = xMin * (isMobileLayout ? 0.95 : 0.85);
+  const outer = xMax * (isMobileLayout ? 1.55 : 1.25);
   const absX = lerp(inner, outer, t);
   // Small jitter only — keep them on the flank, not drifting to center
-  return side * absX + randRange(rng, isMobile ? -22 : -50, isMobile ? 22 : 50);
+  return side * absX + randRange(rng, isMobileLayout ? -22 : -50, isMobileLayout ? 22 : 50);
 }
 
 const STAR_SEED = 0x51a7;
@@ -261,12 +265,12 @@ function buildStarfield(): {
 }
 
 /** Distant sun — bright disc + oversized corona wash (no square light border). */
-function createSun(isMobile: boolean) {
+function createSun(isMobileLayout: boolean) {
   const group = new THREE.Group();
   const disposables: Array<THREE.BufferGeometry | THREE.Material> = [];
-  const discR = isMobile ? SUN.voidRadiusMobile : SUN.voidRadius;
+  const discR = isMobileLayout ? SUN.voidRadiusMobile : SUN.voidRadius;
   const discSize = discR * SUN.discSpan;
-  const washSize = isMobile ? SUN.washSizeMobile : SUN.washSize;
+  const washSize = isMobileLayout ? SUN.washSizeMobile : SUN.washSize;
 
   const coronaMat = new THREE.ShaderMaterial({
     uniforms: {
@@ -362,7 +366,7 @@ function createSun(isMobile: boolean) {
 
   group.add(outer);
   group.add(corona);
-  sunWorldPosition(isMobile, group.position);
+  sunWorldPosition(isMobileLayout, group.position);
 
   return {
     group,
@@ -373,7 +377,7 @@ function createSun(isMobile: boolean) {
 }
 
 /** Lightweight additive flare — streak + ghost orbs (no postprocessing). */
-function createSunFlare(isMobile: boolean) {
+function createSunFlare(isMobileLayout: boolean) {
   const group = new THREE.Group();
   const disposables: Array<THREE.BufferGeometry | THREE.Material | THREE.Texture> =
     [];
@@ -448,7 +452,7 @@ function createSunFlare(isMobile: boolean) {
     return mesh;
   };
 
-  const scale = isMobile ? 0.7 : 1;
+  const scale = isMobileLayout ? 0.7 : 1;
   // Horizontal streak through the sun
   addSprite(
     streakTex,
@@ -485,10 +489,10 @@ function createSunFlare(isMobile: boolean) {
   return { group, setIntensity, disposables };
 }
 
-function sunWorldPosition(isMobile: boolean, out: THREE.Vector3) {
-  const ahead = isMobile ? SUN.aheadMobile : SUN.ahead;
-  const offsetX = isMobile ? SUN.offsetXMobile : SUN.offsetX;
-  const offsetY = isMobile ? SUN.offsetYMobile : SUN.offsetY;
+function sunWorldPosition(isMobileLayout: boolean, out: THREE.Vector3) {
+  const ahead = isMobileLayout ? SUN.aheadMobile : SUN.ahead;
+  const offsetX = isMobileLayout ? SUN.offsetXMobile : SUN.offsetX;
+  const offsetY = isMobileLayout ? SUN.offsetYMobile : SUN.offsetY;
   // Behind ship (+Z). Negative X ⇒ upper-right after 180° yaw toward +Z.
   return out.set(
     -offsetX,
@@ -708,7 +712,7 @@ function createRockSurfaceMaps(size: number, seed: number): RockSurfaceMaps {
 
 function createRockField(
   isDark: boolean,
-  isMobile: boolean,
+  isMobileLayout: boolean,
 ): {
   group: THREE.Group;
   rocks: RockBody[];
@@ -724,7 +728,7 @@ function createRockField(
   const textures: THREE.Texture[] = [];
 
   // Shared surface packs — detail without N unique GPU uploads of source pixels
-  const mapSize = isMobile ? 128 : 256;
+  const mapSize = isMobileLayout ? 128 : 256;
   const surfacePacks: RockSurfaceMaps[] = [
     createRockSurfaceMaps(mapSize, 0xa11e1),
     createRockSurfaceMaps(mapSize, 0xb0a57),
@@ -735,16 +739,16 @@ function createRockField(
   }
 
   // Side rocks stay on the flanks / near viewport edges
-  const xMin = isMobile ? 140 : 420;
-  const xMax = isMobile ? 520 : FIELD.x * 0.42;
-  const aheadMin = isMobile ? 360 : 420;
+  const xMin = isMobileLayout ? 140 : 420;
+  const xMax = isMobileLayout ? 520 : FIELD.x * 0.42;
+  const aheadMin = isMobileLayout ? 360 : 420;
   // Past DOLLY_FROM_PROGRESS so rocks remain ahead at page bottom
-  const aheadMax = isMobile ? 4800 : 6200;
+  const aheadMax = isMobileLayout ? 4800 : 6200;
   // Keep rocks in the lower ~15–20% of frame (camera eye ≈ y 280)
-  const yMin = isMobile ? -300 : -380;
-  const yMax = isMobile ? -50 : -70;
-  const yMinFar = isMobile ? -340 : -440;
-  const yMaxFar = isMobile ? -60 : -90;
+  const yMin = isMobileLayout ? -300 : -380;
+  const yMax = isMobileLayout ? -50 : -70;
+  const yMinFar = isMobileLayout ? -340 : -440;
+  const yMaxFar = isMobileLayout ? -60 : -90;
 
   const pushRock = (opts: {
     x: number;
@@ -754,7 +758,7 @@ function createRockField(
     warpInfluence: number;
   }) => {
     // Heavier meshes get a bit more geo detail
-    const detail = opts.scale > (isMobile ? 70 : 110) ? 2 : rng() > 0.35 ? 2 : 1;
+    const detail = opts.scale > (isMobileLayout ? 70 : 110) ? 2 : rng() > 0.35 ? 2 : 1;
     const geometry = createAsteroidGeometry(rng, detail);
     geometries.push(geometry);
 
@@ -847,12 +851,12 @@ function createRockField(
     const depthT = Math.pow(rng(), 0.55);
     const ahead = lerp(aheadMin, aheadMax, depthT);
     // Nudge giants slightly farther so they don't swallow the hero
-    let scale = pickRockScale(rng, isMobile);
-    if (scale > (isMobile ? 70 : 120) && ahead < (isMobile ? 900 : 1200)) {
+    let scale = pickRockScale(rng, isMobileLayout);
+    if (scale > (isMobileLayout ? 70 : 120) && ahead < (isMobileLayout ? 900 : 1200)) {
       scale *= randRange(rng, 0.45, 0.65);
     }
     pushRock({
-      x: pickRockX(rng, isMobile, xMin, xMax),
+      x: pickRockX(rng, isMobileLayout, xMin, xMax),
       y: randRange(rng, yMin, yMax),
       z: CAMERA_BASE.z - ahead,
       scale,
@@ -861,17 +865,17 @@ function createRockField(
   }
 
   // Deep belt — beyond full scroll travel so the page bottom still has rocks ahead
-  const farMin = isMobile ? 3200 : 4200;
-  const farMax = isMobile ? 7200 : 9200;
+  const farMin = isMobileLayout ? 3200 : 4200;
+  const farMax = isMobileLayout ? 7200 : 9200;
   for (let i = 0; i < ROCK_COUNT_FORWARD_FAR; i++) {
     const depthT = Math.pow(rng(), 0.7);
     const ahead = lerp(farMin, farMax, depthT);
     // Bias far belt toward medium–large so distant rocks still read
-    let scale = pickRockScale(rng, isMobile);
-    if (rng() < 0.45) scale = Math.max(scale, pickRockScale(rng, isMobile));
+    let scale = pickRockScale(rng, isMobileLayout);
+    if (rng() < 0.45) scale = Math.max(scale, pickRockScale(rng, isMobileLayout));
     scale *= randRange(rng, 1.05, 1.4);
     pushRock({
-      x: pickRockX(rng, isMobile, xMin, xMax),
+      x: pickRockX(rng, isMobileLayout, xMin, xMax),
       y: randRange(rng, yMinFar, yMaxFar),
       z: CAMERA_BASE.z - ahead,
       scale,
@@ -881,49 +885,49 @@ function createRockField(
 
   // Two flank rocks — near, but kept off-center so the mid view stays clear
   pushRock({
-    x: isMobile ? -200 : -480,
-    y: isMobile ? -90 : -120,
-    z: CAMERA_BASE.z - (isMobile ? 420 : 520),
-    scale: isMobile ? 24 : 36,
+    x: isMobileLayout ? -200 : -480,
+    y: isMobileLayout ? -90 : -120,
+    z: CAMERA_BASE.z - (isMobileLayout ? 420 : 520),
+    scale: isMobileLayout ? 24 : 36,
     warpInfluence: 0.18,
   });
   pushRock({
-    x: isMobile ? 220 : 520,
-    y: isMobile ? -110 : -140,
-    z: CAMERA_BASE.z - (isMobile ? 680 : 860),
-    scale: isMobile ? 22 : 34,
+    x: isMobileLayout ? 220 : 520,
+    y: isMobileLayout ? -110 : -140,
+    z: CAMERA_BASE.z - (isMobileLayout ? 680 : 860),
+    scale: isMobileLayout ? 22 : 34,
     warpInfluence: 0.18,
   });
 
   // Far asteroid, lower-right edge (forward)
   pushRock({
-    x: isMobile ? 340 : 920,
-    y: isMobile ? -40 : -55,
-    z: CAMERA_BASE.z - (isMobile ? 1100 : 1500),
-    scale: isMobile ? 26 : 42,
+    x: isMobileLayout ? 340 : 920,
+    y: isMobileLayout ? -40 : -55,
+    z: CAMERA_BASE.z - (isMobileLayout ? 1100 : 1500),
+    scale: isMobileLayout ? 26 : 42,
     warpInfluence: 0.85,
   });
 
   // Mid-deep anchors — intentional size steps (medium → large → giant), on flanks
   pushRock({
-    x: isMobile ? -300 : -780,
-    y: isMobile ? -70 : -100,
-    z: CAMERA_BASE.z - (isMobile ? 2400 : 3200),
-    scale: isMobile ? 52 : 96,
+    x: isMobileLayout ? -300 : -780,
+    y: isMobileLayout ? -70 : -100,
+    z: CAMERA_BASE.z - (isMobileLayout ? 2400 : 3200),
+    scale: isMobileLayout ? 52 : 96,
     warpInfluence: 0.9,
   });
   pushRock({
-    x: isMobile ? 360 : 980,
-    y: isMobile ? -130 : -180,
-    z: CAMERA_BASE.z - (isMobile ? 3600 : 4800),
-    scale: isMobile ? 72 : 145,
+    x: isMobileLayout ? 360 : 980,
+    y: isMobileLayout ? -130 : -180,
+    z: CAMERA_BASE.z - (isMobileLayout ? 3600 : 4800),
+    scale: isMobileLayout ? 72 : 145,
     warpInfluence: 0.95,
   });
   pushRock({
-    x: isMobile ? -280 : -720,
-    y: isMobile ? -160 : -220,
-    z: CAMERA_BASE.z - (isMobile ? 5200 : 6800),
-    scale: isMobile ? 95 : 195,
+    x: isMobileLayout ? -280 : -720,
+    y: isMobileLayout ? -160 : -220,
+    z: CAMERA_BASE.z - (isMobileLayout ? 5200 : 6800),
+    scale: isMobileLayout ? 95 : 195,
     warpInfluence: 1,
   });
 
@@ -931,12 +935,12 @@ function createRockField(
   for (let i = 0; i < ROCK_COUNT_SUNWARD; i++) {
     const depthT = Math.pow(rng(), 0.55);
     const ahead = lerp(aheadMin, aheadMax, depthT);
-    let scale = pickRockScale(rng, isMobile);
-    if (scale > (isMobile ? 70 : 120) && ahead < (isMobile ? 900 : 1200)) {
+    let scale = pickRockScale(rng, isMobileLayout);
+    if (scale > (isMobileLayout ? 70 : 120) && ahead < (isMobileLayout ? 900 : 1200)) {
       scale *= randRange(rng, 0.45, 0.65);
     }
     pushRock({
-      x: pickRockX(rng, isMobile, xMin, xMax),
+      x: pickRockX(rng, isMobileLayout, xMin, xMax),
       y: randRange(rng, yMin, yMax),
       z: CAMERA_BASE.z + ahead,
       scale,
@@ -946,17 +950,17 @@ function createRockField(
 
   // Near sunward accents — kept on the flanks
   pushRock({
-    x: isMobile ? 240 : 520,
-    y: isMobile ? -80 : -110,
-    z: CAMERA_BASE.z + (isMobile ? 480 : 620),
-    scale: isMobile ? 22 : 34,
+    x: isMobileLayout ? 240 : 520,
+    y: isMobileLayout ? -80 : -110,
+    z: CAMERA_BASE.z + (isMobileLayout ? 480 : 620),
+    scale: isMobileLayout ? 22 : 34,
     warpInfluence: 0.25,
   });
   pushRock({
-    x: isMobile ? -260 : -560,
-    y: isMobile ? -100 : -130,
-    z: CAMERA_BASE.z + (isMobile ? 720 : 980),
-    scale: isMobile ? 24 : 38,
+    x: isMobileLayout ? -260 : -560,
+    y: isMobileLayout ? -100 : -130,
+    z: CAMERA_BASE.z + (isMobileLayout ? 720 : 980),
+    scale: isMobileLayout ? 24 : 38,
     warpInfluence: 0.35,
   });
 
@@ -1196,10 +1200,13 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
   }, [theme]);
 
   useEffect(() => {
+    initStableViewportHeight();
+
     const readScroll = () => {
+      const viewportH = getLayoutViewportHeight();
       const max = Math.max(
         1,
-        document.documentElement.scrollHeight - window.innerHeight,
+        document.documentElement.scrollHeight - viewportH,
       );
       const y = window.scrollY;
       const velocity = y - lastScrollYRef.current;
@@ -1236,7 +1243,10 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
       "(prefers-reduced-motion: reduce)",
     ).matches;
 
-    const isMobile = window.innerWidth < 768;
+    const isMobileLayout = window.innerWidth < 768;
+    initStableViewportHeight();
+    const viewW = window.innerWidth;
+    const viewH = getLayoutViewportHeight();
     const { seeds, positions, colors, sizes } = buildStarfield();
 
     const scene = new THREE.Scene();
@@ -1244,7 +1254,7 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
 
     const camera = new THREE.PerspectiveCamera(
       60,
-      window.innerWidth / window.innerHeight,
+      viewW / viewH,
       1,
       22000,
     );
@@ -1257,7 +1267,7 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
       antialias: true,
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(viewW, viewH);
     renderer.setClearColor(scene.fog.color, 0);
     renderer.domElement.style.pointerEvents = "none";
 
@@ -1265,7 +1275,7 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
 
     const forwardKeyPos = new THREE.Vector3(420, 680, 320);
     const focus = new THREE.Vector3(0, CAMERA_BASE.y, CAMERA_BASE.z - 900);
-    const sunPos = sunWorldPosition(isMobile, new THREE.Vector3());
+    const sunPos = sunWorldPosition(isMobileLayout, new THREE.Vector3());
 
     const ambient = new THREE.AmbientLight(0x9ca3af, 0.55);
     const key = new THREE.DirectionalLight(0xe2e8f0, 1.2);
@@ -1337,13 +1347,13 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
       geometries: rockGeometries,
       materials: rockMaterials,
       textures: rockTextures,
-    } = createRockField(true, isMobile);
+    } = createRockField(true, isMobileLayout);
     const shootingPool = reducedMotion
       ? null
-      : createShootingStarPool(true, isMobile ? 1 : SHOOTING.poolSize);
+      : createShootingStarPool(true, isMobileLayout ? 1 : SHOOTING.poolSize);
 
-    const sun = createSun(isMobile);
-    const flare = createSunFlare(isMobile);
+    const sun = createSun(isMobileLayout);
+    const flare = createSunFlare(isMobileLayout);
     const sunGlow = new THREE.PointLight(0xb8d4ff, 0, 16000, 2);
     sun.group.add(sunGlow);
     // Hidden in forward mode until the ship yaws toward it
@@ -1382,7 +1392,7 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
     let reportedReady = false;
 
     const updateSunVisuals = (face: number) => {
-      sunWorldPosition(isMobile, sun.group.position);
+      sunWorldPosition(isMobileLayout, sun.group.position);
       sun.group.quaternion.copy(camera.quaternion);
       flare.group.position.copy(sun.group.position);
       flare.group.quaternion.copy(camera.quaternion);
@@ -1498,7 +1508,7 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
       camera.position.z = expSmooth(camera.position.z, targetCamZ, 10, dt);
 
       // Lights: corridor fill forward → sun key when facing the sun
-      sunWorldPosition(isMobile, sunPos);
+      sunWorldPosition(isMobileLayout, sunPos);
       key.position.lerpVectors(forwardKeyPos, sunPos, face);
       key.intensity = lerp(1.2, 1.55, face);
       ambient.intensity = lerp(0.55, 0.36, face);
@@ -1604,9 +1614,11 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
     const handleResize = () => {
       if (!shouldHandleViewportResize()) return;
 
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const nextW = window.innerWidth;
+      const nextH = getLayoutViewportHeight();
+      camera.aspect = nextW / nextH;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(nextW, nextH);
       starMat.uniforms.uPixelRatio.value = renderer.getPixelRatio();
     };
 
@@ -1638,7 +1650,10 @@ export function DottedSurface({ className, onReady, ...props }: DottedSurfacePro
   return (
     <div
       ref={containerRef}
-      className={cn("pointer-events-none fixed inset-0 -z-10", className)}
+      className={cn(
+        "pointer-events-none fixed top-0 right-0 left-0 -z-10 h-svh overflow-hidden lg:inset-0 lg:h-auto",
+        className,
+      )}
       aria-hidden
       {...props}
     />
