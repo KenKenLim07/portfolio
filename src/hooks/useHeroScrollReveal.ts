@@ -52,24 +52,33 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
 
 /** Mobile + desktop: parallel exit rail so partial scrub doesn't strand copy while CTAs show. */
 function getHeroExitLayers(root: HTMLElement): HeroExitLayer[] {
-  const copy = getRevealItems(root, "copy");
+  const copyAll = getRevealItems(root, "copy");
+  const copyIntro = copyAll.filter((el) => el.hasAttribute("data-hero-intro"));
+  const copyPrimary = copyAll.filter((el) => !el.hasAttribute("data-hero-intro"));
   const ctaPanel = getCtaPanel(root);
   const tail = getRevealItems(root, "tail");
   const cue = getRevealItems(root, "cue");
   const layers: HeroExitLayer[] = [];
 
-  const copyLayer: HeroExitLayer | null = copy.length
-    ? {
-        targets: copy,
-        exitOpacity: heroScrollReveal.exitOpacityCopy,
-        exitY: heroScrollReveal.exitYCopy,
-      }
-    : null;
+  const copyMotion = {
+    exitOpacity: heroScrollReveal.exitOpacityCopy,
+    exitY: heroScrollReveal.exitYCopy,
+  };
 
   const { exitRailStagger } = heroScrollReveal;
   let railAt = 0;
 
-  if (copyLayer) layers.push({ ...copyLayer, at: 0 });
+  if (copyPrimary.length) {
+    layers.push({ targets: copyPrimary, ...copyMotion, at: 0 });
+  }
+  if (copyIntro.length) {
+    layers.push({
+      targets: copyIntro,
+      ...copyMotion,
+      at: 0,
+      exitItemStagger: 0,
+    });
+  }
   if (ctaPanel) {
     layers.push({ targets: ctaPanel, at: railAt });
     railAt += exitRailStagger;

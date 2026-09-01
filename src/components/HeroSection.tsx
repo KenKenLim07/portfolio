@@ -149,6 +149,7 @@ function HeroCopy({
 
       <HeroRevealItem
         group="copy"
+        intro
         className={cn(
           compact ? "mt-3" : "mt-5 sm:mt-6 lg:mt-10",
           introClassName,

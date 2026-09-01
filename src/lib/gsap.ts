@@ -122,17 +122,24 @@ export type HeroExitLayer = {
   targets: gsap.TweenTarget;
   exitOpacity?: number;
   exitY?: number;
+  exitItemStagger?: number;
   /** Offset from end of hold — layers with the same `at` exit in parallel */
   at?: number;
 };
 
+/** Mobile end distance — stable px so browser chrome show/hide won't thin the scrub band */
+export function getHeroMobileScrollEnd(): string {
+  return `+=${Math.round(getLayoutViewportHeight() * 0.82)}`;
+}
+
 export function getHeroScrollBand(isLg: boolean) {
   return {
     ...heroScrollReveal,
-    end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
-    /** Tighter coupling on touch — high scrub + hold reads as sticky native scroll */
-    scrub: isLg ? heroScrollReveal.scrub : 0.45,
-    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.1,
+    end: isLg
+      ? heroScrollReveal.endDesktop
+      : getHeroMobileScrollEnd,
+    scrub: isLg ? heroScrollReveal.scrub : 0.72,
+    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.28,
   };
 }
 
@@ -188,6 +195,7 @@ export function bindHeroExitScrub(
     const count = targets.length;
     const exitOpacity = layer.exitOpacity ?? config.exitOpacity;
     const exitY = layer.exitY ?? config.y;
+    const layerStagger = layer.exitItemStagger ?? exitItemStagger;
     const startAt =
       layer.at !== undefined ? exitScrollHold + layer.at : sequentialAt;
 
@@ -200,13 +208,13 @@ export function bindHeroExitScrub(
         ease: "none",
         force3D: true,
         duration: exitTweenDuration,
-        stagger: exitItemStagger,
+        stagger: layerStagger,
       },
       startAt,
     );
 
     const layerSpan =
-      exitTweenDuration + Math.max(0, count - 1) * exitItemStagger;
+      exitTweenDuration + Math.max(0, count - 1) * layerStagger;
 
     if (layer.at === undefined) {
       sequentialAt += layerSpan + exitLayerGap;
