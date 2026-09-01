@@ -1,6 +1,7 @@
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { getLayoutViewportHeight } from "@/lib/viewport-resize";
 
 let registered = false;
 
@@ -265,7 +266,8 @@ function registerEnterFallback(fn: EnterFallback): () => void {
 
 function isTriggerInViewport(trigger: Element) {
   const rect = trigger.getBoundingClientRect();
-  return rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+  const viewportH = getLayoutViewportHeight();
+  return rect.top < viewportH * 0.92 && rect.bottom > 0;
 }
 
 /**

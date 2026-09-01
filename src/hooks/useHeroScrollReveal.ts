@@ -11,6 +11,7 @@ import {
   ScrollTrigger,
   type HeroExitLayer,
 } from "@/lib/gsap";
+import { getLayoutViewportHeight } from "@/lib/viewport-resize";
 
 const LG_QUERY = "(min-width: 1024px)";
 
@@ -49,8 +50,8 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
   return panel?.querySelector<HTMLElement>("[data-hero-cta-panel]") ?? null;
 }
 
-/** Mobile: sequential copy → rail. Desktop: copy + rail in parallel after hold. */
-function getHeroExitLayers(root: HTMLElement, isLg: boolean): HeroExitLayer[] {
+/** Mobile + desktop: parallel exit rail so partial scrub doesn't strand copy while CTAs show. */
+function getHeroExitLayers(root: HTMLElement): HeroExitLayer[] {
   const copy = getRevealItems(root, "copy");
   const ctaPanel = getCtaPanel(root);
   const tail = getRevealItems(root, "tail");
@@ -65,27 +66,19 @@ function getHeroExitLayers(root: HTMLElement, isLg: boolean): HeroExitLayer[] {
       }
     : null;
 
-  if (isLg) {
-    const { exitRailStagger } = heroScrollReveal;
-    let railAt = 0;
+  const { exitRailStagger } = heroScrollReveal;
+  let railAt = 0;
 
-    if (copyLayer) layers.push({ ...copyLayer, at: 0 });
-    if (ctaPanel) {
-      layers.push({ targets: ctaPanel, at: railAt });
-      railAt += exitRailStagger;
-    }
-    if (tail.length) {
-      layers.push({ targets: tail, at: railAt });
-      railAt += exitRailStagger;
-    }
-    if (cue.length) layers.push({ targets: cue, at: railAt });
-    return layers;
+  if (copyLayer) layers.push({ ...copyLayer, at: 0 });
+  if (ctaPanel) {
+    layers.push({ targets: ctaPanel, at: railAt });
+    railAt += exitRailStagger;
   }
-
-  if (copyLayer) layers.push(copyLayer);
-  if (ctaPanel) layers.push({ targets: ctaPanel });
-  if (tail.length) layers.push({ targets: tail });
-  if (cue.length) layers.push({ targets: cue });
+  if (tail.length) {
+    layers.push({ targets: tail, at: railAt });
+    railAt += exitRailStagger;
+  }
+  if (cue.length) layers.push({ targets: cue, at: railAt });
 
   return layers;
 }
@@ -98,7 +91,8 @@ function flattenExitLayers(layers: HeroExitLayer[]): HTMLElement[] {
 
 function isHomeInView(home: HTMLElement) {
   const rect = home.getBoundingClientRect();
-  return rect.top < window.innerHeight * 0.92 && rect.bottom > 0;
+  const viewportH = getLayoutViewportHeight();
+  return rect.top < viewportH * 0.92 && rect.bottom > 0;
 }
 
 function markBound(els: HTMLElement[]) {
@@ -135,7 +129,7 @@ function paintInactiveHeroPanel(root: HTMLElement, isLg: boolean) {
 function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
   paintInactiveHeroPanel(root, isLg);
 
-  const exitLayers = getHeroExitLayers(root, isLg);
+  const exitLayers = getHeroExitLayers(root);
   const targets = flattenExitLayers(exitLayers);
   const ctaPanel = getCtaPanel(root);
   const all = ctaPanel ? [...targets, ctaPanel] : targets;
@@ -148,7 +142,7 @@ function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
 }
 
 /**
- * Hero: visible on load, staggered scrub exit on scroll (copy → CTAs → metrics → cue).
+ * Hero: visible on load, scrub exit on scroll (copy, CTAs, metrics, cue in parallel).
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -164,12 +158,17 @@ export function useHeroScrollReveal(
       if (!home || !root || prefersReducedMotion) return;
 
       let ctx: gsap.Context | undefined;
+      let removeScrollEnd: (() => void) | undefined;
+      let heroTimeline: gsap.core.Timeline | null = null;
 
       const bindExit = () => {
         ctx?.revert();
         ctx = undefined;
+        removeScrollEnd?.();
+        removeScrollEnd = undefined;
+        heroTimeline = null;
 
-        const exitLayers = getHeroExitLayers(root, isLg);
+        const exitLayers = getHeroExitLayers(root);
         if (!flattenExitLayers(exitLayers).length) return;
 
         paintInactiveHeroPanel(root, isLg);
@@ -190,14 +189,31 @@ export function useHeroScrollReveal(
         }
 
         ctx = gsap.context(() => {
-          bindHeroExitScrub(home, exitLayers, isLg);
+          heroTimeline = bindHeroExitScrub(home, exitLayers, isLg);
         }, root);
+
+        if (!isLg) {
+          const syncAtTop = () => {
+            if (window.scrollY > 12) return;
+            const st = heroTimeline?.scrollTrigger;
+            if (st && st.progress > 0.02) {
+              ScrollTrigger.refresh();
+            }
+          };
+          ScrollTrigger.addEventListener("scrollEnd", syncAtTop);
+          removeScrollEnd = () => {
+            ScrollTrigger.removeEventListener("scrollEnd", syncAtTop);
+          };
+        }
       };
 
       bindExit();
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
-      return () => ctx?.revert();
+      return () => {
+        removeScrollEnd?.();
+        ctx?.revert();
+      };
     },
     {
       scope: contentRef,

@@ -76,8 +76,15 @@ export function shouldHandleViewportResize(): boolean {
   return !isMobileBrowserChromeResize();
 }
 
-/** Subscribe to resize events that are not mobile browser chrome toggles. */
-export function onStableViewportResize(callback: () => void): () => void {
+type ViewportResizeHandlers = {
+  /** Orientation, keyboard, real layout changes — full refresh */
+  onStable?: () => void;
+  /** Mobile browser chrome show/hide — ScrollTrigger only (no canvas/Lenis resize) */
+  onChrome?: () => void;
+};
+
+/** Subscribe to viewport resize with separate stable vs chrome handlers. */
+export function onViewportResize(handlers: ViewportResizeHandlers): () => void {
   if (typeof window === "undefined") return () => {};
 
   lastWidth = window.innerWidth;
@@ -85,7 +92,11 @@ export function onStableViewportResize(callback: () => void): () => void {
   initStableViewportHeight();
 
   const handler = () => {
-    if (shouldHandleViewportResize()) callback();
+    if (isMobileBrowserChromeResize()) {
+      handlers.onChrome?.();
+    } else if (shouldHandleViewportResize()) {
+      handlers.onStable?.();
+    }
   };
 
   window.addEventListener("resize", handler, { passive: true });
@@ -95,4 +106,9 @@ export function onStableViewportResize(callback: () => void): () => void {
     window.removeEventListener("resize", handler);
     window.visualViewport?.removeEventListener("resize", handler);
   };
+}
+
+/** @deprecated Use onViewportResize({ onStable }) */
+export function onStableViewportResize(callback: () => void): () => void {
+  return onViewportResize({ onStable: callback });
 }

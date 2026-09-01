@@ -6,7 +6,7 @@ import { REDUCED_MOTION_QUERY, gsap, initGsap, ScrollTrigger } from "@/lib/gsap"
 import { setLenisInstance, SECTION_SCROLL_OFFSET, pauseLenis } from "@/lib/lenis-instance";
 import { isIntroComplete, onIntroComplete } from "@/lib/site-intro";
 import { unlockDocumentScroll } from "@/lib/unlock-scroll";
-import { onStableViewportResize } from "@/lib/viewport-resize";
+import { onViewportResize } from "@/lib/viewport-resize";
 
 /** Touch-primary / mobile layout — use native scroll instead of Lenis. */
 function prefersNativeTouchScroll() {
@@ -33,6 +33,13 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     let tickerCallback: ((time: number) => void) | null = null;
     let unsubscribeIntro: (() => void) | undefined;
     const unlockTimers: number[] = [];
+
+    const refreshScrollTriggers = () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        ScrollTrigger.refresh();
+      }, 150);
+    };
 
     const refresh = () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
@@ -90,7 +97,10 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
     unlockDocumentScroll();
 
-    const unsubscribeResize = onStableViewportResize(refresh);
+    const unsubscribeResize = onViewportResize({
+      onStable: refresh,
+      onChrome: refreshScrollTriggers,
+    });
     const t = window.setTimeout(refresh, 150);
 
     if (document.fonts?.ready) {
