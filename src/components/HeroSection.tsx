@@ -2,11 +2,9 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { useAnimationWhenVisible } from "@/hooks/useAnimationWhenVisible";
 import { useHeroScrollReveal } from "@/hooks/useHeroScrollReveal";
-import { gsap, initGsap } from "@/lib/gsap";
 import {
   ENABLE_HERO_BRAIN,
   HERO_AVAILABILITY,
@@ -15,6 +13,7 @@ import {
 } from "@/lib/constants";
 import { HeroVisual } from "@/components/HeroVisual";
 import { HeroRotatingText } from "@/components/HeroRotatingText";
+import { HeroScrollCue } from "@/components/HeroScrollCue";
 import { HeroMetrics } from "@/components/HeroMetrics";
 import { HeroRevealItem } from "@/components/ui/HeroRevealItem";
 import { GradientButton } from "@/components/ui/gradient-button";
@@ -174,44 +173,8 @@ function HeroCopy({
   );
 }
 
-function HeroScrollCue({ className }: { className?: string }) {
-  const iconRef = useRef<HTMLSpanElement>(null);
-  const prefersReducedMotion = useGsapReducedMotion();
-
-  useGSAP(
-    () => {
-      initGsap();
-      const el = iconRef.current;
-      if (!el || prefersReducedMotion) return;
-
-      gsap.to(el, {
-        y: 5,
-        duration: 1.1,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
-      });
-    },
-    { scope: iconRef, dependencies: [prefersReducedMotion] },
-  );
-
-  return (
-    <HeroRevealItem
-      group="cue"
-      className={cn("pointer-events-none flex items-center justify-center", className)}
-    >
-      <span ref={iconRef} className="inline-flex" aria-hidden>
-        <svg viewBox="0 0 12 8" className="h-3 w-3 text-muted" fill="currentColor">
-          <path d="M6 8 0 0h12L6 8z" />
-        </svg>
-      </span>
-    </HeroRevealItem>
-  );
-}
-
 export function HeroSection() {
   const heroContentRef = useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = useGsapReducedMotion();
 
   useHeroScrollReveal(heroContentRef);
 
@@ -232,16 +195,18 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative overflow-x-hidden",
+        "relative min-h-dvh overflow-x-hidden",
         "lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
-      <div ref={heroContentRef} className="relative lg:h-full lg:min-h-0">
+      <HeroScrollCue />
+
+      <div ref={heroContentRef} className="relative z-10 lg:h-full lg:min-h-0">
         <div
           data-hero-panel="mobile"
           className={cn(
-            "relative mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
+            "relative z-10 mx-auto flex min-h-dvh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
             HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
           )}
         >
@@ -263,16 +228,13 @@ export function HeroSection() {
           >
             <HeroCtas />
             <HeroMetrics variant="row" />
-            {!prefersReducedMotion && (
-              <HeroScrollCue className="absolute bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2" />
-            )}
           </div>
         </div>
 
         <div
           data-hero-panel="desktop"
           className={cn(
-            "relative mx-auto hidden h-full min-h-0 w-full max-w-7xl flex-col justify-center box-border px-8 pb-16 lg:flex lg:px-12",
+            "relative z-10 mx-auto hidden h-full min-h-0 w-full max-w-7xl flex-col justify-center box-border px-8 pb-16 lg:flex lg:px-12",
             /* h-16 nav + 2.5rem breathing room — centers in the band below the bar */
             "lg:pt-[calc(4rem+2.5rem)]",
             HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
@@ -300,10 +262,6 @@ export function HeroSection() {
               <HeroMetrics variant="column" className="w-full" />
             </div>
           </div>
-
-          {!prefersReducedMotion && (
-            <HeroScrollCue className="absolute inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-10" />
-          )}
         </div>
       </div>
     </section>

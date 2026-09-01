@@ -702,6 +702,59 @@ body {
   margin-top: -0.06em;
 }
 
+/* Hero scroll cue — large muted boomerang in background */
+.hero-scroll-boomerang-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(1.25rem, 8vh, 4.5rem);
+  z-index: 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  pointer-events: none;
+}
+
+.hero-scroll-boomerang {
+  display: block;
+  color: color-mix(in oklab, var(--foreground) 20%, transparent);
+  opacity: 0.42;
+  will-change: transform, opacity;
+}
+
+.hero-scroll-boomerang__svg {
+  display: block;
+  width: clamp(22rem, 92vw, 52rem);
+  height: auto;
+  aspect-ratio: 100 / 44;
+}
+
+.hero-scroll-boomerang__fill {
+  fill: currentColor;
+  stroke: none;
+}
+
+.hero-scroll-boomerang__stroke {
+  fill: none;
+  stroke: color-mix(in oklab, var(--foreground) 42%, transparent);
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.hero-scroll-boomerang__strokes {
+  filter: drop-shadow(0 0 5px color-mix(in oklab, var(--foreground) 18%, transparent));
+}
+
+.hero-scroll-boomerang__stroke--inner {
+  stroke: color-mix(in oklab, var(--foreground) 30%, transparent);
+  stroke-width: 1;
+}
+
+.hero-scroll-boomerang--static {
+  opacity: 0.36;
+}
+
 @media (max-width: 1023px) {
   .hero-mega-solid {
     font-size: clamp(calc(4rem * 0.97), calc(19vw * 0.97), calc(6.25rem * 0.97));
