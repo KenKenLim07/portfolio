@@ -736,7 +736,7 @@ body {
 
 .hero-scroll-boomerang__border-stroke {
   fill: none;
-  stroke: color-mix(in oklab, var(--foreground) 32%, transparent);
+  stroke: color-mix(in oklab, var(--foreground) 15%, transparent);
   stroke-width: 0.55;
   stroke-linecap: butt;
   stroke-linejoin: miter;
@@ -747,6 +747,11 @@ body {
 }
 
 @media (max-width: 1023px) {
+  .hero-scroll-boomerang-layer {
+    /* More bottom padding = boomerang sits higher on mobile */
+    padding-bottom: clamp(2.5rem, 14vh, 7rem);
+  }
+
   .hero-mega-solid {
     font-size: clamp(calc(4rem * 0.97), calc(19vw * 0.97), calc(6.25rem * 0.97));
     line-height: 0.92;

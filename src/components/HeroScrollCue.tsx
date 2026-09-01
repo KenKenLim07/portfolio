@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useGSAP } from "@gsap/react";
+import { useAnimationWhenVisible } from "@/hooks/useAnimationWhenVisible";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, initGsap } from "@/lib/gsap";
 import { cn } from "@/lib/utils";
@@ -53,8 +54,8 @@ const BORDER_LEFT = [
   `L ${CX} ${BOOMERANG_GEOMETRY.innerVertexY}`,
 ].join(" ");
 
-const FILL_OPACITY = 0.22;
-const FILL_OPACITY_STATIC = 0.24;
+const FILL_OPACITY = 0.32;
+const FILL_OPACITY_STATIC = 0.34;
 
 /** Slide-down speed — lower duration = faster travel. */
 const SLIDE_DURATION = 0.57;
@@ -89,7 +90,10 @@ type HeroScrollCueProps = {
 };
 
 export function HeroScrollCue({ className }: HeroScrollCueProps) {
-  const layerRef = useRef<HTMLDivElement>(null);
+  const { ref: layerRef, isVisible } = useAnimationWhenVisible<HTMLDivElement>({
+    threshold: 0.12,
+  });
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
   const rootRef = useRef<HTMLSpanElement>(null);
   const fillRef = useRef<SVGPathElement>(null);
   const borderLeftRef = useRef<SVGPathElement>(null);
@@ -125,7 +129,8 @@ export function HeroScrollCue({ className }: HeroScrollCueProps) {
       gsap.set(fill, { fillOpacity: 0 });
       gsap.set(root, { y: 0, opacity: 1, scale: 0.985, transformOrigin: "50% 88%" });
 
-      const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.35 });
+      const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.35, paused: true });
+      timelineRef.current = tl;
 
       tl.to(borderPaths, {
         strokeDashoffset: 0,
@@ -165,6 +170,10 @@ export function HeroScrollCue({ className }: HeroScrollCueProps) {
         .call(() => {
           borderPaths.forEach((path, i) => resetStroke(path, borderLengths[i]!));
         });
+
+      return () => {
+        timelineRef.current = null;
+      };
     },
     {
       scope: layerRef,
@@ -172,6 +181,17 @@ export function HeroScrollCue({ className }: HeroScrollCueProps) {
       revertOnUpdate: true,
     },
   );
+
+  useEffect(() => {
+    const tl = timelineRef.current;
+    if (!tl || prefersReducedMotion) return;
+
+    if (isVisible) {
+      tl.play();
+    } else {
+      tl.pause();
+    }
+  }, [isVisible, prefersReducedMotion]);
 
   return (
     <div
