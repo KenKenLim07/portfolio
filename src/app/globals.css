@@ -702,16 +702,16 @@ body {
   margin-top: -0.06em;
 }
 
-/* Hero scroll cue — large muted boomerang in background */
+/* Hero scroll cue — muted boomerang in background */
 .hero-scroll-boomerang-layer {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: clamp(1.25rem, 8vh, 4.5rem);
+  inset: 0;
   z-index: 0;
   display: flex;
+  align-items: flex-end;
   justify-content: center;
-  width: 100%;
+  padding-bottom: clamp(1.25rem, 8vh, 4.5rem);
+  overflow: hidden;
   pointer-events: none;
 }
 
@@ -724,7 +724,7 @@ body {
 
 .hero-scroll-boomerang__svg {
   display: block;
-  width: clamp(22rem, 92vw, 52rem);
+  width: clamp(17rem, 68vw, 38rem);
   height: auto;
   aspect-ratio: 100 / 44;
 }
@@ -734,21 +734,12 @@ body {
   stroke: none;
 }
 
-.hero-scroll-boomerang__stroke {
+.hero-scroll-boomerang__border-stroke {
   fill: none;
-  stroke: color-mix(in oklab, var(--foreground) 50%, transparent);
-  stroke-width: 0.65;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.hero-scroll-boomerang__strokes {
-  filter: drop-shadow(0 0 4px color-mix(in oklab, var(--foreground) 14%, transparent));
-}
-
-.hero-scroll-boomerang__stroke--inner {
-  stroke: color-mix(in oklab, var(--foreground) 38%, transparent);
-  stroke-width: 0.5;
+  stroke: color-mix(in oklab, var(--foreground) 32%, transparent);
+  stroke-width: 0.55;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
 }
 
 .hero-scroll-boomerang--static {
