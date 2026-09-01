@@ -195,8 +195,8 @@ export function HeroSection() {
     <section
       id="home"
       className={cn(
-        "relative min-h-dvh overflow-x-hidden",
-        "lg:h-dvh lg:max-h-dvh lg:overflow-hidden",
+        "relative min-h-dvh overflow-hidden",
+        "lg:h-dvh lg:max-h-dvh",
         HERO_LAYOUT_DEBUG && "border-4 border-red-500",
       )}
     >
