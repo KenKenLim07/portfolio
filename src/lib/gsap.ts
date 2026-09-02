@@ -99,8 +99,7 @@ export const heroScrollReveal = {
   start: "clamp(top top)",
   /** Lower % = more hero scroll before exit completes (slower, later finish) */
   endDesktop: "clamp(bottom 22%)",
-  /** Lower % = longer scroll band before exit finishes (more noticeable on touch) */
-  endMobile: "clamp(bottom 10%)",
+  endMobile: "clamp(bottom 20%)",
   scrub: 1.25,
   y: 88,
   /** Copy: visible motion, still more legible than chrome */
@@ -131,10 +130,10 @@ export function getHeroScrollBand(isLg: boolean) {
   return {
     ...heroScrollReveal,
     end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
-    /** Match scrub-block sections — tight on touch, light lag on desktop */
-    scrub: isLg ? 1.1 : 0.55,
-    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.18,
-    exitLayerGap: isLg ? heroScrollReveal.exitLayerGap : 0.16,
+    /** Tighter coupling on touch — tracks the finger on repeated back-and-forth scrub */
+    scrub: isLg ? 1.1 : 0.45,
+    exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.1,
+    exitLayerGap: heroScrollReveal.exitLayerGap,
   };
 }
 

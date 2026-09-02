@@ -11,7 +11,7 @@ import {
   ScrollTrigger,
   type HeroExitLayer,
 } from "@/lib/gsap";
-import { getLayoutViewportHeight } from "@/lib/viewport-resize";
+import { getLayoutViewportHeight, isCoarseTouchViewport } from "@/lib/viewport-resize";
 
 const LG_QUERY = "(min-width: 1024px)";
 
@@ -50,7 +50,7 @@ function getCtaPanel(root: HTMLElement): HTMLElement | null {
   return panel?.querySelector<HTMLElement>("[data-hero-cta-panel]") ?? null;
 }
 
-/** Desktop: parallel rail. Mobile: sequential copy → intro → CTAs → metrics → cue. */
+/** Desktop: parallel rail. Mobile: sequential copy (incl. intro) → CTAs → metrics → cue. */
 function getHeroExitLayers(root: HTMLElement, isLg: boolean): HeroExitLayer[] {
   const copy = getRevealItems(root, "copy");
   const intro = getRevealItems(root, "intro");
@@ -86,11 +86,8 @@ function getHeroExitLayers(root: HTMLElement, isLg: boolean): HeroExitLayer[] {
     return layers;
   }
 
-  const copyLayer = makeCopyLayer(copy);
-  const introLayer = makeCopyLayer(intro);
-
+  const copyLayer = makeCopyLayer([...copy, ...intro]);
   if (copyLayer) layers.push(copyLayer);
-  if (introLayer) layers.push(introLayer);
   if (ctaPanel) layers.push({ targets: ctaPanel });
   if (tail.length) layers.push({ targets: tail });
   if (cue.length) layers.push({ targets: cue });
@@ -158,7 +155,7 @@ function initializeHeroVisible(root: HTMLElement, isLg: boolean) {
 
 /**
  * Hero: visible on load, scrub exit on scroll.
- * Mobile exits in order: headlines → intro → CTAs → metrics → cue.
+ * Mobile exits in order: headlines + intro → CTAs → metrics → cue.
  */
 export function useHeroScrollReveal(
   contentRef: RefObject<HTMLElement | null>,
@@ -174,14 +171,22 @@ export function useHeroScrollReveal(
       if (!home || !root || prefersReducedMotion) return;
 
       let ctx: gsap.Context | undefined;
-      let removeScrollEnd: (() => void) | undefined;
+      let removeTopSync: (() => void) | undefined;
       let heroTimeline: gsap.core.Timeline | null = null;
+
+      const resyncHeroAtTop = () => {
+        if (window.scrollY > 3) return;
+        const tl = heroTimeline;
+        if (!tl || tl.progress() <= 0.02) return;
+        // Correct toolbar drift at literal top — no ScrollTrigger.refresh (that causes scrub flicker)
+        tl.progress(0, false);
+      };
 
       const bindExit = () => {
         ctx?.revert();
         ctx = undefined;
-        removeScrollEnd?.();
-        removeScrollEnd = undefined;
+        removeTopSync?.();
+        removeTopSync = undefined;
         heroTimeline = null;
 
         const exitLayers = getHeroExitLayers(root, isLg);
@@ -209,15 +214,20 @@ export function useHeroScrollReveal(
         }, root);
 
         if (!isLg) {
-          const syncAtTop = () => {
-            if (window.scrollY > 12) return;
-            const st = heroTimeline?.scrollTrigger;
-            if (!st || st.progress <= 0.02) return;
-            ScrollTrigger.refresh();
+          ScrollTrigger.addEventListener("scrollEnd", resyncHeroAtTop);
+
+          const onViewportChange = () => {
+            if (!isCoarseTouchViewport()) return;
+            requestAnimationFrame(resyncHeroAtTop);
           };
-          ScrollTrigger.addEventListener("scrollEnd", syncAtTop);
-          removeScrollEnd = () => {
-            ScrollTrigger.removeEventListener("scrollEnd", syncAtTop);
+          window.visualViewport?.addEventListener("resize", onViewportChange);
+
+          removeTopSync = () => {
+            ScrollTrigger.removeEventListener("scrollEnd", resyncHeroAtTop);
+            window.visualViewport?.removeEventListener(
+              "resize",
+              onViewportChange,
+            );
           };
         }
       };
@@ -226,7 +236,7 @@ export function useHeroScrollReveal(
       requestAnimationFrame(() => ScrollTrigger.refresh());
 
       return () => {
-        removeScrollEnd?.();
+        removeTopSync?.();
         ctx?.revert();
       };
     },
