@@ -12,8 +12,16 @@ export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 export function initGsap() {
   if (typeof window === "undefined" || registered) return;
   gsap.registerPlugin(ScrollTrigger, useGSAP);
-  // Toolbar show/hide fires resize — refreshing mid-swipe stalls iOS/Chrome scroll.
-  ScrollTrigger.config({ ignoreMobileResize: true });
+  /**
+   * Mobile chrome show/hide fires `resize`. GSAP's ignoreMobileResize only
+   * applies when isTouch === 1 (many phones report 2 = touch+mouse), so we
+   * strip `resize` from autoRefreshEvents and refresh ourselves on real layout
+   * changes via onViewportResize({ onStable }).
+   */
+  ScrollTrigger.config({
+    ignoreMobileResize: true,
+    autoRefreshEvents: "visibilitychange,DOMContentLoaded,load",
+  });
   registered = true;
 }
 

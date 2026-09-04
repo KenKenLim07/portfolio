@@ -33,10 +33,25 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     let tickerCallback: ((time: number) => void) | null = null;
     let unsubscribeIntro: (() => void) | undefined;
     const unlockTimers: number[] = [];
+    let touchActive = false;
+
+    const onTouchStart = () => {
+      touchActive = true;
+    };
+    const onTouchEnd = () => {
+      touchActive = false;
+    };
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", onTouchEnd, { passive: true });
 
     const refresh = () => {
+      // Never refresh mid-swipe on touch — chrome resize + ST.refresh stalls scroll
+      if (touchActive && prefersNativeTouchScroll()) return;
+
       if (refreshTimer) window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => {
+        if (touchActive && prefersNativeTouchScroll()) return;
         refreshScrollMetrics(lenis);
       }, 150);
     };
@@ -92,7 +107,7 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
 
     const unsubscribeResize = onViewportResize({
       onStable: refresh,
-      // Skip chrome-only resizes — mid-scroll refresh causes scrub flicker on hero
+      // Chrome toggles: never refresh — mid-swipe ScrollTrigger.refresh stalls iOS Chrome
     });
     const t = window.setTimeout(refresh, 150);
 
@@ -114,6 +129,9 @@ export function GsapProvider({ children }: { children: React.ReactNode }) {
     return () => {
       unsubscribeResize();
       window.removeEventListener("load", onLoad);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+      window.removeEventListener("touchcancel", onTouchEnd);
       window.clearTimeout(t);
       unlockTimers.forEach((id) => window.clearTimeout(id));
       if (refreshTimer) window.clearTimeout(refreshTimer);
