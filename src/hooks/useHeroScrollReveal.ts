@@ -11,7 +11,7 @@ import {
   ScrollTrigger,
   type HeroExitLayer,
 } from "@/lib/gsap";
-import { getLayoutViewportHeight, isCoarseTouchViewport } from "@/lib/viewport-resize";
+import { getLayoutViewportHeight } from "@/lib/viewport-resize";
 
 const LG_QUERY = "(min-width: 1024px)";
 
@@ -214,20 +214,10 @@ export function useHeroScrollReveal(
         }, root);
 
         if (!isLg) {
+          // Only at literal top — never refresh ScrollTrigger (chrome toggle stalls swipe)
           ScrollTrigger.addEventListener("scrollEnd", resyncHeroAtTop);
-
-          const onViewportChange = () => {
-            if (!isCoarseTouchViewport()) return;
-            requestAnimationFrame(resyncHeroAtTop);
-          };
-          window.visualViewport?.addEventListener("resize", onViewportChange);
-
           removeTopSync = () => {
             ScrollTrigger.removeEventListener("scrollEnd", resyncHeroAtTop);
-            window.visualViewport?.removeEventListener(
-              "resize",
-              onViewportChange,
-            );
           };
         }
       };

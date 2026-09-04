@@ -206,7 +206,7 @@ export function HeroSection() {
         <div
           data-hero-panel="mobile"
           className={cn(
-            "relative z-10 mx-auto flex min-h-svh w-full max-w-7xl flex-col px-5 pb-[max(5rem,env(safe-area-inset-bottom))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
+            "relative z-10 mx-auto flex min-h-svh w-full max-w-7xl flex-col px-5 pb-[max(6.75rem,calc(env(safe-area-inset-bottom)+4.75rem))] pt-[max(4.5rem,calc(env(safe-area-inset-top)+2.75rem))] sm:px-6 sm:pt-[max(5rem,calc(env(safe-area-inset-top)+3rem))] md:px-8 lg:hidden",
             HERO_LAYOUT_DEBUG && "border-2 border-orange-400 bg-orange-400/5",
           )}
         >
@@ -222,7 +222,7 @@ export function HeroSection() {
 
           <div
             className={cn(
-              "relative mt-auto flex w-full flex-col gap-6 pt-8 pb-12 sm:gap-7 sm:pt-9 sm:pb-14",
+              "relative mt-auto flex w-full flex-col gap-6 pt-8 pb-6 sm:gap-7 sm:pt-9 sm:pb-8",
               HERO_LAYOUT_DEBUG && "rounded-sm border-2 border-dashed border-amber-400/80",
             )}
           >

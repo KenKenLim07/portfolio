@@ -12,6 +12,8 @@ export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 export function initGsap() {
   if (typeof window === "undefined" || registered) return;
   gsap.registerPlugin(ScrollTrigger, useGSAP);
+  // Toolbar show/hide fires resize — refreshing mid-swipe stalls iOS/Chrome scroll.
+  ScrollTrigger.config({ ignoreMobileResize: true });
   registered = true;
 }
 
@@ -99,7 +101,12 @@ export const heroScrollReveal = {
   start: "clamp(top top)",
   /** Lower % = more hero scroll before exit completes (slower, later finish) */
   endDesktop: "clamp(bottom 22%)",
-  endMobile: "clamp(bottom 20%)",
+  /**
+   * Mobile exit distance as a fraction of the *stable* layout viewport.
+   * Pixel-based (`+=N`) so chrome show/hide cannot stretch/shrink the scrub band.
+   * ~0.68 finishes while CTAs/metrics are still above typical bottom toolbar.
+   */
+  endMobileFactor: 0.68,
   scrub: 1.25,
   y: 88,
   /** Copy: visible motion, still more legible than chrome */
@@ -127,9 +134,16 @@ export type HeroExitLayer = {
 };
 
 export function getHeroScrollBand(isLg: boolean) {
+  const end = isLg
+    ? heroScrollReveal.endDesktop
+    : () =>
+        `+=${Math.round(
+          getLayoutViewportHeight() * heroScrollReveal.endMobileFactor,
+        )}`;
+
   return {
     ...heroScrollReveal,
-    end: isLg ? heroScrollReveal.endDesktop : heroScrollReveal.endMobile,
+    end,
     /** Tighter coupling on touch — tracks the finger on repeated back-and-forth scrub */
     scrub: isLg ? 1.1 : 0.45,
     exitScrollHold: isLg ? heroScrollReveal.exitScrollHold : 0.1,

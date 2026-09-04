@@ -20,8 +20,9 @@ export function isCoarseTouchViewport(): boolean {
 export function initStableViewportHeight(): number {
   if (typeof window === "undefined") return 0;
 
-  stableViewportHeight =
-    window.visualViewport?.height ?? window.innerHeight;
+  // Prefer layout viewport (innerHeight) over visualViewport — chrome hide
+  // temporarily inflates visualViewport and would bake a too-tall stable height.
+  stableViewportHeight = window.innerHeight;
 
   return stableViewportHeight;
 }
@@ -43,6 +44,21 @@ export function getLayoutViewportHeight(): number {
     return getStableViewportHeight();
   }
   return window.innerHeight;
+}
+
+/**
+ * Bottom browser chrome inset (address / toolbar bar overlapping the page).
+ * ~0 when chrome is hidden; typically 40–90px when visible on mobile Chrome/Safari.
+ */
+export function getBrowserChromeBottomInset(): number {
+  if (typeof window === "undefined") return 0;
+  if (!isCoarseTouchViewport()) return 0;
+
+  const vv = window.visualViewport;
+  if (!vv) return 0;
+
+  const inset = window.innerHeight - (vv.height + vv.offsetTop);
+  return Math.max(0, Math.round(inset));
 }
 
 /**

@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, heroScrollReveal, initGsap, ScrollTrigger } from "@/lib/gsap";
+import { getLayoutViewportHeight } from "@/lib/viewport-resize";
 
 /**
  * Scrub timeline weights (relative). Exit a touch lighter than the mid pass;
@@ -78,12 +79,13 @@ type UseScrubBlockRevealOptions = {
 
 function completeIfPinnedAtPageEnd(block: HTMLElement, tl: gsap.core.Timeline) {
   const sync = () => {
+    const viewportH = getLayoutViewportHeight();
     const maxScroll =
-      document.documentElement.scrollHeight - window.innerHeight;
+      document.documentElement.scrollHeight - viewportH;
     if (maxScroll <= 8 || window.scrollY < maxScroll - 24) return;
 
     const rect = block.getBoundingClientRect();
-    if (rect.top >= window.innerHeight * 0.98) return;
+    if (rect.top >= viewportH * 0.98) return;
 
     tl.progress(1, false);
   };
