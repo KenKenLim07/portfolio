@@ -118,12 +118,14 @@ export function SiteIntro() {
         path.setAttribute("d", "M0,0 H1 V1 H0 Z");
         fillEl.classList.add("intro-fill-complete");
         fillEl.style.clipPath = "none";
+        fillEl.style.setProperty("-webkit-clip-path", "none");
         return;
       }
 
       const phase = now * 0.0042;
       path.setAttribute("d", buildWaveClipPath(value, phase));
       fillEl.style.clipPath = `url(#${clipId})`;
+      fillEl.style.setProperty("-webkit-clip-path", `url(#${clipId})`);
       fillEl.classList.remove("intro-fill-complete");
     };
 
@@ -198,9 +200,7 @@ export function SiteIntro() {
       aria-label="Loading portfolio"
     >
       <svg
-        width={0}
-        height={0}
-        className="absolute"
+        className="pointer-events-none absolute h-px w-px overflow-visible"
         aria-hidden
       >
         <defs>
@@ -221,7 +221,10 @@ export function SiteIntro() {
           <span
             ref={fillRef}
             className="intro-fill absolute inset-0 overflow-hidden text-white"
-            style={{ clipPath: `url(#${clipId})` }}
+            style={{
+              clipPath: `url(#${clipId})`,
+              WebkitClipPath: `url(#${clipId})`,
+            }}
             aria-hidden
           >
             <span className="block whitespace-nowrap">{INTRO_TEXT}</span>

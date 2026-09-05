@@ -151,6 +151,7 @@ html {
 
 .intro-fill.intro-fill-complete {
   clip-path: none !important;
+  -webkit-clip-path: none !important;
 }
 
 /* Intro exit — curtain lifts to reveal portfolio underneath */
