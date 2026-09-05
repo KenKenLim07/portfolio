@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
+import {
+  preloadSparklesEngine,
+  SparklesCore,
+} from "@/components/ui/sparkles";
 import { SITE } from "@/lib/constants";
 import { pauseLenis, resumeLenis } from "@/lib/lenis-instance";
 import {
@@ -19,8 +23,42 @@ const FILL_LERP = 0.038;
 const HOLD_AT_FULL_MS = 360;
 const INTRO_TEXT = `${SITE.name}.`;
 
+/** Kick off particles while the intro module evaluates — before paint when possible. */
+if (typeof window !== "undefined") {
+  void preloadSparklesEngine();
+}
+
 function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3;
+}
+
+/**
+ * objectBoundingBox path: y=0 top, y=1 bottom.
+ * Rising liquid with a rolling sine surface.
+ */
+function buildWaveClipPath(fillPct: number, phase: number): string {
+  const level = Math.max(0, Math.min(1, fillPct / 100));
+  if (level >= 0.995) {
+    return "M0,0 H1 V1 H0 Z";
+  }
+  if (level <= 0.001) {
+    return "M0,1 H1 V1 H0 Z";
+  }
+
+  // Surface sits near the top of the filled region; amplitude shrinks near full
+  const surfaceY = 1 - level;
+  const amp = 0.035 * (1 - level * 0.55);
+  const segments = 18;
+  let d = `M0,1 L0,${(surfaceY + Math.sin(phase) * amp).toFixed(4)}`;
+
+  for (let i = 1; i <= segments; i += 1) {
+    const x = i / segments;
+    const y = surfaceY + Math.sin(x * Math.PI * 3 + phase) * amp;
+    d += ` L${x.toFixed(4)},${y.toFixed(4)}`;
+  }
+
+  d += " L1,1 Z";
+  return d;
 }
 
 export function SiteIntro() {
@@ -30,7 +68,13 @@ export function SiteIntro() {
   );
   const [exiting, setExiting] = useState(false);
   const fillRef = useRef<HTMLSpanElement>(null);
+  const wavePathRef = useRef<SVGPathElement>(null);
   const fillValue = useRef(0);
+  const clipId = useId().replace(/:/g, "");
+
+  useEffect(() => {
+    void preloadSparklesEngine();
+  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -64,10 +108,23 @@ export function SiteIntro() {
       fontsReady = true;
     });
 
-    const applyFill = (value: number, complete = false) => {
-      if (!fillRef.current) return;
-      fillRef.current.style.width = `${value}%`;
-      fillRef.current.classList.toggle("intro-fill-complete", complete);
+    const applyFill = (value: number, complete = false, now = performance.now()) => {
+      const path = wavePathRef.current;
+      const fillEl = fillRef.current;
+      if (!path || !fillEl) return;
+
+      const done = complete || value >= 97;
+      if (done) {
+        path.setAttribute("d", "M0,0 H1 V1 H0 Z");
+        fillEl.classList.add("intro-fill-complete");
+        fillEl.style.clipPath = "none";
+        return;
+      }
+
+      const phase = now * 0.0042;
+      path.setAttribute("d", buildWaveClipPath(value, phase));
+      fillEl.style.clipPath = `url(#${clipId})`;
+      fillEl.classList.remove("intro-fill-complete");
     };
 
     const completeIntro = () => {
@@ -78,7 +135,8 @@ export function SiteIntro() {
     };
 
     const tick = () => {
-      const elapsed = performance.now() - start;
+      const now = performance.now();
+      const elapsed = now - start;
       const timeProgress = Math.min(1, elapsed / (MIN_INTRO_MS * 1.15));
       const ready = bgReady && fontsReady && elapsed >= MIN_INTRO_MS;
 
@@ -88,17 +146,17 @@ export function SiteIntro() {
       if (ready) target = 100;
 
       fillValue.current += (target - fillValue.current) * FILL_LERP;
-      applyFill(fillValue.current);
+      applyFill(fillValue.current, false, now);
 
       if (!finishing && ready && fillValue.current >= 99.85) {
         finishing = true;
         holdingFull = true;
-        holdStarted = performance.now();
+        holdStarted = now;
         fillValue.current = 100;
-        applyFill(100, true);
+        applyFill(100, true, now);
       }
 
-      if (holdingFull && performance.now() - holdStarted >= HOLD_AT_FULL_MS) {
+      if (holdingFull && now - holdStarted >= HOLD_AT_FULL_MS) {
         setExiting(true);
         curtainTimer = window.setTimeout(completeIntro, CURTAIN_MS);
         return;
@@ -107,9 +165,9 @@ export function SiteIntro() {
       if (!finishing && elapsed >= MAX_INTRO_MS) {
         finishing = true;
         holdingFull = true;
-        holdStarted = performance.now();
+        holdStarted = now;
         fillValue.current = 100;
-        applyFill(100, true);
+        applyFill(100, true, now);
       }
 
       raf = requestAnimationFrame(tick);
@@ -124,23 +182,37 @@ export function SiteIntro() {
       unlockDocumentScroll();
       resumeLenis();
     };
-  }, [prefersReducedMotion]);
+  }, [clipId, prefersReducedMotion]);
 
   if (!visible) return null;
 
   return (
     <div
       className={cn(
-        "intro-curtain fixed inset-0 z-[200] bg-background motion-reduce:transition-none",
+        "intro-curtain fixed inset-0 z-[200] motion-reduce:transition-none",
+        "bg-black text-white",
         exiting && "intro-curtain-exiting",
       )}
       role="status"
       aria-live="polite"
       aria-label="Loading portfolio"
     >
-      <div className="flex h-full w-full items-center justify-center px-6">
+      <svg
+        width={0}
+        height={0}
+        className="absolute"
+        aria-hidden
+      >
+        <defs>
+          <clipPath id={clipId} clipPathUnits="objectBoundingBox">
+            <path ref={wavePathRef} d="M0,1 H1 V1 H0 Z" />
+          </clipPath>
+        </defs>
+      </svg>
+
+      <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-6">
         <h1
-          className="relative inline-block max-w-full text-center font-display text-[clamp(2.5rem,11vw,6.5rem)] font-semibold leading-[0.95] tracking-tight"
+          className="relative z-20 inline-block max-w-full text-center font-display text-[clamp(2.25rem,9vw,5.5rem)] font-semibold leading-[0.95] tracking-tight"
           aria-label={SITE.name}
         >
           <span className="block whitespace-nowrap text-white/12">
@@ -148,13 +220,33 @@ export function SiteIntro() {
           </span>
           <span
             ref={fillRef}
-            className="intro-fill absolute inset-y-0 left-0 overflow-hidden text-white"
-            style={{ width: "0%" }}
+            className="intro-fill absolute inset-0 overflow-hidden text-white"
+            style={{ clipPath: `url(#${clipId})` }}
             aria-hidden
           >
             <span className="block whitespace-nowrap">{INTRO_TEXT}</span>
           </span>
         </h1>
+
+        <div className="relative z-10 mt-2 h-36 w-full max-w-xl sm:h-40 sm:max-w-2xl">
+          <div className="absolute inset-x-[12%] top-0 h-[2px] w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm" />
+          <div className="absolute inset-x-[12%] top-0 h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
+          <div className="absolute inset-x-[32%] top-0 h-[5px] w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent blur-sm" />
+          <div className="absolute inset-x-[32%] top-0 h-px w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent" />
+
+          <SparklesCore
+            id="site-intro-sparkles"
+            background="transparent"
+            minSize={0.4}
+            maxSize={1.2}
+            particleDensity={520}
+            className="h-full w-full"
+            particleColor="#FFFFFF"
+            speed={2.5}
+          />
+
+          <div className="pointer-events-none absolute inset-0 h-full w-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]" />
+        </div>
       </div>
     </div>
   );
