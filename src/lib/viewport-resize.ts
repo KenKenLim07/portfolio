@@ -60,6 +60,16 @@ export function getBrowserChromeBottomInset(): number {
   return Math.max(0, Math.round(inset));
 }
 
+/**
+ * Pixels to keep clear above the bottom toolbar for enter/exit motion.
+ * Uses a floor even when chrome is hidden (inset ≈ 0 while scrolling down).
+ */
+export function getMobileChromeClearancePx(): number {
+  if (typeof window === "undefined") return 72;
+  const h = getLayoutViewportHeight();
+  return Math.max(getBrowserChromeBottomInset(), Math.round(h * 0.12), 72);
+}
+
 type ResizeKind = "chrome" | "stable" | "noop";
 
 /**

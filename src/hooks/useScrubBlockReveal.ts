@@ -4,7 +4,10 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
 import { gsap, heroScrollReveal, initGsap, ScrollTrigger } from "@/lib/gsap";
-import { getLayoutViewportHeight } from "@/lib/viewport-resize";
+import {
+  getLayoutViewportHeight,
+  getMobileChromeClearancePx,
+} from "@/lib/viewport-resize";
 
 /**
  * Scrub timeline weights (relative). Exit a touch lighter than the mid pass;
@@ -17,11 +20,50 @@ const SCRUB_WEIGHTS = {
   scrub: 1.1,
 } as const;
 
-/** Mobile — lighter scrub so scroll tracks the finger without a sticky catch-up phase */
+type ScrubBand = {
+  start: string | (() => string);
+  end: string | (() => string);
+};
+
+/**
+ * Mobile enter/exit must stay above the bottom toolbar.
+ * Toolbar shows on scroll-up — a fixed `top 92%` start sits under it and the
+ * fade is almost invisible. Use chrome clearance so the band tracks the safe area.
+ */
+function getMobileScrubBand(lastSection: boolean): ScrubBand {
+  const start = () => {
+    const h = getLayoutViewportHeight();
+    const clearance = getMobileChromeClearancePx();
+    // % from top where element top triggers enter (above chrome + small margin)
+    const pct = Math.min(
+      86,
+      Math.max(74, Math.round(((h - clearance) / h) * 100) - 6),
+    );
+    return `clamp(top ${pct}%)`;
+  };
+
+  if (lastSection) {
+    // Finish enter before the block sinks into the chrome zone at page end
+    const end = () => {
+      const h = getLayoutViewportHeight();
+      const clearance = getMobileChromeClearancePx();
+      const pct = Math.min(
+        88,
+        Math.max(70, Math.round(((h - clearance) / h) * 100) - 4),
+      );
+      return `clamp(bottom ${pct}%)`;
+    };
+    return { start, end };
+  }
+
+  // Exit finishes a bit higher so the last fade isn't behind the bar
+  return { start, end: "clamp(top 12%)" };
+}
+
+/** Mobile — lighter scrub; chrome-safe start so enter/exit aren't under the toolbar */
 const SCRUB_MOBILE = {
   ...SCRUB_WEIGHTS,
-  start: "clamp(top 92%)",
-  end: "clamp(top 8%)",
+  ...getMobileScrubBand(false),
   y: 48,
   exitY: 72,
   exitOpacity: heroScrollReveal.exitOpacity,
@@ -40,8 +82,6 @@ const SCRUB_DESKTOP = {
   exitOpacity: heroScrollReveal.exitOpacity,
 } as const;
 
-type ScrubConfig = typeof SCRUB_MOBILE | typeof SCRUB_DESKTOP | typeof SCRUB_LAST_MOBILE | typeof SCRUB_LAST_DESKTOP;
-
 /** Last section — shorter hold, bottom-based end so enter can finish near page end */
 const SCRUB_LAST_WEIGHTS = {
   enter: 0.85,
@@ -52,8 +92,7 @@ const SCRUB_LAST_WEIGHTS = {
 
 const SCRUB_LAST_MOBILE = {
   ...SCRUB_LAST_WEIGHTS,
-  start: "clamp(top 94%)",
-  end: "clamp(bottom 78%)",
+  ...getMobileScrubBand(true),
   y: 40,
   exitY: heroScrollReveal.y,
   exitOpacity: heroScrollReveal.exitOpacity,
@@ -67,6 +106,12 @@ const SCRUB_LAST_DESKTOP = {
   exitY: heroScrollReveal.y,
   exitOpacity: heroScrollReveal.exitOpacity,
 } as const;
+
+type ScrubConfig =
+  | typeof SCRUB_MOBILE
+  | typeof SCRUB_DESKTOP
+  | typeof SCRUB_LAST_MOBILE
+  | typeof SCRUB_LAST_DESKTOP;
 
 type UseScrubBlockRevealOptions = {
   /** Defaults to `[data-scrub-reveal]` */

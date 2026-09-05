@@ -1,7 +1,7 @@
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { getLayoutViewportHeight } from "@/lib/viewport-resize";
+import { getLayoutViewportHeight, getMobileChromeClearancePx } from "@/lib/viewport-resize";
 
 let registered = false;
 
@@ -112,9 +112,9 @@ export const heroScrollReveal = {
   /**
    * Mobile exit distance as a fraction of the *stable* layout viewport.
    * Pixel-based (`+=N`) so chrome show/hide cannot stretch/shrink the scrub band.
-   * ~0.68 finishes while CTAs/metrics are still above typical bottom toolbar.
+   * Kept short so CTAs/metrics finish exiting above the bottom toolbar.
    */
-  endMobileFactor: 0.68,
+  endMobileFactor: 0.52,
   scrub: 1.25,
   y: 88,
   /** Copy: visible motion, still more legible than chrome */
@@ -144,10 +144,17 @@ export type HeroExitLayer = {
 export function getHeroScrollBand(isLg: boolean) {
   const end = isLg
     ? heroScrollReveal.endDesktop
-    : () =>
-        `+=${Math.round(
-          getLayoutViewportHeight() * heroScrollReveal.endMobileFactor,
-        )}`;
+    : () => {
+        const h = getLayoutViewportHeight();
+        // Always clear typical bottom chrome (visible or about to show) — inset
+        // alone is 0 when the bar is hidden, which is when exit often runs.
+        const chromeClearance = getMobileChromeClearancePx();
+        const distance = Math.max(
+          140,
+          Math.round(h * heroScrollReveal.endMobileFactor) - chromeClearance,
+        );
+        return `+=${distance}`;
+      };
 
   return {
     ...heroScrollReveal,
