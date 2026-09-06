@@ -154,6 +154,24 @@ html {
   -webkit-clip-path: none !important;
 }
 
+/* Underline flicker after fill — then curtain lifts */
+@keyframes intro-name-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0;
+  }
+  42% {
+    opacity: 1;
+  }
+}
+
+.intro-name-blink {
+  animation: intro-name-blink 420ms ease-out both;
+}
+
 /* Intro exit — curtain lifts to reveal portfolio underneath */
 .intro-curtain {
   will-change: transform;

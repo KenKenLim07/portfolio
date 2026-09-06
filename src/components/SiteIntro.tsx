@@ -2,10 +2,6 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useGsapReducedMotion } from "@/hooks/useGsapReducedMotion";
-import {
-  preloadSparklesEngine,
-  SparklesCore,
-} from "@/components/ui/sparkles";
 import { SITE } from "@/lib/constants";
 import { pauseLenis, resumeLenis } from "@/lib/lenis-instance";
 import {
@@ -20,13 +16,9 @@ const MIN_INTRO_MS = 2200;
 const MAX_INTRO_MS = 6500;
 const CURTAIN_MS = 760;
 const FILL_LERP = 0.038;
-const HOLD_AT_FULL_MS = 360;
+const BLINK_MS = 420;
+const HOLD_AFTER_BLINK_MS = 220;
 const INTRO_TEXT = `${SITE.name}.`;
-
-/** Kick off particles while the intro module evaluates — before paint when possible. */
-if (typeof window !== "undefined") {
-  void preloadSparklesEngine();
-}
 
 function easeOutCubic(t: number) {
   return 1 - (1 - t) ** 3;
@@ -67,14 +59,11 @@ export function SiteIntro() {
     () => !prefersReducedMotion && !isIntroComplete(),
   );
   const [exiting, setExiting] = useState(false);
+  const [blinking, setBlinking] = useState(false);
   const fillRef = useRef<HTMLSpanElement>(null);
   const wavePathRef = useRef<SVGPathElement>(null);
   const fillValue = useRef(0);
   const clipId = useId().replace(/:/g, "");
-
-  useEffect(() => {
-    void preloadSparklesEngine();
-  }, []);
 
   useEffect(() => {
     if (prefersReducedMotion) {
@@ -94,8 +83,9 @@ export function SiteIntro() {
     let bgReady = false;
     let fontsReady = document.fonts?.status === "loaded";
     let finishing = false;
-    let holdingFull = false;
-    let holdStarted = 0;
+    let blinkingName = false;
+    let blinkStarted = 0;
+    let curtainQueued = false;
     let raf = 0;
     let curtainTimer: number | undefined;
     const start = performance.now();
@@ -152,13 +142,19 @@ export function SiteIntro() {
 
       if (!finishing && ready && fillValue.current >= 99.85) {
         finishing = true;
-        holdingFull = true;
-        holdStarted = now;
+        blinkingName = true;
+        blinkStarted = now;
         fillValue.current = 100;
         applyFill(100, true, now);
+        setBlinking(true);
       }
 
-      if (holdingFull && now - holdStarted >= HOLD_AT_FULL_MS) {
+      if (
+        blinkingName &&
+        !curtainQueued &&
+        now - blinkStarted >= BLINK_MS + HOLD_AFTER_BLINK_MS
+      ) {
+        curtainQueued = true;
         setExiting(true);
         curtainTimer = window.setTimeout(completeIntro, CURTAIN_MS);
         return;
@@ -166,10 +162,11 @@ export function SiteIntro() {
 
       if (!finishing && elapsed >= MAX_INTRO_MS) {
         finishing = true;
-        holdingFull = true;
-        holdStarted = now;
+        blinkingName = true;
+        blinkStarted = now;
         fillValue.current = 100;
         applyFill(100, true, now);
+        setBlinking(true);
       }
 
       raf = requestAnimationFrame(tick);
@@ -211,8 +208,9 @@ export function SiteIntro() {
       </svg>
 
       <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden px-6">
+        <div className="relative z-20 flex flex-col items-center">
         <h1
-          className="relative z-20 inline-block max-w-full text-center font-display text-[clamp(2.25rem,9vw,5.5rem)] font-semibold leading-[0.95] tracking-tight"
+          className="relative inline-block max-w-full text-center font-display text-[clamp(2.25rem,9vw,5.5rem)] font-semibold leading-[0.95] tracking-tight"
           aria-label={SITE.name}
         >
           <span className="block whitespace-nowrap text-white/12">
@@ -231,24 +229,17 @@ export function SiteIntro() {
           </span>
         </h1>
 
-        <div className="relative z-10 mt-2 h-36 w-full max-w-xl sm:h-40 sm:max-w-2xl">
+        <div
+          className={cn(
+            "relative z-10 mt-3 h-2 w-full max-w-xl sm:max-w-2xl",
+            blinking && "intro-name-blink",
+          )}
+        >
           <div className="absolute inset-x-[12%] top-0 h-[2px] w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent blur-sm" />
           <div className="absolute inset-x-[12%] top-0 h-px w-3/4 bg-gradient-to-r from-transparent via-indigo-500 to-transparent" />
           <div className="absolute inset-x-[32%] top-0 h-[5px] w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent blur-sm" />
           <div className="absolute inset-x-[32%] top-0 h-px w-1/4 bg-gradient-to-r from-transparent via-sky-500 to-transparent" />
-
-          <SparklesCore
-            id="site-intro-sparkles"
-            background="transparent"
-            minSize={0.4}
-            maxSize={1.2}
-            particleDensity={520}
-            className="h-full w-full"
-            particleColor="#FFFFFF"
-            speed={2.5}
-          />
-
-          <div className="pointer-events-none absolute inset-0 h-full w-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]" />
+        </div>
         </div>
       </div>
     </div>
