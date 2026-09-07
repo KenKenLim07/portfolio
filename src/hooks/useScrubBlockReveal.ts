@@ -154,6 +154,7 @@ function bindScrubBlocks(
   disableExit: boolean,
   lastSection: boolean,
   holdExitOpacity: boolean,
+  isMobile: boolean,
 ) {
   const blocks = gsap.utils
     .toArray<HTMLElement>(root.querySelectorAll(selector))
@@ -202,8 +203,12 @@ function bindScrubBlocks(
     );
 
     if (!disableExit) {
+      const keepOpacity =
+        isMobile &&
+        (holdExitOpacity ||
+          block.hasAttribute("data-scrub-hold-opacity"));
       tl.to(block, {
-        opacity: holdExitOpacity ? 1 : config.exitOpacity,
+        opacity: keepOpacity ? 1 : config.exitOpacity,
         y: -config.exitY,
         force3D: true,
         duration: config.exit,
@@ -267,7 +272,8 @@ export function useScrubBlockReveal(
             config,
             disableExit,
             lastSection,
-            holdExitOpacity && !isDesktop,
+            holdExitOpacity,
+            !isDesktop,
           );
         },
       );

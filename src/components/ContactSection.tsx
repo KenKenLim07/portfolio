@@ -60,7 +60,7 @@ const links: {
 ];
 
 export function ContactSection() {
-  const scopeRef = useScrubBlockReveal({ holdExitOpacity: true });
+  const scopeRef = useScrubBlockReveal();
 
   return (
     <Section id="contact">
@@ -99,7 +99,11 @@ export function ContactSection() {
           </div>
         </div>
 
-        <div data-scrub-reveal className="gsap-reveal">
+        <div
+          data-scrub-reveal
+          data-scrub-hold-opacity
+          className="gsap-reveal"
+        >
           <div className="radius-panel border border-border bg-[var(--form-surface)] p-6 md:p-8">
             <h3 className="font-display mb-6 text-lg font-semibold text-foreground">
               Send a message
