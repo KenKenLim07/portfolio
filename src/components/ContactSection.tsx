@@ -60,7 +60,7 @@ const links: {
 ];
 
 export function ContactSection() {
-  const scopeRef = useScrubBlockReveal();
+  const scopeRef = useScrubBlockReveal({ holdExitOpacity: true });
 
   return (
     <Section id="contact">

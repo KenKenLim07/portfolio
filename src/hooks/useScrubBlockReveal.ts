@@ -120,6 +120,8 @@ type UseScrubBlockRevealOptions = {
   disableExit?: boolean;
   /** Bottom-of-page section — completes enter before scroll runs out. */
   lastSection?: boolean;
+  /** Keep full opacity on mobile exit (form stays readable while typing). */
+  holdExitOpacity?: boolean;
 };
 
 function completeIfPinnedAtPageEnd(block: HTMLElement, tl: gsap.core.Timeline) {
@@ -151,6 +153,7 @@ function bindScrubBlocks(
   config: ScrubConfig,
   disableExit: boolean,
   lastSection: boolean,
+  holdExitOpacity: boolean,
 ) {
   const blocks = gsap.utils
     .toArray<HTMLElement>(root.querySelectorAll(selector))
@@ -200,7 +203,7 @@ function bindScrubBlocks(
 
     if (!disableExit) {
       tl.to(block, {
-        opacity: config.exitOpacity,
+        opacity: holdExitOpacity ? 1 : config.exitOpacity,
         y: -config.exitY,
         force3D: true,
         duration: config.exit,
@@ -230,6 +233,7 @@ export function useScrubBlockReveal(
   const selector = options.selector ?? "[data-scrub-reveal]";
   const disableExit = options.disableExit ?? false;
   const lastSection = options.lastSection ?? false;
+  const holdExitOpacity = options.holdExitOpacity ?? false;
 
   useGSAP(
     () => {
@@ -263,6 +267,7 @@ export function useScrubBlockReveal(
             config,
             disableExit,
             lastSection,
+            holdExitOpacity && !isDesktop,
           );
         },
       );
@@ -276,7 +281,13 @@ export function useScrubBlockReveal(
     },
     {
       scope: scopeRef,
-      dependencies: [prefersReducedMotion, selector, disableExit, lastSection],
+      dependencies: [
+        prefersReducedMotion,
+        selector,
+        disableExit,
+        lastSection,
+        holdExitOpacity,
+      ],
       revertOnUpdate: true,
     },
   );
